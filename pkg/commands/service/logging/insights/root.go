@@ -109,7 +109,7 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 		input.Domain = &c.domain.Value
 	}
 	if c.domainExactMatch {
-		input.DomainExactMatch = fastly.ToPointer(true)
+		input.DomainExactMatch = new(true)
 	}
 	if c.limit.WasSet {
 		input.Limit = &c.limit.Value

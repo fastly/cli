@@ -89,9 +89,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if c.xfrPrimAddress.WasSet {
 			primaries := make([]dnszones.Primary, len(c.xfrPrimAddress.Value))
 			for i, addr := range c.xfrPrimAddress.Value {
-				primaries[i] = dnszones.Primary{Address: fastly.ToPointer(addr)}
+				primaries[i] = dnszones.Primary{Address: new(addr)}
 				if c.xfrPrimDescription.WasSet && i < len(c.xfrPrimDescription.Value) {
-					primaries[i].Description = fastly.ToPointer(c.xfrPrimDescription.Value[i])
+					primaries[i].Description = new(c.xfrPrimDescription.Value[i])
 				}
 			}
 			xfr.Primaries = primaries

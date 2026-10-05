@@ -88,16 +88,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 	var input fastly.CreateTokenInput
 
-	input.Password = fastly.ToPointer(c.password)
+	input.Password = new(c.password)
 
 	if !c.expires.IsZero() {
 		input.ExpiresAt = &c.expires
 	}
 	if c.name != "" {
-		input.Name = fastly.ToPointer(c.name)
+		input.Name = new(c.name)
 	}
 	if len(c.scope) > 0 {
-		input.Scope = fastly.ToPointer(fastly.TokenScope(strings.Join(c.scope, " ")))
+		input.Scope = new(fastly.TokenScope(strings.Join(c.scope, " ")))
 	}
 	if len(c.services) > 0 {
 		input.Services = c.services

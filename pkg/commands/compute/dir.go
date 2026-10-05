@@ -1,10 +1,12 @@
 package compute
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 )
 
@@ -36,4 +38,18 @@ func ChangeProjectDirectory(dir string) (projectDirectory string, err error) {
 		}
 	}
 	return projectDirectory, nil
+}
+
+// packageFlagManifestError converts a failed fastly.toml read into the error
+// shown to the user, for commands whose --package flag makes the fastly.toml
+// optional. A missing fastly.toml suggests that flag as an alternative; any
+// other error is returned as is.
+func packageFlagManifestError(err error) error {
+	if errors.Is(err, os.ErrNotExist) {
+		return fsterr.RemediationError{
+			Inner:       fsterr.ErrReadingManifest.Inner,
+			Remediation: "Ensure the Fastly CLI is being run within a directory containing a fastly.toml file, alternatively use the --package flag to reference a package outside of the current project. " + fsterr.ComputeInitRemediation,
+		}
+	}
+	return err
 }

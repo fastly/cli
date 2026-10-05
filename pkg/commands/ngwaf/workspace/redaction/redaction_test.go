@@ -68,7 +68,7 @@ func TestRedactionCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(redaction)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(redaction))),
 					},
 				},
 			},
@@ -194,7 +194,7 @@ func TestRedactionRetrieve(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(redaction)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(redaction))),
 					},
 				},
 			},
@@ -208,7 +208,7 @@ func TestRedactionRetrieve(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(redaction)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(redaction))),
 					},
 				},
 			},

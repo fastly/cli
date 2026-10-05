@@ -120,12 +120,12 @@ func TestUsage(t *testing.T) {
 
 func getUsageOK(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
 	return &fastly.UsageResponse{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Data: &fastly.RegionsUsage{
 			"usa": &fastly.Usage{
-				Bandwidth:       fastly.ToPointer(uint64(1000)),
-				Requests:        fastly.ToPointer(uint64(500)),
-				ComputeRequests: fastly.ToPointer(uint64(100)),
+				Bandwidth:       new(uint64(1000)),
+				Requests:        new(uint64(500)),
+				ComputeRequests: new(uint64(100)),
 			},
 		},
 	}, nil
@@ -133,13 +133,13 @@ func getUsageOK(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageRespon
 
 func getUsageByServiceOK(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error) {
 	return &fastly.UsageByServiceResponse{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Data: &fastly.ServicesByRegionsUsage{
 			"usa": &fastly.ServicesUsage{
 				"svc123": &fastly.Usage{
-					Bandwidth:       fastly.ToPointer(uint64(1000)),
-					Requests:        fastly.ToPointer(uint64(500)),
-					ComputeRequests: fastly.ToPointer(uint64(100)),
+					Bandwidth:       new(uint64(1000)),
+					Requests:        new(uint64(500)),
+					ComputeRequests: new(uint64(100)),
 				},
 			},
 		},
@@ -148,7 +148,7 @@ func getUsageByServiceOK(_ context.Context, _ *fastly.GetUsageInput) (*fastly.Us
 
 func getUsageNilEntry(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
 	return &fastly.UsageResponse{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Data: &fastly.RegionsUsage{
 			"empty_region": nil,
 		},
@@ -157,13 +157,13 @@ func getUsageNilEntry(_ context.Context, _ *fastly.GetUsageInput) (*fastly.Usage
 
 func getUsageWithNilEntry(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
 	return &fastly.UsageResponse{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Data: &fastly.RegionsUsage{
 			"empty_region": nil,
 			"europe": &fastly.Usage{
-				Bandwidth:       fastly.ToPointer(uint64(2000)),
-				Requests:        fastly.ToPointer(uint64(300)),
-				ComputeRequests: fastly.ToPointer(uint64(50)),
+				Bandwidth:       new(uint64(2000)),
+				Requests:        new(uint64(300)),
+				ComputeRequests: new(uint64(50)),
 			},
 		},
 	}, nil
@@ -171,17 +171,17 @@ func getUsageWithNilEntry(_ context.Context, _ *fastly.GetUsageInput) (*fastly.U
 
 func getUsageMultiRegion(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
 	return &fastly.UsageResponse{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Data: &fastly.RegionsUsage{
 			"usa": &fastly.Usage{
-				Bandwidth:       fastly.ToPointer(uint64(1000)),
-				Requests:        fastly.ToPointer(uint64(500)),
-				ComputeRequests: fastly.ToPointer(uint64(100)),
+				Bandwidth:       new(uint64(1000)),
+				Requests:        new(uint64(500)),
+				ComputeRequests: new(uint64(100)),
 			},
 			"europe": &fastly.Usage{
-				Bandwidth:       fastly.ToPointer(uint64(2000)),
-				Requests:        fastly.ToPointer(uint64(300)),
-				ComputeRequests: fastly.ToPointer(uint64(50)),
+				Bandwidth:       new(uint64(2000)),
+				Requests:        new(uint64(300)),
+				ComputeRequests: new(uint64(50)),
 			},
 		},
 	}, nil
@@ -189,20 +189,20 @@ func getUsageMultiRegion(_ context.Context, _ *fastly.GetUsageInput) (*fastly.Us
 
 func getUsageByServiceMultiRegion(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error) {
 	return &fastly.UsageByServiceResponse{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Data: &fastly.ServicesByRegionsUsage{
 			"usa": &fastly.ServicesUsage{
 				"svc123": &fastly.Usage{
-					Bandwidth:       fastly.ToPointer(uint64(1000)),
-					Requests:        fastly.ToPointer(uint64(500)),
-					ComputeRequests: fastly.ToPointer(uint64(100)),
+					Bandwidth:       new(uint64(1000)),
+					Requests:        new(uint64(500)),
+					ComputeRequests: new(uint64(100)),
 				},
 			},
 			"europe": &fastly.ServicesUsage{
 				"svc456": &fastly.Usage{
-					Bandwidth:       fastly.ToPointer(uint64(2000)),
-					Requests:        fastly.ToPointer(uint64(300)),
-					ComputeRequests: fastly.ToPointer(uint64(50)),
+					Bandwidth:       new(uint64(2000)),
+					Requests:        new(uint64(300)),
+					ComputeRequests: new(uint64(50)),
 				},
 			},
 		},
@@ -211,8 +211,8 @@ func getUsageByServiceMultiRegion(_ context.Context, _ *fastly.GetUsageInput) (*
 
 func getUsageNonSuccess(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
 	return &fastly.UsageResponse{
-		Status:  fastly.ToPointer("error"),
-		Message: fastly.ToPointer("bad request"),
+		Status:  new("error"),
+		Message: new("bad request"),
 	}, nil
 }
 

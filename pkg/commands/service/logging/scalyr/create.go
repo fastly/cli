@@ -100,7 +100,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		input.Region = &c.Region.Value
 	}
 	if c.Format.WasSet {
-		input.Format = fastly.ToPointer(argparser.Content(c.Format.Value))
+		input.Format = new(argparser.Content(c.Format.Value))
 	}
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value

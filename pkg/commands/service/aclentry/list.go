@@ -113,17 +113,17 @@ func (c *ListCommand) constructInput(serviceID string) *fastly.GetACLEntriesInpu
 
 	input.ACLID = c.aclID
 	if c.direction != "" {
-		input.Direction = fastly.ToPointer(c.direction)
+		input.Direction = new(c.direction)
 	}
 	if c.page > 0 {
-		input.Page = fastly.ToPointer(c.page)
+		input.Page = new(c.page)
 	}
 	if c.perPage > 0 {
-		input.PerPage = fastly.ToPointer(c.perPage)
+		input.PerPage = new(c.perPage)
 	}
 	input.ServiceID = serviceID
 	if c.sort != "" {
-		input.Sort = fastly.ToPointer(c.sort)
+		input.Sort = new(c.sort)
 	}
 
 	return &input

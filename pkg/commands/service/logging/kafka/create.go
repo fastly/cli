@@ -142,7 +142,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseTLS.WasSet {
-		input.UseTLS = fastly.ToPointer(fastly.Compatibool(c.UseTLS.Value))
+		input.UseTLS = new(fastly.Compatibool(c.UseTLS.Value))
 	}
 
 	if c.TLSCACert.WasSet {
@@ -162,7 +162,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.ToPointer(argparser.Content(c.Format.Value))
+		input.Format = new(argparser.Content(c.Format.Value))
 	}
 
 	if c.FormatVersion.WasSet {
@@ -178,7 +178,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.ParseLogKeyvals.WasSet {
-		input.ParseLogKeyvals = fastly.ToPointer(fastly.Compatibool(c.ParseLogKeyvals.Value))
+		input.ParseLogKeyvals = new(fastly.Compatibool(c.ParseLogKeyvals.Value))
 	}
 
 	if c.ProcessingRegion.WasSet {

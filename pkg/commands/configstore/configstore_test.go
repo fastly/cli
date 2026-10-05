@@ -269,8 +269,8 @@ func TestListStoreServicesCommand(t *testing.T) {
 	)
 
 	services := []*fastly.Service{
-		{ServiceID: fastly.ToPointer("abc1"), Name: fastly.ToPointer("test1"), Type: fastly.ToPointer("wasm")},
-		{ServiceID: fastly.ToPointer("abc2"), Name: fastly.ToPointer("test2"), Type: fastly.ToPointer("vcl")},
+		{ServiceID: new("abc1"), Name: new("test1"), Type: new("wasm")},
+		{ServiceID: new("abc2"), Name: new("test2"), Type: new("vcl")},
 	}
 
 	scenarios := []testutil.CLIScenario{

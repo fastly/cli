@@ -79,7 +79,7 @@ func TestManifest(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0o600)
+			err := os.WriteFile(path, b, 0o600) //nolint:gosec // path is a hardcoded test fixture, not user input
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -152,7 +152,7 @@ func TestManifestPrepend(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0o600)
+			err := os.WriteFile(path, b, 0o600) //nolint:gosec // path is a hardcoded test fixture, not user input
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -244,7 +244,7 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 	}
 
 	defer func(fpath string, b []byte) {
-		err := os.WriteFile(fpath, b, 0o600)
+		err := os.WriteFile(fpath, b, 0o600) //nolint:gosec // fpath is a hardcoded test fixture, not user input
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -319,7 +319,7 @@ func TestManifestPersistsSetupSection(t *testing.T) {
 	}
 
 	defer func(fpath string, b []byte) {
-		err := os.WriteFile(fpath, b, 0o600)
+		err := os.WriteFile(fpath, b, 0o600) //nolint:gosec // fpath is a hardcoded test fixture, not user input
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -123,7 +123,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateSnippetInput {
 	input := fastly.CreateSnippetInput{
-		Dynamic:        fastly.ToPointer(0),
+		Dynamic:        new(0),
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	}
@@ -131,14 +131,14 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Name = &c.name.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
+		input.Content = new(argparser.Content(c.content.Value))
 	}
 	if c.location.WasSet {
 		sType := fastly.SnippetType(c.location.Value)
 		input.Type = &sType
 	}
 	if c.dynamic.WasSet {
-		input.Dynamic = fastly.ToPointer(1)
+		input.Dynamic = new(1)
 	}
 	if c.priority.WasSet {
 		input.Priority = &c.priority.Value

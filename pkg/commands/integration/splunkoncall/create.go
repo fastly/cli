@@ -55,7 +55,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.CreateIntegrationInput{
 		Name:   &c.IntegrationName,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeSplunkOnCall),
+		Type:   new(fastly.IntegrationTypeSplunkOnCall),
 		Config: config.ToMap(),
 	}
 	if c.Description.WasSet {

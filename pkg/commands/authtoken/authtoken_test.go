@@ -34,10 +34,10 @@ func TestAuthTokenCreate(t *testing.T) {
 				CreateTokenFn: func(_ context.Context, _ *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   &testutil.Date,
-						TokenID:     fastly.ToPointer("123"),
-						Name:        fastly.ToPointer("Example"),
-						Scope:       fastly.ToPointer(fastly.TokenScope("foobar")),
-						AccessToken: fastly.ToPointer("123abc"),
+						TokenID:     new("123"),
+						Name:        new("Example"),
+						Scope:       new(fastly.TokenScope("foobar")),
+						AccessToken: new("123abc"),
 					}, nil
 				},
 			},
@@ -50,10 +50,10 @@ func TestAuthTokenCreate(t *testing.T) {
 				CreateTokenFn: func(_ context.Context, i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   i.ExpiresAt,
-						TokenID:     fastly.ToPointer("123"),
+						TokenID:     new("123"),
 						Name:        i.Name,
 						Scope:       i.Scope,
-						AccessToken: fastly.ToPointer("123abc"),
+						AccessToken: new("123abc"),
 					}, nil
 				},
 			},
@@ -233,12 +233,12 @@ func getToken(_ context.Context) (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		TokenID:    fastly.ToPointer("123"),
-		Name:       fastly.ToPointer("Foo"),
-		UserID:     fastly.ToPointer("456"),
+		TokenID:    new("123"),
+		Name:       new("Foo"),
+		UserID:     new("456"),
 		Services:   []string{"a", "b"},
-		Scope:      fastly.ToPointer(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
-		IP:         fastly.ToPointer("127.0.0.1"),
+		Scope:      new(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
+		IP:         new("127.0.0.1"),
 		CreatedAt:  &t,
 		ExpiresAt:  &t,
 		LastUsedAt: &t,
@@ -251,12 +251,12 @@ func listTokens(ctx context.Context, _ *fastly.ListTokensInput) ([]*fastly.Token
 	vs := []*fastly.Token{
 		token,
 		{
-			TokenID:    fastly.ToPointer("456"),
-			Name:       fastly.ToPointer("Bar"),
-			UserID:     fastly.ToPointer("789"),
+			TokenID:    new("456"),
+			Name:       new("Bar"),
+			UserID:     new("789"),
 			Services:   []string{"a", "b"},
-			Scope:      fastly.ToPointer(fastly.GlobalScope),
-			IP:         fastly.ToPointer("127.0.0.2"),
+			Scope:      new(fastly.GlobalScope),
+			IP:         new("127.0.0.2"),
 			CreatedAt:  &t,
 			ExpiresAt:  &t,
 			LastUsedAt: &t,

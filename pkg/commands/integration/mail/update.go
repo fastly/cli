@@ -55,7 +55,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.UpdateIntegrationInput{
 		ID:     c.ID,
-		Type:   fastly.ToPointer(CommandName),
+		Type:   new(CommandName),
 		Config: map[string]string{"address": c.Address},
 	}
 	if c.IntegrationName.WasSet {

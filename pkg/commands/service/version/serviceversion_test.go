@@ -212,10 +212,10 @@ func TestVersionActivate(t *testing.T) {
 						return nil, fmt.Errorf("expected activation on cloned version 4, got %d", i.ServiceVersion)
 					}
 					return &fastly.Version{
-						Number:    fastly.ToPointer(i.ServiceVersion),
-						ServiceID: fastly.ToPointer("123"),
-						Active:    fastly.ToPointer(true),
-						Deployed:  fastly.ToPointer(true),
+						Number:    new(i.ServiceVersion),
+						ServiceID: new("123"),
+						Active:    new(true),
+						Deployed:  new(true),
 						CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 						UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 					}, nil
@@ -234,10 +234,10 @@ func TestVersionActivate(t *testing.T) {
 						return nil, fmt.Errorf("expected activation on cloned version 4, got %d", i.ServiceVersion)
 					}
 					return &fastly.Version{
-						Number:    fastly.ToPointer(i.ServiceVersion),
-						ServiceID: fastly.ToPointer("123"),
-						Active:    fastly.ToPointer(true),
-						Deployed:  fastly.ToPointer(true),
+						Number:    new(i.ServiceVersion),
+						ServiceID: new("123"),
+						Active:    new(true),
+						Deployed:  new(true),
 						CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 						UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 					}, nil
@@ -470,11 +470,11 @@ Versions: 4
 
 func updateVersionOK(_ context.Context, i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    fastly.ToPointer(i.ServiceVersion),
-		ServiceID: fastly.ToPointer("123"),
-		Active:    fastly.ToPointer(true),
-		Deployed:  fastly.ToPointer(true),
-		Comment:   fastly.ToPointer("foo"),
+		Number:    new(i.ServiceVersion),
+		ServiceID: new("123"),
+		Active:    new(true),
+		Deployed:  new(true),
+		Comment:   new("foo"),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
 }
@@ -485,10 +485,10 @@ func updateVersionError(_ context.Context, _ *fastly.UpdateVersionInput) (*fastl
 
 func activateVersionOK(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    fastly.ToPointer(i.ServiceVersion),
-		ServiceID: fastly.ToPointer("123"),
-		Active:    fastly.ToPointer(true),
-		Deployed:  fastly.ToPointer(true),
+		Number:    new(i.ServiceVersion),
+		ServiceID: new("123"),
+		Active:    new(true),
+		Deployed:  new(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
@@ -500,10 +500,10 @@ func activateVersionError(_ context.Context, _ *fastly.ActivateVersionInput) (*f
 
 func deactivateVersionOK(_ context.Context, i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    fastly.ToPointer(i.ServiceVersion),
-		ServiceID: fastly.ToPointer("123"),
-		Active:    fastly.ToPointer(false),
-		Deployed:  fastly.ToPointer(true),
+		Number:    new(i.ServiceVersion),
+		ServiceID: new("123"),
+		Active:    new(false),
+		Deployed:  new(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
@@ -515,11 +515,11 @@ func deactivateVersionError(_ context.Context, _ *fastly.DeactivateVersionInput)
 
 func stageVersionOK(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    fastly.ToPointer(i.ServiceVersion),
-		ServiceID: fastly.ToPointer("123"),
-		Active:    fastly.ToPointer(true),
-		Deployed:  fastly.ToPointer(true),
-		Staging:   fastly.ToPointer(true),
+		Number:    new(i.ServiceVersion),
+		ServiceID: new("123"),
+		Active:    new(true),
+		Deployed:  new(true),
+		Staging:   new(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
@@ -531,11 +531,11 @@ func stageVersionError(_ context.Context, _ *fastly.ActivateVersionInput) (*fast
 
 func unstageVersionOK(_ context.Context, i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    fastly.ToPointer(i.ServiceVersion),
-		ServiceID: fastly.ToPointer("123"),
-		Active:    fastly.ToPointer(false),
-		Deployed:  fastly.ToPointer(true),
-		Staging:   fastly.ToPointer(false),
+		Number:    new(i.ServiceVersion),
+		ServiceID: new("123"),
+		Active:    new(false),
+		Deployed:  new(true),
+		Staging:   new(false),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
@@ -547,11 +547,11 @@ func unstageVersionError(_ context.Context, _ *fastly.DeactivateVersionInput) (*
 
 func lockVersionOK(_ context.Context, i *fastly.LockVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    fastly.ToPointer(i.ServiceVersion),
-		ServiceID: fastly.ToPointer("123"),
-		Active:    fastly.ToPointer(false),
-		Deployed:  fastly.ToPointer(true),
-		Locked:    fastly.ToPointer(true),
+		Number:    new(i.ServiceVersion),
+		ServiceID: new("123"),
+		Active:    new(false),
+		Deployed:  new(true),
+		Locked:    new(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil

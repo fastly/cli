@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly"
 	"github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/tools/status"
 
 	"github.com/fastly/cli/pkg/commands/tools"
@@ -58,7 +57,7 @@ Tags: generic
 							Zone:   "com",
 							Status: "marketed priced transferable active",
 							Tags:   "generic",
-							Scope:  fastly.ToPointer(status.ScopeEstimate),
+							Scope:  new(status.ScopeEstimate),
 							Offers: []status.Offer{
 								{
 									Vendor:   "example.com",
@@ -93,7 +92,7 @@ Offers:
 							Zone:   "com",
 							Status: "marketed priced transferable active",
 							Tags:   "generic",
-							Scope:  fastly.ToPointer(status.ScopeEstimate),
+							Scope:  new(status.ScopeEstimate),
 							Offers: []status.Offer{
 								{
 									Vendor:   "example.com",

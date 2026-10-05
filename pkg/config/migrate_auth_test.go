@@ -354,7 +354,7 @@ func TestAuthToken_CRUD(t *testing.T) {
 	}
 
 	// Set another token.
-	token2 := &AuthToken{
+	token2 := &AuthToken{ //nolint:gosec // fake test fixture, not a real credential
 		Type:  AuthTokenTypeSSO,
 		Token: "tok_crud_2",
 		Email: "crud2@example.com",
@@ -366,7 +366,7 @@ func TestAuthToken_CRUD(t *testing.T) {
 	}
 
 	// Overwrite an existing token.
-	token1Updated := &AuthToken{
+	token1Updated := &AuthToken{ //nolint:gosec // fake test fixture, not a real credential
 		Type:  AuthTokenTypeStatic,
 		Token: "tok_crud_1_updated",
 		Email: "crud1_updated@example.com",

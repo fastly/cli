@@ -48,7 +48,7 @@ func TestPurgeAll(t *testing.T) {
 				GetVersionFn: testutil.GetVersion,
 				PurgeAllFn: func(_ context.Context, _ *fastly.PurgeAllInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: fastly.ToPointer(testStatus),
+						Status: new(testStatus),
 					}, nil
 				},
 			},
@@ -207,8 +207,8 @@ func TestPurgeURL(t *testing.T) {
 				GetVersionFn: testutil.GetVersion,
 				PurgeFn: func(_ context.Context, _ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status:  fastly.ToPointer(testStatus),
-						PurgeID: fastly.ToPointer(testPurgeID),
+						Status:  new(testStatus),
+						PurgeID: new(testPurgeID),
 					}, nil
 				},
 			},
@@ -221,8 +221,8 @@ func TestPurgeURL(t *testing.T) {
 				GetVersionFn: testutil.GetVersion,
 				PurgeFn: func(_ context.Context, _ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status:  fastly.ToPointer(testStatus),
-						PurgeID: fastly.ToPointer(testPurgeID),
+						Status:  new(testStatus),
+						PurgeID: new(testPurgeID),
 					}, nil
 				},
 			},
