@@ -30,6 +30,16 @@ func TestIsGlobalFlagsOnly(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "help flag only",
+			args: []string{"--help"},
+			want: true,
+		},
+		{
+			name: "short help flag only",
+			args: []string{"-h"},
+			want: true,
+		},
+		{
 			name: "subcommand present",
 			args: []string{"--verbose", "version"},
 			want: false,
@@ -40,6 +50,48 @@ func TestIsGlobalFlagsOnly(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := argparser.IsGlobalFlagsOnly(tt.args); got != tt.want {
 				t.Errorf("IsGlobalFlagsOnly(%v) = %v, want %v", tt.args, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsHelpFlagOnly(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want bool
+	}{
+		{
+			name: "--help",
+			args: []string{"--help"},
+			want: true,
+		},
+		{
+			name: "-h",
+			args: []string{"-h"},
+			want: true,
+		},
+		{
+			name: "-h with subcommand",
+			args: []string{"-h", "service"},
+			want: true,
+		},
+		{
+			name: "subcommand first",
+			args: []string{"service", "-h"},
+			want: false,
+		},
+		{
+			name: "empty",
+			args: []string{},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := argparser.IsHelpFlagOnly(tt.args); got != tt.want {
+				t.Errorf("IsHelpFlagOnly(%v) = %v, want %v", tt.args, got, tt.want)
 			}
 		})
 	}
