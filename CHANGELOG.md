@@ -16,6 +16,8 @@
 - feat(service/logging): add support for the 'public-key` flag for GCS logging ([#1925](https://github.com/fastly/cli/pull/1925))
 - feat(help): add -h short flag for --help. ([#1918](https://github.com/fastly/cli/pull/1918))
 - feat(routing-config): add CLI support for routing configs ([#1931](https://github.com/fastly/cli/pull/1931))
+- docs(compute): for `compute deploy` and `compute publish`, the `--version` help now says that the flag is optional and
+  defaults to the active version, or to the latest version if none is active. ([#1928](https://github.com/fastly/cli/pull/1928))
 
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.3 to 1.2.4 ([#1913](https://github.com/fastly/cli/pull/1913))

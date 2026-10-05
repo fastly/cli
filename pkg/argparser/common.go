@@ -29,6 +29,10 @@ var (
 	FlagVersionName = "version"
 	// FlagVersionDesc is the flag description.
 	FlagVersionDesc = "'latest', 'active', 'staged', or the number of a specific Fastly service version"
+	// FlagVersionOptionalDesc is the flag description for commands where the
+	// version flag is optional. It describes what OptionalServiceVersion.Parse
+	// does when the flag is omitted.
+	FlagVersionOptionalDesc = FlagVersionDesc + " (default: the active version, or the latest version if none is active)"
 )
 
 // PaginationDirection is a list of directions the page results can be displayed.
