@@ -8,6 +8,9 @@
 
 - fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
 - fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
+- fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
+  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector.
+
 
 ### Enhancements:
 
@@ -22,6 +25,7 @@
 - build(deps): `github.com/hashicorp/go-uuid` from 1.0.3 to 1.0.4 ([#1919](https://github.com/fastly/cli/pull/1919))
 - build(deps): `github.com/ulikunitz/xz` from 0.5.16 to 0.5.17 ([#1919](https://github.com/fastly/cli/pull/1919))
 - build(deps): `github.com/fastly/go-fastly/v17` from 17.4.0 to 17.7.0 ([#1919](https://github.com/fastly/cli/pull/1919))
+- build(deps): `@xhmikosr/decompress` from 11.1.3 to 11.1.4 ([#1927](https://github.com/fastly/cli/pull/1927))
 
 ## [v16.1.0](https://github.com/fastly/cli/releases/tag/v16.1.0) (2026-09-14)
 
