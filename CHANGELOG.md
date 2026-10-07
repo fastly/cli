@@ -15,6 +15,7 @@
 ### Enhancements:
 
 - feat(service/logging): add support for the 'public-key` flag for GCS logging ([#1925](https://github.com/fastly/cli/pull/1925))
+- feat(help): add -h short flag for --help. ([#1918](https://github.com/fastly/cli/pull/1918))
 
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.3 to 1.2.4 ([#1913](https://github.com/fastly/cli/pull/1913))
@@ -26,6 +27,12 @@
 - build(deps): `github.com/ulikunitz/xz` from 0.5.16 to 0.5.17 ([#1919](https://github.com/fastly/cli/pull/1919))
 - build(deps): `github.com/fastly/go-fastly/v17` from 17.4.0 to 17.7.0 ([#1919](https://github.com/fastly/cli/pull/1919))
 - build(deps): `@xhmikosr/decompress` from 11.1.3 to 11.1.4 ([#1927](https://github.com/fastly/cli/pull/1927))
+- build(deps): `github.com/minio/minlz` from 1.2.0 to 1.2.1 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/andybalholm/brotli` from 1.2.4 to 1.2.6 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/klauspost/compress` from 1.20.0 to 1.20.1 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/klauspost/pgzip` from 1.2.6 to 1.2.7 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.30 to 4.1.31 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/fastly/go-fastly/v17` from 17.7.0 to 17.8.0 ([#1929](https://github.com/fastly/cli/pull/1929))
 
 ## [v16.1.0](https://github.com/fastly/cli/releases/tag/v16.1.0) (2026-09-14)
 
