@@ -490,6 +490,17 @@
     "update": {
       "apis": [
         "https://www.fastly.com/documentation/reference/api/domain-management/domains/#update-dm-domain"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly domain update --domain-id 1a2b3c4d --routing-config-id 5e6f7g8h",
+          "description": "The routing config must be active before it can be associated with a domain.",
+          "title": "Associate a domain with a routing config"
+        },
+        {
+          "cmd": "fastly domain update --domain-id 1a2b3c4d --routing-config-id nil",
+          "title": "Remove a domain's association with its routing config"
+        }
       ]
     }
   },

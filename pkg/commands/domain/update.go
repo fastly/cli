@@ -17,11 +17,10 @@ import (
 // UpdateCommand calls the Fastly API to update domains.
 type UpdateCommand struct {
 	argparser.Base
-	domainID             string
-	serviceID            string
-	description          argparser.OptionalString
-	routingConfigID      argparser.OptionalString
-	unsetRoutingConfigID bool
+	domainID        string
+	serviceID       string
+	description     argparser.OptionalString
+	routingConfigID argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -39,8 +38,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	// Optional
 	c.CmdClause.Flag("description", "The description for the domain").Action(c.description.Set).StringVar(&c.description.Value)
 	c.CmdClause.Flag("service-id", "The service_id associated with your domain (omit to unset)").StringVar(&c.serviceID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier to associate with the domain. The routing config must be active").Action(c.routingConfigID.Set).StringVar(&c.routingConfigID.Value)
-	c.CmdClause.Flag("unset-routing-config-id", "Remove the domain's association with its routing config").BoolVar(&c.unsetRoutingConfigID)
+	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier to associate with the domain. The routing config must be active. Pass 'nil' to remove the association").Action(c.routingConfigID.Set).StringVar(&c.routingConfigID.Value)
 
 	return &c
 }
@@ -58,13 +56,12 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Description = &c.description.Value
 	}
 
-	if c.unsetRoutingConfigID && c.routingConfigID.WasSet {
-		return errors.New("--routing-config-id and --unset-routing-config-id are mutually exclusive")
-	}
-	if c.unsetRoutingConfigID {
-		input.RoutingConfigurationID = fastly.NullValue[string]()
-	} else if c.routingConfigID.WasSet {
-		input.RoutingConfigurationID = fastly.NewNullable(c.routingConfigID.Value)
+	if c.routingConfigID.WasSet {
+		if c.routingConfigID.Value == "nil" {
+			input.RoutingConfigurationID = fastly.NullValue[string]()
+		} else {
+			input.RoutingConfigurationID = fastly.NewNullable(c.routingConfigID.Value)
+		}
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

@@ -195,10 +195,6 @@ func TestDomainUpdate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --domain-id not provided",
 		},
 		{
-			Args:      fmt.Sprintf("--domain-id %s --routing-config-id %s --unset-routing-config-id", did, rcid),
-			WantError: "--routing-config-id and --unset-routing-config-id are mutually exclusive",
-		},
-		{
 			Args: fmt.Sprintf("--domain-id %s --routing-config-id %s", did, rcid),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
@@ -216,7 +212,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantOutput: fmt.Sprintf("SUCCESS: Updated domain '%s' (domain-id: %s, routing-config-id: %s)", fqdn, did, rcid),
 		},
 		{
-			Args: fmt.Sprintf("--domain-id %s --unset-routing-config-id", did),
+			Args: fmt.Sprintf("--domain-id %s --routing-config-id nil", did),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
