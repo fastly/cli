@@ -57,7 +57,7 @@ func TestPagerDutyAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(pagerdutyAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(pagerdutyAlert))),
 					},
 				},
 			},
@@ -71,7 +71,7 @@ func TestPagerDutyAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(pagerdutyAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(pagerdutyAlert))),
 					},
 				},
 			},
@@ -218,7 +218,7 @@ func TestPagerDutyAlertGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(pagerdutyAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(pagerdutyAlert))),
 					},
 				},
 			},
@@ -232,7 +232,7 @@ func TestPagerDutyAlertGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(pagerdutyAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(pagerdutyAlert))),
 					},
 				},
 			},

@@ -267,7 +267,7 @@ func TestAuthShow(t *testing.T) {
 				Auth: config.Auth{
 					Default: "mytoken",
 					Tokens: config.AuthTokens{
-						"mytoken": &config.AuthToken{
+						"mytoken": &config.AuthToken{ // #nosec G101 (CWE-798)
 							Type:              config.AuthTokenTypeStatic,
 							Token:             "test-token-value",
 							Email:             "alice@example.com",
@@ -495,7 +495,7 @@ func TestEnrichWithTokenSelfPreservesOnFailure(t *testing.T) {
 		},
 	})
 
-	at := &config.AuthToken{
+	at := &config.AuthToken{ // #nosec G101 (CWE-798)
 		Token:             "existing-token",
 		APITokenName:      "original-name",
 		APITokenScope:     "global",

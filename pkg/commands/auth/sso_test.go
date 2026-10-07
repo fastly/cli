@@ -670,7 +670,7 @@ func TestSSO(t *testing.T) {
 					Result: result,
 				}
 				go func() {
-					result <- auth.AuthorizationResult{
+					result <- auth.AuthorizationResult{ // #nosec G101 (CWE-798)
 						SessionToken: "sso-env-token",
 					}
 				}()

@@ -98,7 +98,7 @@ func TestSignalListCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(stringlist)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(stringlist))),
 					},
 				},
 			},
@@ -240,7 +240,7 @@ func TestSignalListGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(stringlist)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(stringlist))),
 					},
 				},
 			},
@@ -254,7 +254,7 @@ func TestSignalListGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(stringlist)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(stringlist))),
 					},
 				},
 			},
