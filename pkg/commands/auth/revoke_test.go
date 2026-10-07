@@ -235,7 +235,7 @@ func TestAuthRevoke(t *testing.T) {
 					Default: "other",
 					Tokens: config.AuthTokens{
 						"other":  &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "other-tok"},
-						"target": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok-from-stdin"},
+						"target": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok-from-stdin"}, // #nosec G101 (CWE-798)
 					},
 				},
 			},

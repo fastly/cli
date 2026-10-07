@@ -165,7 +165,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 func TestHealthCheckDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args:      ("--service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{

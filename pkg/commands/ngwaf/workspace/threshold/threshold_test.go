@@ -110,7 +110,7 @@ func TestThresholdCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(threshold)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(threshold))),
 					},
 				},
 			},
@@ -236,7 +236,7 @@ func TestThresholdGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(threshold)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(threshold))),
 					},
 				},
 			},
@@ -250,7 +250,7 @@ func TestThresholdGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(threshold)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(threshold))),
 					},
 				},
 			},

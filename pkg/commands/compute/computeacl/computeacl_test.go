@@ -53,7 +53,7 @@ func TestComputeACLCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(acl)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(acl))),
 					},
 				},
 			},
@@ -181,7 +181,7 @@ func TestComputeACLDescribe(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(acl)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(acl))),
 					},
 				},
 			},
@@ -195,7 +195,7 @@ func TestComputeACLDescribe(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(acl)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(acl))),
 					},
 				},
 			},
@@ -364,7 +364,7 @@ func TestComputeACLLookup(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(entry)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(entry))),
 					},
 				},
 			},
@@ -378,7 +378,7 @@ func TestComputeACLLookup(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(entry)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(entry))),
 					},
 				},
 			},

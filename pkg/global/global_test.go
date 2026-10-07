@@ -36,10 +36,10 @@ func TestToken(t *testing.T) {
 			wantToken:  "stored-token-value",
 			wantSource: lookup.SourceAuth,
 		},
-		{
+		{ // #nosec G101 (CWE-798)
 			name: "token flag raw value when no stored name matches",
 			data: &global.Data{
-				Flags: global.Flags{Token: "raw-api-token"},
+				Flags: global.Flags{Token: "raw-api-token"}, // #nosec G101 (CWE-798)
 				Config: config.File{
 					Auth: config.Auth{
 						Default: "user",
