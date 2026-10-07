@@ -2,6 +2,9 @@ version: "2"
 run:
   allow-parallel-runners: true
   modules-download-mode: readonly
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
 linters:
   enable:
     - durationcheck
