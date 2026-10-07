@@ -32,7 +32,7 @@ func printVerbose(out io.Writer, data []paths.Data) {
 		fmt.Fprintf(out, "Path ID: %s\n", d.PathID)
 		fmt.Fprintf(out, "Created at: %s\n", d.CreatedAt)
 		if d.UpdatedAt != nil {
-			fmt.Fprintf(out, "Updated at: %s\n", *d.UpdatedAt)
+			fmt.Fprintf(out, "Updated at: %s\n", d.UpdatedAt.String())
 		}
 		fmt.Fprintf(out, "\n")
 	}

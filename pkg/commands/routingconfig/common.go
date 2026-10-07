@@ -33,10 +33,10 @@ func printVerbose(out io.Writer, data []routingconfigs.Data) {
 		fmt.Fprintf(out, "State: %s\n", d.State)
 		fmt.Fprintf(out, "Created at: %s\n", d.CreatedAt)
 		if d.UpdatedAt != nil {
-			fmt.Fprintf(out, "Updated at: %s\n", *d.UpdatedAt)
+			fmt.Fprintf(out, "Updated at: %s\n", d.UpdatedAt.String())
 		}
 		if d.ActivatedAt != nil {
-			fmt.Fprintf(out, "Activated at: %s\n", *d.ActivatedAt)
+			fmt.Fprintf(out, "Activated at: %s\n", d.ActivatedAt.String())
 		}
 		fmt.Fprintf(out, "\n")
 	}
