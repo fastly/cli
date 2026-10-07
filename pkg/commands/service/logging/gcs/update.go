@@ -42,6 +42,7 @@ type UpdateCommand struct {
 	Placement         argparser.OptionalString
 	ProcessingRegion  argparser.OptionalString
 	ProjectID         argparser.OptionalString
+	PublicKey         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	SecretKey         argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
@@ -84,6 +85,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	logflags.Placement(c.CmdClause, &c.Placement)
 	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "GCS")
 	c.CmdClause.Flag("project-id", "The google project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
+	logflags.PublicKey(c.CmdClause, &c.PublicKey)
 	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -153,6 +155,9 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value
+	}
+	if c.PublicKey.WasSet {
+		input.PublicKey = &c.PublicKey.Value
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value

@@ -14,6 +14,7 @@
 
 ### Enhancements:
 
+- feat(service/logging): add support for the 'public-key` flag for GCS logging ([#1925](https://github.com/fastly/cli/pull/1925))
 - feat(help): add -h short flag for --help. ([#1918](https://github.com/fastly/cli/pull/1918))
 
 ### Dependencies:
