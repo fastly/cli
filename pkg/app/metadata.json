@@ -3789,6 +3789,270 @@
       "https://www.fastly.com/documentation/reference/api/products/"
     ]
   },
+  "routing-config": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#create-a-routing-config"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly routing-config create --name my-routing-config",
+          "title": "Create a new routing config"
+        }
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#get-a-routing-config"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly routing-config describe --routing-config-id 1a2b3c4d",
+          "title": "Retrieve a single routing config by its identifier"
+        }
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#list-routing-configs"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly routing-config list",
+          "title": "List all routing configs"
+        }
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#delete-a-routing-config"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly routing-config delete --routing-config-id 1a2b3c4d",
+          "title": "Delete a routing config"
+        }
+      ]
+    },
+    "activate": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#activate-the-draft"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly routing-config activate --routing-config-id 1a2b3c4d",
+          "title": "Activate the current draft version of a routing config"
+        }
+      ]
+    },
+    "deactivate": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#deactivate-a-routing-config"
+      ],
+      "examples": [
+        {
+          "cmd": "fastly routing-config deactivate --routing-config-id 1a2b3c4d",
+          "title": "Deactivate a routing config's active version"
+        }
+      ]
+    },
+    "draft": {
+      "diff": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#get-the-draft-diff"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config draft diff --routing-config-id 1a2b3c4d",
+            "title": "Show the differences between a routing config's active and draft versions"
+          }
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#update-the-draft"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config draft update --routing-config-id 1a2b3c4d --comment \"adding a new path\"",
+            "title": "Set the comment on a routing config's draft version"
+          }
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#discard-the-draft"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config draft delete --routing-config-id 1a2b3c4d",
+            "title": "Discard a routing config's draft version"
+          }
+        ]
+      }
+    },
+    "version": {
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#list-versions"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config version list --routing-config-id 1a2b3c4d",
+            "title": "List a routing config's inactive versions"
+          }
+        ]
+      },
+      "activate": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#reactivate-a-version"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config version activate --routing-config-id 1a2b3c4d --version-id 5e6f7g8h",
+            "title": "Reactivate a previous version of a routing config"
+          }
+        ]
+      },
+      "delete-inactive": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#delete-inactive-versions"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config version delete-inactive --routing-config-id 1a2b3c4d",
+            "title": "Permanently delete all inactive versions of a routing config"
+          }
+        ]
+      }
+    },
+    "path": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#create-a-path"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config path create --routing-config-id 1a2b3c4d --path /",
+            "title": "Create a path within a routing config"
+          }
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#get-a-path"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config path describe --routing-config-id 1a2b3c4d --path-id 5e6f7g8h",
+            "title": "Retrieve a single path by its identifier"
+          }
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#list-paths"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config path list --routing-config-id 1a2b3c4d",
+            "title": "List paths within a routing config"
+          }
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#update-a-path"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config path update --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --path /new-path",
+            "title": "Update a path"
+          }
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#delete-a-path"
+        ],
+        "examples": [
+          {
+            "cmd": "fastly routing-config path delete --routing-config-id 1a2b3c4d --path-id 5e6f7g8h",
+            "title": "Delete a path"
+          }
+        ]
+      },
+      "rule": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#create-a-rule"
+          ],
+          "examples": [
+            {
+              "cmd": "fastly routing-config path rule create --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --file rule.json",
+              "description": "Where rule.json contains `{\"action\": {\"type\": \"service\", \"value\": \"SU1Z0isxPaozGVKXdv0eY\"}}`, with no \"conditions\" field, to create the default (catch-all) rule for the path.",
+              "title": "Create the default (catch-all) rule for a path"
+            },
+            {
+              "cmd": "fastly routing-config path rule create --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --file rule.json",
+              "description": "Where rule.json contains `{\"action\": {\"type\": \"service\", \"value\": \"SU1Z0isxPaozGVKXdv0eY\"}, \"conditions\": [{\"type\": \"header\", \"key\": \"X-Test\", \"operator\": \"equals\", \"value\": \"1\"}]}`.",
+              "title": "Create a conditional rule within a path"
+            }
+          ]
+        },
+        "describe": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#get-a-rule"
+          ],
+          "examples": [
+            {
+              "cmd": "fastly routing-config path rule describe --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --rule-id 9i0j1k2l",
+              "title": "Retrieve a single rule by its identifier"
+            }
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#list-rules"
+          ],
+          "examples": [
+            {
+              "cmd": "fastly routing-config path rule list --routing-config-id 1a2b3c4d --path-id 5e6f7g8h",
+              "title": "List rules within a path"
+            }
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#update-a-rule"
+          ],
+          "examples": [
+            {
+              "cmd": "fastly routing-config path rule update --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --rule-id 9i0j1k2l --file rule.json",
+              "description": "Where rule.json contains `{\"conditions\": [{\"type\": \"header\", \"key\": \"X-Test\", \"operator\": \"equals\", \"value\": \"2\"}]}`. Fields omitted from the JSON (such as \"action\" here) are left unchanged.",
+              "title": "Update a rule's conditions"
+            },
+            {
+              "cmd": "fastly routing-config path rule update --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --rule-id 9i0j1k2l --file rule.json",
+              "description": "Where rule.json contains `{\"conditions\": []}`, to turn the rule into the default (catch-all) rule for its path.",
+              "title": "Turn a rule into the default (catch-all) rule for its path"
+            }
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/domain-management/routing-configs/#delete-a-rule"
+          ],
+          "examples": [
+            {
+              "cmd": "fastly routing-config path rule delete --routing-config-id 1a2b3c4d --path-id 5e6f7g8h --rule-id 9i0j1k2l",
+              "title": "Delete a rule"
+            }
+          ]
+        }
+      }
+    }
+  },
   "secret-store": {
     "create": {
       "apis": [

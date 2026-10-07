@@ -187,11 +187,49 @@ func TestDomainUpdate(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
+	rcid := "routing-config-id"
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required flag --domain-id not provided",
+		},
+		{
+			Args:      fmt.Sprintf("--domain-id %s --routing-config-id %s --unset-routing-config-id", did, rcid),
+			WantError: "--routing-config-id and --unset-routing-config-id are mutually exclusive",
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s --routing-config-id %s", did, rcid),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(domains.Data{
+							DomainID:               did,
+							FQDN:                   fqdn,
+							RoutingConfigurationID: &rcid,
+						}))),
+					},
+				},
+			},
+			WantOutput: fmt.Sprintf("SUCCESS: Updated domain '%s' (domain-id: %s, routing-config-id: %s)", fqdn, did, rcid),
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s --unset-routing-config-id", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(domains.Data{
+							DomainID: did,
+							FQDN:     fqdn,
+						}))),
+					},
+				},
+			},
+			WantOutput: fmt.Sprintf("SUCCESS: Updated domain '%s' (domain-id: %s)", fqdn, did),
 		},
 		{
 			Args: fmt.Sprintf("--domain-id %s --service-id %s", did, sid),

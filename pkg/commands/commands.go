@@ -128,6 +128,11 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
+	"github.com/fastly/cli/pkg/commands/routingconfig"
+	routingconfigdraft "github.com/fastly/cli/pkg/commands/routingconfig/draft"
+	routingconfigpath "github.com/fastly/cli/pkg/commands/routingconfig/path"
+	routingconfigpathrule "github.com/fastly/cli/pkg/commands/routingconfig/path/rule"
+	routingconfigversion "github.com/fastly/cli/pkg/commands/routingconfig/version"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
@@ -600,6 +605,33 @@ func Define( // nolint:revive // function-length
 			profileList, profileSwitch, profileToken, profileUpdate,
 		}
 	}
+	routingConfigCmdRoot := routingconfig.NewRootCommand(app, data)
+	routingConfigCreate := routingconfig.NewCreateCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDescribe := routingconfig.NewDescribeCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigList := routingconfig.NewListCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDelete := routingconfig.NewDeleteCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigActivate := routingconfig.NewActivateCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDeactivate := routingconfig.NewDeactivateCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDraftCmdRoot := routingconfigdraft.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDraftDiff := routingconfigdraft.NewDiffCommand(routingConfigDraftCmdRoot.CmdClause, data)
+	routingConfigDraftUpdate := routingconfigdraft.NewUpdateCommand(routingConfigDraftCmdRoot.CmdClause, data)
+	routingConfigDraftDelete := routingconfigdraft.NewDeleteCommand(routingConfigDraftCmdRoot.CmdClause, data)
+	routingConfigVersionCmdRoot := routingconfigversion.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigVersionList := routingconfigversion.NewListCommand(routingConfigVersionCmdRoot.CmdClause, data)
+	routingConfigVersionActivate := routingconfigversion.NewActivateCommand(routingConfigVersionCmdRoot.CmdClause, data)
+	routingConfigVersionDeleteInactive := routingconfigversion.NewDeleteInactiveCommand(routingConfigVersionCmdRoot.CmdClause, data)
+	routingConfigPathCmdRoot := routingconfigpath.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigPathCreate := routingconfigpath.NewCreateCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathDescribe := routingconfigpath.NewDescribeCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathList := routingconfigpath.NewListCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathUpdate := routingconfigpath.NewUpdateCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathDelete := routingconfigpath.NewDeleteCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathRuleCmdRoot := routingconfigpathrule.NewRootCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathRuleCreate := routingconfigpathrule.NewCreateCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleDescribe := routingconfigpathrule.NewDescribeCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleList := routingconfigpathrule.NewListCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleUpdate := routingconfigpathrule.NewUpdateCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleDelete := routingconfigpathrule.NewDeleteCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
 	secretstoreCmdRoot := secretstore.NewRootCommand(app, data)
 	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, data)
 	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, data)
@@ -1717,6 +1749,35 @@ func Define( // nolint:revive // function-length
 		productsCmdRoot,
 	}...)
 	cmds = append(cmds, profileCommands...)
+	cmds = append(cmds, []argparser.Command{
+		routingConfigCmdRoot,
+		routingConfigCreate,
+		routingConfigDescribe,
+		routingConfigList,
+		routingConfigDelete,
+		routingConfigActivate,
+		routingConfigDeactivate,
+		routingConfigDraftCmdRoot,
+		routingConfigDraftDiff,
+		routingConfigDraftUpdate,
+		routingConfigDraftDelete,
+		routingConfigVersionCmdRoot,
+		routingConfigVersionList,
+		routingConfigVersionActivate,
+		routingConfigVersionDeleteInactive,
+		routingConfigPathCmdRoot,
+		routingConfigPathCreate,
+		routingConfigPathDescribe,
+		routingConfigPathList,
+		routingConfigPathUpdate,
+		routingConfigPathDelete,
+		routingConfigPathRuleCmdRoot,
+		routingConfigPathRuleCreate,
+		routingConfigPathRuleDescribe,
+		routingConfigPathRuleList,
+		routingConfigPathRuleUpdate,
+		routingConfigPathRuleDelete,
+	}...)
 	cmds = append(cmds, []argparser.Command{
 		secretstoreCreate,
 		secretstoreDescribe,
