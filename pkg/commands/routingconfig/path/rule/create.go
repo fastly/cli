@@ -98,7 +98,7 @@ func readRuleFile(path string, i any) error {
 	}
 
 	if err := json.Unmarshal(b, i); err != nil {
-		return fmt.Errorf("failed to unmarshal json data in '%s': %w", path, err)
+		return fmt.Errorf("failed to unmarshal JSON in '%s': %w", path, err)
 	}
 	return nil
 }
