@@ -27,7 +27,7 @@ func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *Deactiva
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("deactivate", "Deactivate a routing config, leaving it without an active version")
+	c.CmdClause = parent.Command("deactivate", "Deactivate a routing config, leaving it without an active version. This does not unlink the routing config from any domains it's associated with; unset those manually with 'fastly domain update --routing-config-id nil'")
 
 	// Required.
 	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
@@ -55,5 +55,6 @@ func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Deactivated routing config '%s' (routing-config-id: %s)", d.Name, d.RoutingConfigID)
+	text.Warning(out, "This does not unlink the routing config from any domains. If domains are still associated with it, unset them with 'fastly domain update --domain-id <id> --routing-config-id nil'.")
 	return nil
 }
