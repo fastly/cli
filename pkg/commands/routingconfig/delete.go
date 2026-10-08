@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete routing configs.
+// DeleteCommand calls the Fastly API to delete a routing config.
 type DeleteCommand struct {
 	argparser.Base
 	routingConfigID string

@@ -60,6 +60,6 @@ func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Activated version '%s' for routing config '%s' (routing-config-id: %s)", c.versionID, d.Name, d.RoutingConfigID)
+	text.Success(out, "Reactivated version '%s' for routing config '%s' (routing-config-id: %s)", c.versionID, d.Name, d.RoutingConfigID)
 	return nil
 }

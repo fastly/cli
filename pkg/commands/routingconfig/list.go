@@ -18,7 +18,6 @@ type ListCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	limit argparser.OptionalInt
 	sort  argparser.OptionalString
 	state argparser.OptionalStringSlice
 }
@@ -34,7 +33,6 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("limit", "Limit how many results are returned per page").Action(c.limit.Set).IntVar(&c.limit.Value)
 	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
 	c.CmdClause.Flag("state", "Filter results by lifecycle state. Set flag multiple times to filter by multiple states").Action(c.state.Set).StringsVar(&c.state.Value)
 	return &c
@@ -48,9 +46,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &routingconfigs.ListInput{}
 
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
-	}
 	if c.sort.WasSet {
 		input.Sort = &c.sort.Value
 	}
@@ -66,7 +61,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	cl, err := routingconfigs.List(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Limit": c.limit.Value,
 			"Sort":  c.sort.Value,
 			"State": c.state.Value,
 		})

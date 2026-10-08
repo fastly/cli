@@ -23,8 +23,7 @@ type ListCommand struct {
 	routingConfigID string
 
 	// Optional.
-	limit argparser.OptionalInt
-	sort  argparser.OptionalString
+	sort argparser.OptionalString
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -42,7 +41,6 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("limit", "Limit how many results are returned per page").Action(c.limit.Set).IntVar(&c.limit.Value)
 	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
 	return &c
 }
@@ -56,9 +54,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &rules.ListInput{
 		PathID:          &c.pathID,
 		RoutingConfigID: &c.routingConfigID,
-	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
 	}
 	if c.sort.WasSet {
 		input.Sort = &c.sort.Value

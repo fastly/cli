@@ -27,7 +27,7 @@ func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCo
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("activate", "Activate the current draft version of a routing config")
+	c.CmdClause = parent.Command("activate", "Activate the draft version of a routing config")
 
 	// Required.
 	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)

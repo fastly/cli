@@ -92,7 +92,7 @@ func TestVersionActivate(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmt.Sprintf("SUCCESS: Activated version '%s' for routing config '%s' (routing-config-id: %s)", vid, name, rcid),
+			WantOutput: fmt.Sprintf("SUCCESS: Reactivated version '%s' for routing config '%s' (routing-config-id: %s)", vid, name, rcid),
 		},
 		{
 			Args: fmt.Sprintf("--routing-config-id %s --version-id %s", rcid, vid),

@@ -27,7 +27,7 @@ func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *Deactiva
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("deactivate", "Deactivate a routing config's active version")
+	c.CmdClause = parent.Command("deactivate", "Deactivate a routing config, leaving it without an active version")
 
 	// Required.
 	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)

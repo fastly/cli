@@ -22,7 +22,6 @@ type ListCommand struct {
 	routingConfigID string
 
 	// Optional.
-	limit argparser.OptionalInt
 	match argparser.OptionalString
 	path  argparser.OptionalString
 	sort  argparser.OptionalString
@@ -42,7 +41,6 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("limit", "Limit how many results are returned per page").Action(c.limit.Set).IntVar(&c.limit.Value)
 	c.CmdClause.Flag("match", "Filters results using the given path pattern matching strategy").Action(c.match.Set).StringVar(&c.match.Value)
 	c.CmdClause.Flag("path", "Filters results by path pattern").Action(c.path.Set).StringVar(&c.path.Value)
 	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
@@ -57,9 +55,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &paths.ListInput{
 		RoutingConfigID: &c.routingConfigID,
-	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
 	}
 	if c.match.WasSet {
 		input.Match = &c.match.Value
