@@ -38,7 +38,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	// Optional
 	c.CmdClause.Flag("description", "The description for the domain").Action(c.description.Set).StringVar(&c.description.Value)
 	c.CmdClause.Flag("service-id", "The service_id associated with your domain (omit to unset)").StringVar(&c.serviceID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier to associate with the domain. The routing config must be active. Pass 'nil' to remove the association").Action(c.routingConfigID.Set).StringVar(&c.routingConfigID.Value)
+	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier to associate with the domain. Pass 'nil' to remove the association").Action(c.routingConfigID.Set).StringVar(&c.routingConfigID.Value)
 
 	return &c
 }
