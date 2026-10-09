@@ -3853,6 +3853,11 @@
         {
           "cmd": "fastly routing-config activate --routing-config-id 1a2b3c4d",
           "title": "Activate the draft version of a routing config"
+        },
+        {
+          "cmd": "fastly routing-config deploy --routing-config-id 1a2b3c4d",
+          "description": "`deploy` is an alias for `activate`.",
+          "title": "Activate the draft version of a routing config using the 'deploy' alias"
         }
       ]
     },
