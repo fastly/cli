@@ -193,7 +193,7 @@ func TestRoutingConfigDelete(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
-func TestRoutingConfigActivate(t *testing.T) {
+func TestRoutingConfigDeploy(t *testing.T) {
 	name := "my-routing-config"
 	rcid := "routing-config-id"
 
@@ -233,7 +233,7 @@ func TestRoutingConfigActivate(t *testing.T) {
 			WantError: "400 - Bad Request",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "activate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "deploy"}, scenarios)
 }
 
 func TestRoutingConfigDeactivate(t *testing.T) {

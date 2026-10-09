@@ -13,21 +13,21 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// ActivateCommand calls the Fastly API to activate a routing config's draft
+// DeployCommand calls the Fastly API to activate a routing config's draft
 // version.
-type ActivateCommand struct {
+type DeployCommand struct {
 	argparser.Base
 	routingConfigID string
 }
 
-// NewActivateCommand returns a usable command registered under the parent.
-func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCommand {
-	c := ActivateCommand{
+// NewDeployCommand returns a usable command registered under the parent.
+func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployCommand {
+	c := DeployCommand{
 		Base: argparser.Base{
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("activate", "Activate the draft version of a routing config").Alias("deploy")
+	c.CmdClause = parent.Command("deploy", "Activate the draft version of a routing config").Alias("activate")
 
 	// Required.
 	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
@@ -36,7 +36,7 @@ func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCo
 }
 
 // Exec invokes the application logic for the command.
-func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DeployCommand) Exec(_ io.Reader, out io.Writer) error {
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
 	if !ok {
 		return errors.New("failed to convert interface to a fastly client")

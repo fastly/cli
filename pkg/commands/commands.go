@@ -610,7 +610,7 @@ func Define( // nolint:revive // function-length
 	routingConfigDescribe := routingconfig.NewDescribeCommand(routingConfigCmdRoot.CmdClause, data)
 	routingConfigList := routingconfig.NewListCommand(routingConfigCmdRoot.CmdClause, data)
 	routingConfigDelete := routingconfig.NewDeleteCommand(routingConfigCmdRoot.CmdClause, data)
-	routingConfigActivate := routingconfig.NewActivateCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDeploy := routingconfig.NewDeployCommand(routingConfigCmdRoot.CmdClause, data)
 	routingConfigDeactivate := routingconfig.NewDeactivateCommand(routingConfigCmdRoot.CmdClause, data)
 	routingConfigDraftCmdRoot := routingconfigdraft.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
 	routingConfigDraftDiff := routingconfigdraft.NewDiffCommand(routingConfigDraftCmdRoot.CmdClause, data)
@@ -1755,7 +1755,7 @@ func Define( // nolint:revive // function-length
 		routingConfigDescribe,
 		routingConfigList,
 		routingConfigDelete,
-		routingConfigActivate,
+		routingConfigDeploy,
 		routingConfigDeactivate,
 		routingConfigDraftCmdRoot,
 		routingConfigDraftDiff,
