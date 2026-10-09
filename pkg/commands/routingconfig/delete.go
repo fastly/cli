@@ -27,13 +27,13 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delete a routing config").Alias("remove")
+	c.CmdClause = parent.Command("delete", "Delete a routing config. This is rejected if the routing config is still associated with any domain, regardless of --force; unset those associations first with 'fastly domain update --routing-config-id nil'").Alias("remove")
 
 	// Required.
 	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
 
 	// Optional.
-	c.CmdClause.Flag("force", "Delete the routing config even if it has an active version, bypassing the active-version check").BoolVar(&c.force)
+	c.CmdClause.Flag("force", "Delete the routing config even if it has an active version, bypassing the active-version check. You still can't delete a routing config that's linked to a domain").BoolVar(&c.force)
 
 	return &c
 }

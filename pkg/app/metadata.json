@@ -3840,6 +3840,7 @@
       "examples": [
         {
           "cmd": "fastly routing-config delete --routing-config-id 1a2b3c4d",
+          "description": "This fails if the routing config is still associated with any domain, even with --force. Unset the association first with `fastly domain update --domain-id <id> --routing-config-id nil`.",
           "title": "Delete a routing config"
         }
       ]
