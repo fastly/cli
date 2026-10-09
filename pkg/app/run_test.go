@@ -87,6 +87,7 @@ ngwaf
 object-storage
 pops
 products
+routing-config
 secret-store
 secret-store-entry
 service

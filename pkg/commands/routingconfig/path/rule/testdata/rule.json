@@ -1,0 +1,14 @@
+{
+  "action": {
+    "type": "service",
+    "value": "SU1Z0isxPaozGVKXdv0eY"
+  },
+  "conditions": [
+    {
+      "type": "header",
+      "key": "X-Test",
+      "operator": "equals",
+      "value": "1"
+    }
+  ]
+}
