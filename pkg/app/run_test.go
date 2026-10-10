@@ -86,6 +86,7 @@ log-tail
 ngwaf
 object-storage
 pops
+product
 products
 routing-config
 secret-store
