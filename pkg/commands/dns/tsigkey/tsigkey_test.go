@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly"
 	"github.com/fastly/go-fastly/v17/fastly/dns/v1/tsigkeys"
 
 	dnsroot "github.com/fastly/cli/pkg/commands/dns"
@@ -25,9 +24,9 @@ const (
 )
 
 var testKey = tsigkeys.TSIGKey{
-	ID:        fastly.ToPointer(tsigKeyID),
-	Name:      fastly.ToPointer(tsigKeyName),
-	Algorithm: fastly.ToPointer(tsigAlgo),
+	ID:        new(tsigKeyID),
+	Name:      new(tsigKeyName),
+	Algorithm: new(tsigAlgo),
 }
 
 func TestTSIGKeyCreate(t *testing.T) {
@@ -252,9 +251,9 @@ func TestTSIGKeyList(t *testing.T) {
 
 func TestTSIGKeyUpdate(t *testing.T) {
 	updated := tsigkeys.TSIGKey{
-		ID:        fastly.ToPointer(tsigKeyID),
-		Name:      fastly.ToPointer("new-name"),
-		Algorithm: fastly.ToPointer(tsigAlgo),
+		ID:        new(tsigKeyID),
+		Name:      new("new-name"),
+		Algorithm: new(tsigAlgo),
 	}
 
 	scenarios := []testutil.CLIScenario{

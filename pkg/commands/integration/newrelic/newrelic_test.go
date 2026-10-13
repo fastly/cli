@@ -47,7 +47,7 @@ func TestCreateCommand(t *testing.T) {
 					if i.Config["account"] != "acct123" || i.Config["key"] != "key123" {
 						return nil, fmt.Errorf("unexpected config: %+v", i.Config)
 					}
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Created New Relic integration '%s' (id: %s)", integrationName, integrationID),
@@ -56,10 +56,10 @@ func TestCreateCommand(t *testing.T) {
 			Args: fmt.Sprintf("--name %s %s --json", integrationName, requiredFlags),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: new(integrationID)}),
 		},
 	}
 

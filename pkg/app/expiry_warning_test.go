@@ -105,7 +105,7 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 					Output:    out,
 					ErrOutput: out,
 					ErrLog:    fsterr.Log,
-					Env:       config.Environment{APIToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fake"},
+					Env:       config.Environment{APIToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fake"}, //nolint:gosec // fake test fixture, not a real credential
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",

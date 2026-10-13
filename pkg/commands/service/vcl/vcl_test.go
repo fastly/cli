@@ -62,11 +62,11 @@ func getVCL(_ context.Context, i *fastly.GetGeneratedVCLInput) (*fastly.VCL, err
 	t := testutil.Date
 
 	return &fastly.VCL{
-		Content:        fastly.ToPointer("# some vcl content"),
-		Main:           fastly.ToPointer(false),
-		Name:           fastly.ToPointer("foo"),
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Content:        new("# some vcl content"),
+		Main:           new(false),
+		Name:           new("foo"),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		CreatedAt:      &t,
 		DeletedAt:      &t,
 		UpdatedAt:      &t,

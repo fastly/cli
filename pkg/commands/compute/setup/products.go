@@ -451,7 +451,7 @@ func (p *Products) Create() error {
 // Works for any interface type parameter I.
 func normalizeIfacePtr[I any](v I) I {
 	rv := reflect.ValueOf(v)
-	if !rv.IsValid() || (rv.Kind() == reflect.Ptr && rv.IsNil()) {
+	if !rv.IsValid() || (rv.Kind() == reflect.Pointer && rv.IsNil()) {
 		var zero I
 		return zero
 	}

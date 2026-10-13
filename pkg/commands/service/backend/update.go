@@ -182,7 +182,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(*preferIPv6))
+		input.PreferIPv6 = new(fastly.Compatibool(*preferIPv6))
 	}
 
 	if c.ConnectTimeout.WasSet {
@@ -209,7 +209,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.AutoLoadbalance.WasSet {
-		input.AutoLoadbalance = fastly.ToPointer(fastly.Compatibool(c.AutoLoadbalance.Value))
+		input.AutoLoadbalance = new(fastly.Compatibool(c.AutoLoadbalance.Value))
 	}
 
 	if c.Weight.WasSet {
@@ -229,16 +229,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.UseSSL.WasSet {
-		input.UseSSL = fastly.ToPointer(fastly.Compatibool(c.UseSSL.Value))
+		input.UseSSL = new(fastly.Compatibool(c.UseSSL.Value))
 	}
 
 	if c.NoSSLCheckCert.WasSet {
-		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(false))
+		input.SSLCheckCert = new(fastly.Compatibool(false))
 	}
 
 	if c.SSLCheckCert.WasSet {
 		text.Deprecated("The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
-		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.SSLCheckCert.Value))
+		input.SSLCheckCert = new(fastly.Compatibool(c.SSLCheckCert.Value))
 	}
 
 	if c.SSLCACert.WasSet {

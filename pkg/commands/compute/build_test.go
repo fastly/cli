@@ -403,6 +403,35 @@ func TestBuildGo(t *testing.T) {
 				"Built package",
 			},
 		},
+		// The following test validates that a manifest with no build script falls
+		// back to the default TinyGo build command and compiles successfully.
+		//
+		// NOTE: This test passes --verbose so we can validate specific outputs.
+		{
+			name: "build success with default tinygo build command",
+			args: args("compute build --verbose"),
+			applicationConfig: &config.File{
+				Language: config.Language{
+					Go: config.Go{
+						TinyGoConstraint:          ">= 0.28.1-0",
+						TinyGoConstraintFallback:  ">= 0.26.0-0",
+						ToolchainConstraintTinyGo: ">= 1.18",
+						ToolchainConstraint:       ">= 1.21",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "go"`,
+			wantOutput: []string{
+				"No [scripts.build] found in fastly.toml",
+				"The following default build command for TinyGo will be used",
+				"The Fastly CLI build step requires a tinygo version '>= 0.26.0-0'",
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
+			},
+		},
 		// The following test case is expected to fail because we specify a custom
 		// build script that doesn't actually produce a ./bin/main.wasm
 		{

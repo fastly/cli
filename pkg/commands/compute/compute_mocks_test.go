@@ -14,23 +14,23 @@ import (
 
 func getServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ServiceID: fastly.ToPointer("12345"),
-		Name:      fastly.ToPointer("test"),
+		ServiceID: new("12345"),
+		Name:      new("test"),
 	}, nil
 }
 
 func createDomainOK(_ context.Context, i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
 
 func createBackendOK(_ context.Context, i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -50,16 +50,16 @@ func updateConfigStoreItemOK(_ context.Context, i *fastly.UpdateConfigStoreItemI
 
 func createDictionaryOK(_ context.Context, i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
 
 func createDictionaryItemOK(_ context.Context, i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    fastly.ToPointer(i.ServiceID),
-		DictionaryID: fastly.ToPointer(i.DictionaryID),
+		ServiceID:    new(i.ServiceID),
+		DictionaryID: new(i.DictionaryID),
 		ItemKey:      i.ItemKey,
 		ItemValue:    i.ItemValue,
 	}, nil
@@ -81,11 +81,11 @@ func createResourceOK(_ context.Context, _ *fastly.CreateResourceInput) (*fastly
 }
 
 func getPackageOk(_ context.Context, i *fastly.GetPackageInput) (*fastly.Package, error) {
-	return &fastly.Package{ServiceID: fastly.ToPointer(i.ServiceID), ServiceVersion: fastly.ToPointer(i.ServiceVersion)}, nil
+	return &fastly.Package{ServiceID: new(i.ServiceID), ServiceVersion: new(i.ServiceVersion)}, nil
 }
 
 func updatePackageOk(_ context.Context, i *fastly.UpdatePackageInput) (*fastly.Package, error) {
-	return &fastly.Package{ServiceID: fastly.ToPointer(i.ServiceID), ServiceVersion: fastly.ToPointer(i.ServiceVersion)}, nil
+	return &fastly.Package{ServiceID: new(i.ServiceID), ServiceVersion: new(i.ServiceVersion)}, nil
 }
 
 func updatePackageError(_ context.Context, _ *fastly.UpdatePackageInput) (*fastly.Package, error) {
@@ -93,16 +93,16 @@ func updatePackageError(_ context.Context, _ *fastly.UpdatePackageInput) (*fastl
 }
 
 func activateVersionOk(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: fastly.ToPointer(i.ServiceID), Number: fastly.ToPointer(i.ServiceVersion)}, nil
+	return &fastly.Version{ServiceID: new(i.ServiceID), Number: new(i.ServiceVersion)}, nil
 }
 
 func updateVersionOk(_ context.Context, i *fastly.UpdateVersionInput) (*fastly.Version, error) {
-	return &fastly.Version{ServiceID: fastly.ToPointer(i.ServiceID), Number: fastly.ToPointer(i.ServiceVersion), Comment: i.Comment}, nil
+	return &fastly.Version{ServiceID: new(i.ServiceID), Number: new(i.ServiceVersion), Comment: i.Comment}, nil
 }
 
 func listDomainsOk(_ context.Context, _ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
-		{Name: fastly.ToPointer("https://directly-careful-coyote.edgecompute.app")},
+		{Name: new("https://directly-careful-coyote.edgecompute.app")},
 	}, nil
 }
 
@@ -198,9 +198,9 @@ func getConfigStoreOk(_ context.Context, _ *fastly.GetConfigStoreInput) (*fastly
 
 func getServiceDetailsWasm(_ context.Context, i *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	detail := &fastly.ServiceDetail{
-		Type: fastly.ToPointer("wasm"),
+		Type: new("wasm"),
 		Version: &fastly.Version{
-			Number: fastly.ToPointer(1),
+			Number: new(1),
 		},
 	}
 
@@ -208,8 +208,8 @@ func getServiceDetailsWasm(_ context.Context, i *fastly.GetServiceDetailsInput) 
 	for _, filter := range i.Filters {
 		if filter.Key == "versions.active" && filter.Value {
 			detail.ActiveVersion = &fastly.Version{
-				Number: fastly.ToPointer(1),
-				Active: fastly.ToPointer(true),
+				Number: new(1),
+				Active: new(true),
 			}
 		}
 	}
@@ -220,9 +220,9 @@ func getServiceDetailsWasm(_ context.Context, i *fastly.GetServiceDetailsInput) 
 func getServiceDetailsWasmNoActive(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	// Returns service details with no active version, forcing fallback to latest
 	return &fastly.ServiceDetail{
-		Type: fastly.ToPointer("wasm"),
+		Type: new("wasm"),
 		Version: &fastly.Version{
-			Number: fastly.ToPointer(1),
+			Number: new(1),
 		},
 	}, nil
 }

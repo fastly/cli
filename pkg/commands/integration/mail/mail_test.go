@@ -50,7 +50,7 @@ func TestCreateCommand(t *testing.T) {
 					if i.Config["address"] != address {
 						return nil, fmt.Errorf("unexpected address: %s", i.Config["address"])
 					}
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Created Mailing List integration '%s' (id: %s)", integrationName, integrationID),
@@ -59,10 +59,10 @@ func TestCreateCommand(t *testing.T) {
 			Args: fmt.Sprintf("--name %s --address %s --json", integrationName, address),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: new(integrationID)}),
 		},
 	}
 

@@ -2,9 +2,8 @@ package env
 
 import (
 	"runtime"
+	"slices"
 	"testing"
-
-	"golang.org/x/exp/slices"
 )
 
 func TestVars(t *testing.T) {

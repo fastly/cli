@@ -163,8 +163,8 @@ var errTest = errors.New("fixture error")
 
 func createSumologicOK(_ context.Context, i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -176,28 +176,28 @@ func createSumologicError(_ context.Context, _ *fastly.CreateSumologicInput) (*f
 func listSumologicsOK(_ context.Context, i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
 	return []*fastly.Sumologic{
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("logs"),
-			URL:               fastly.ToPointer("example.com"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			MessageType:       fastly.ToPointer("classic"),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("logs"),
+			URL:               new("example.com"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			MessageType:       new("classic"),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("analytics"),
-			URL:               fastly.ToPointer("bar.com"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			MessageType:       fastly.ToPointer("classic"),
-			FormatVersion:     fastly.ToPointer(2),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("analytics"),
+			URL:               new("bar.com"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			ResponseCondition: new("Prevent default logging"),
+			MessageType:       new("classic"),
+			FormatVersion:     new(2),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 	}, nil
 }
@@ -245,16 +245,16 @@ Version: 1
 
 func getSumologicOK(_ context.Context, i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("logs"),
-		URL:               fastly.ToPointer("example.com"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		MessageType:       fastly.ToPointer("classic"),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
-		ProcessingRegion:  fastly.ToPointer("us"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("logs"),
+		URL:               new("example.com"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		MessageType:       new("classic"),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
+		ProcessingRegion:  new("us"),
 	}, nil
 }
 
@@ -277,15 +277,15 @@ Version: 1
 
 func updateSumologicOK(_ context.Context, i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("log"),
-		URL:               fastly.ToPointer("example.com"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		MessageType:       fastly.ToPointer("classic"),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("log"),
+		URL:               new("example.com"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		MessageType:       new("classic"),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
 	}, nil
 }
 

@@ -44,19 +44,19 @@ func TestDescribeIntegrationCommand(t *testing.T) {
 				GetIntegrationFn: func(_ context.Context, i *fastly.GetIntegrationInput) (*fastly.Integration, error) {
 					return &fastly.Integration{
 						ID:        &i.ID,
-						Name:      fastly.ToPointer(integrationName),
-						Type:      fastly.ToPointer(fastly.IntegrationTypeDatadog),
-						Status:    fastly.ToPointer("enabled"),
+						Name:      new(integrationName),
+						Type:      new(fastly.IntegrationTypeDatadog),
+						Status:    new("enabled"),
 						Config:    map[string]string{"apikey": "abc123"},
 						CreatedAt: &now,
 					}, nil
 				},
 			},
 			WantOutput: fmtIntegration(&fastly.Integration{
-				ID:        fastly.ToPointer(integrationID),
-				Name:      fastly.ToPointer(integrationName),
-				Type:      fastly.ToPointer(fastly.IntegrationTypeDatadog),
-				Status:    fastly.ToPointer("enabled"),
+				ID:        new(integrationID),
+				Name:      new(integrationName),
+				Type:      new(fastly.IntegrationTypeDatadog),
+				Status:    new("enabled"),
 				Config:    map[string]string{"apikey": "abc123"},
 				CreatedAt: &now,
 			}),
@@ -67,16 +67,16 @@ func TestDescribeIntegrationCommand(t *testing.T) {
 				GetIntegrationFn: func(_ context.Context, i *fastly.GetIntegrationInput) (*fastly.Integration, error) {
 					return &fastly.Integration{
 						ID:        &i.ID,
-						Name:      fastly.ToPointer(integrationName),
-						Type:      fastly.ToPointer(fastly.IntegrationTypeDatadog),
+						Name:      new(integrationName),
+						Type:      new(fastly.IntegrationTypeDatadog),
 						CreatedAt: &now,
 					}, nil
 				},
 			},
 			WantOutput: fstfmt.EncodeJSON(&fastly.Integration{
-				ID:        fastly.ToPointer(integrationID),
-				Name:      fastly.ToPointer(integrationName),
-				Type:      fastly.ToPointer(fastly.IntegrationTypeDatadog),
+				ID:        new(integrationID),
+				Name:      new(integrationName),
+				Type:      new(fastly.IntegrationTypeDatadog),
 				CreatedAt: &now,
 			}),
 		},
@@ -144,8 +144,8 @@ func TestListIntegrationsCommand(t *testing.T) {
 
 	integrations := &fastly.SearchIntegrationsResponse{
 		Data: []fastly.Integration{
-			{ID: fastly.ToPointer(integrationID), Name: fastly.ToPointer(integrationName), Type: fastly.ToPointer(fastly.IntegrationTypeDatadog), CreatedAt: &now},
-			{ID: fastly.ToPointer(integrationID + "+1"), Name: fastly.ToPointer(integrationName + "+1"), Type: fastly.ToPointer(fastly.IntegrationTypeOpsGenie), CreatedAt: &now},
+			{ID: new(integrationID), Name: new(integrationName), Type: new(fastly.IntegrationTypeDatadog), CreatedAt: &now},
+			{ID: new(integrationID + "+1"), Name: new(integrationName + "+1"), Type: new(fastly.IntegrationTypeOpsGenie), CreatedAt: &now},
 		},
 	}
 
@@ -195,10 +195,10 @@ func TestListIntegrationsCommand(t *testing.T) {
 func TestListTypesCommand(t *testing.T) {
 	types := []fastly.IntegrationType{
 		{
-			Type:        fastly.ToPointer(fastly.IntegrationTypeDatadog),
-			DisplayName: fastly.ToPointer("Datadog"),
+			Type:        new(fastly.IntegrationTypeDatadog),
+			DisplayName: new("Datadog"),
 			CustomFields: []fastly.CustomField{
-				{Name: fastly.ToPointer("apikey"), DisplayName: fastly.ToPointer("API Key"), Format: fastly.ToPointer("string")},
+				{Name: new("apikey"), DisplayName: new("API Key"), Format: new("string")},
 			},
 		},
 	}

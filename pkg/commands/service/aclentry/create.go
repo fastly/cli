@@ -93,7 +93,7 @@ func (c *CreateCommand) constructInput(serviceID string) *fastly.CreateACLEntryI
 		input.Comment = &c.comment.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.ToPointer(fastly.Compatibool(c.negated.Value))
+		input.Negated = new(fastly.Compatibool(c.negated.Value))
 	}
 	if c.subnet.WasSet {
 		input.Subnet = &c.subnet.Value

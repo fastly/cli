@@ -50,7 +50,7 @@ func TestCreateCommand(t *testing.T) {
 					if i.Config["webhook"] != webhookURL {
 						return nil, fmt.Errorf("unexpected webhook: %s", i.Config["webhook"])
 					}
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Created Webhook integration '%s' (id: %s)", integrationName, integrationID),
@@ -59,10 +59,10 @@ func TestCreateCommand(t *testing.T) {
 			Args: fmt.Sprintf("--name %s --webhook %s --json", integrationName, webhookURL),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: new(integrationID)}),
 		},
 	}
 
@@ -151,7 +151,7 @@ func TestGetSigningKeyCommand(t *testing.T) {
 					if i.IntegrationID != integrationID {
 						return nil, fmt.Errorf("unexpected id: %s", i.IntegrationID)
 					}
-					return &fastly.WebhookSigningKeyResponse{SigningKey: fastly.ToPointer(signingKey)}, nil
+					return &fastly.WebhookSigningKeyResponse{SigningKey: new(signingKey)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Signing key: '%s'", signingKey),
@@ -160,10 +160,10 @@ func TestGetSigningKeyCommand(t *testing.T) {
 			Args: fmt.Sprintf("%s --json", integrationID),
 			API: &mock.API{
 				GetWebhookSigningKeyFn: func(_ context.Context, _ *fastly.GetWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error) {
-					return &fastly.WebhookSigningKeyResponse{SigningKey: fastly.ToPointer(signingKey)}, nil
+					return &fastly.WebhookSigningKeyResponse{SigningKey: new(signingKey)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.WebhookSigningKeyResponse{SigningKey: fastly.ToPointer(signingKey)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.WebhookSigningKeyResponse{SigningKey: new(signingKey)}),
 		},
 	}
 
@@ -196,7 +196,7 @@ func TestRotateSigningKeyCommand(t *testing.T) {
 					if i.IntegrationID != integrationID {
 						return nil, fmt.Errorf("unexpected id: %s", i.IntegrationID)
 					}
-					return &fastly.WebhookSigningKeyResponse{SigningKey: fastly.ToPointer(signingKey)}, nil
+					return &fastly.WebhookSigningKeyResponse{SigningKey: new(signingKey)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Signing key: '%s'", signingKey),
@@ -205,10 +205,10 @@ func TestRotateSigningKeyCommand(t *testing.T) {
 			Args: fmt.Sprintf("%s --json", integrationID),
 			API: &mock.API{
 				RotateWebhookSigningKeyFn: func(_ context.Context, _ *fastly.RotateWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error) {
-					return &fastly.WebhookSigningKeyResponse{SigningKey: fastly.ToPointer(signingKey)}, nil
+					return &fastly.WebhookSigningKeyResponse{SigningKey: new(signingKey)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.WebhookSigningKeyResponse{SigningKey: fastly.ToPointer(signingKey)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.WebhookSigningKeyResponse{SigningKey: new(signingKey)}),
 		},
 	}
 

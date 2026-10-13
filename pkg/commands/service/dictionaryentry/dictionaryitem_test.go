@@ -228,10 +228,10 @@ func TestDictionaryItemDelete(t *testing.T) {
 
 func describeDictionaryItemOK(_ context.Context, i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    fastly.ToPointer(i.ServiceID),
-		DictionaryID: fastly.ToPointer(i.DictionaryID),
-		ItemKey:      fastly.ToPointer(i.ItemKey),
-		ItemValue:    fastly.ToPointer("bar"),
+		ServiceID:    new(i.ServiceID),
+		DictionaryID: new(i.DictionaryID),
+		ItemKey:      new(i.ItemKey),
+		ItemValue:    new("bar"),
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
@@ -256,10 +256,10 @@ Last edited (UTC): 2001-02-03 04:05
 
 func describeDictionaryItemOKDeleted(_ context.Context, i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    fastly.ToPointer(i.ServiceID),
-		DictionaryID: fastly.ToPointer(i.DictionaryID),
-		ItemKey:      fastly.ToPointer(i.ItemKey),
-		ItemValue:    fastly.ToPointer("bar"),
+		ServiceID:    new(i.ServiceID),
+		DictionaryID: new(i.DictionaryID),
+		ItemKey:      new(i.ItemKey),
+		ItemValue:    new("bar"),
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
@@ -296,8 +296,8 @@ Item: 2/2
 
 func createDictionaryItemOK(_ context.Context, i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    fastly.ToPointer(i.ServiceID),
-		DictionaryID: fastly.ToPointer(i.DictionaryID),
+		ServiceID:    new(i.ServiceID),
+		DictionaryID: new(i.DictionaryID),
 		ItemKey:      i.ItemKey,
 		ItemValue:    i.ItemValue,
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -307,10 +307,10 @@ func createDictionaryItemOK(_ context.Context, i *fastly.CreateDictionaryItemInp
 
 func updateDictionaryItemOK(_ context.Context, i *fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    fastly.ToPointer(i.ServiceID),
-		DictionaryID: fastly.ToPointer(i.DictionaryID),
-		ItemKey:      fastly.ToPointer(i.ItemKey),
-		ItemValue:    fastly.ToPointer(i.ItemValue),
+		ServiceID:    new(i.ServiceID),
+		DictionaryID: new(i.DictionaryID),
+		ItemKey:      new(i.ItemKey),
+		ItemValue:    new(i.ItemValue),
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil

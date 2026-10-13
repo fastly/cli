@@ -207,8 +207,8 @@ func (o *ConfigStores) Create() error {
 			_, err = o.APIClient.CreateResource(context.TODO(), &fastly.CreateResourceInput{
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
-				Name:           fastly.ToPointer(cs.Name),
-				ResourceID:     fastly.ToPointer(cs.StoreID),
+				Name:           new(cs.Name),
+				ResourceID:     new(cs.StoreID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, configStore.Name, err)

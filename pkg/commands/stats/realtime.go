@@ -66,23 +66,19 @@ func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	switch c.formatFlag {
 	case "json":
-		if err := loopJSON(c.Globals.RTSClient, serviceID, out); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
-			})
-			return err
-		}
+		err := loopJSON(c.Globals.RTSClient, serviceID, out)
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Service ID": serviceID,
+		})
+		return err
 
 	default:
-		if err := loopText(c.Globals.RTSClient, serviceID, out); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
-			})
-			return err
-		}
+		err := loopText(c.Globals.RTSClient, serviceID, out)
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Service ID": serviceID,
+		})
+		return err
 	}
-
-	return nil
 }
 
 func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) error {

@@ -41,6 +41,7 @@ type CreateCommand struct {
 	Placement         argparser.OptionalString
 	ProcessingRegion  argparser.OptionalString
 	ProjectID         argparser.OptionalString
+	PublicKey         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	SecretKey         argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
@@ -81,6 +82,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	logflags.Period(c.CmdClause, &c.Period)
 	logflags.Placement(c.CmdClause, &c.Placement)
 	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "GCS")
+	logflags.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("project-id", "The google project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -127,7 +129,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		input.Name = &c.EndpointName.Value
 	}
 	if c.Format.WasSet {
-		input.Format = fastly.ToPointer(argparser.Content(c.Format.Value))
+		input.Format = new(argparser.Content(c.Format.Value))
 	}
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
@@ -152,6 +154,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value
+	}
+	if c.PublicKey.WasSet {
+		input.PublicKey = &c.PublicKey.Value
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value

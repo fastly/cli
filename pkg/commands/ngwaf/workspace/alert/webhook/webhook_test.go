@@ -58,7 +58,7 @@ func TestWebhookAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(webhookAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
 					},
 				},
 			},
@@ -72,7 +72,7 @@ func TestWebhookAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(webhookAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
 					},
 				},
 			},
@@ -219,7 +219,7 @@ func TestWebhookAlertGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(webhookAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
 					},
 				},
 			},
@@ -233,7 +233,7 @@ func TestWebhookAlertGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(webhookAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
 					},
 				},
 			},
@@ -426,7 +426,7 @@ func TestWebhookGetSigningKey(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(signingKeyResponse)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(signingKeyResponse))),
 					},
 				},
 			},
@@ -440,7 +440,7 @@ func TestWebhookGetSigningKey(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(signingKeyResponse)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(signingKeyResponse))),
 					},
 				},
 			},
@@ -495,7 +495,7 @@ func TestWebhookRotateSigningKey(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(signingKeyResponse)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(signingKeyResponse))),
 					},
 				},
 			},
@@ -509,7 +509,7 @@ func TestWebhookRotateSigningKey(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(signingKeyResponse)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(signingKeyResponse))),
 					},
 				},
 			},

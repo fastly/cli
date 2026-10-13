@@ -6,6 +6,12 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/airuntimecontrol"
+	arckey "github.com/fastly/cli/pkg/commands/airuntimecontrol/key"
+	arcprovider "github.com/fastly/cli/pkg/commands/airuntimecontrol/provider"
+	arcproviderconnection "github.com/fastly/cli/pkg/commands/airuntimecontrol/providerconnection"
+	arcsession "github.com/fastly/cli/pkg/commands/airuntimecontrol/session"
+	arcusagemetrics "github.com/fastly/cli/pkg/commands/airuntimecontrol/usagemetrics"
 	aliasacl "github.com/fastly/cli/pkg/commands/alias/acl"
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
 	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
@@ -122,6 +128,11 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
+	"github.com/fastly/cli/pkg/commands/routingconfig"
+	routingconfigdraft "github.com/fastly/cli/pkg/commands/routingconfig/draft"
+	routingconfigpath "github.com/fastly/cli/pkg/commands/routingconfig/path"
+	routingconfigpathrule "github.com/fastly/cli/pkg/commands/routingconfig/path/rule"
+	routingconfigversion "github.com/fastly/cli/pkg/commands/routingconfig/version"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
@@ -150,8 +161,10 @@ import (
 	serviceloggingheroku "github.com/fastly/cli/pkg/commands/service/logging/heroku"
 	servicelogginghoneycomb "github.com/fastly/cli/pkg/commands/service/logging/honeycomb"
 	servicelogginghttps "github.com/fastly/cli/pkg/commands/service/logging/https"
+	servicelogginginsights "github.com/fastly/cli/pkg/commands/service/logging/insights"
 	serviceloggingkafka "github.com/fastly/cli/pkg/commands/service/logging/kafka"
 	serviceloggingkinesis "github.com/fastly/cli/pkg/commands/service/logging/kinesis"
+	servicelogginglogexplorer "github.com/fastly/cli/pkg/commands/service/logging/logexplorer"
 	serviceloggingloggly "github.com/fastly/cli/pkg/commands/service/logging/loggly"
 	servicelogginglogshuttle "github.com/fastly/cli/pkg/commands/service/logging/logshuttle"
 	serviceloggingnewrelic "github.com/fastly/cli/pkg/commands/service/logging/newrelic"
@@ -238,6 +251,30 @@ func Define( // nolint:revive // function-length
 			authtokenDescribe, authtokenList,
 		}
 	}
+
+	// AI Runtime Control (ARC) commands
+	arcRoot := airuntimecontrol.NewRootCommand(app, data)
+	arcKeyRoot := arckey.NewRootCommand(arcRoot.CmdClause, data)
+	arcKeyCreate := arckey.NewCreateCommand(arcKeyRoot.CmdClause, data)
+	arcKeyDelete := arckey.NewDeleteCommand(arcKeyRoot.CmdClause, data)
+	arcKeyGet := arckey.NewGetCommand(arcKeyRoot.CmdClause, data)
+	arcKeyList := arckey.NewListCommand(arcKeyRoot.CmdClause, data)
+	arcKeyRotate := arckey.NewRotateCommand(arcKeyRoot.CmdClause, data)
+	arcKeyUpdate := arckey.NewUpdateCommand(arcKeyRoot.CmdClause, data)
+	arcProviderRoot := arcprovider.NewRootCommand(arcRoot.CmdClause, data)
+	arcProviderList := arcprovider.NewListCommand(arcProviderRoot.CmdClause, data)
+	arcProviderListModels := arcprovider.NewListModelsCommand(arcProviderRoot.CmdClause, data)
+	arcProviderConnectionRoot := arcproviderconnection.NewRootCommand(arcRoot.CmdClause, data)
+	arcProviderConnectionCreate := arcproviderconnection.NewCreateCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionDelete := arcproviderconnection.NewDeleteCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionGet := arcproviderconnection.NewGetCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionList := arcproviderconnection.NewListCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionUpdate := arcproviderconnection.NewUpdateCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcSessionRoot := arcsession.NewRootCommand(arcRoot.CmdClause, data)
+	arcSessionList := arcsession.NewListCommand(arcSessionRoot.CmdClause, data)
+	arcUsageMetricsRoot := arcusagemetrics.NewRootCommand(arcRoot.CmdClause, data)
+	arcUsageMetricsExport := arcusagemetrics.NewExportCommand(arcUsageMetricsRoot.CmdClause, data)
+	arcUsageMetricsList := arcusagemetrics.NewListCommand(arcUsageMetricsRoot.CmdClause, data)
 
 	// API Security commands
 	apisecurityRoot := apisecurity.NewRootCommand(app, data)
@@ -568,6 +605,33 @@ func Define( // nolint:revive // function-length
 			profileList, profileSwitch, profileToken, profileUpdate,
 		}
 	}
+	routingConfigCmdRoot := routingconfig.NewRootCommand(app, data)
+	routingConfigCreate := routingconfig.NewCreateCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDescribe := routingconfig.NewDescribeCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigList := routingconfig.NewListCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDelete := routingconfig.NewDeleteCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDeploy := routingconfig.NewDeployCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDeactivate := routingconfig.NewDeactivateCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDraftCmdRoot := routingconfigdraft.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigDraftDiff := routingconfigdraft.NewDiffCommand(routingConfigDraftCmdRoot.CmdClause, data)
+	routingConfigDraftUpdate := routingconfigdraft.NewUpdateCommand(routingConfigDraftCmdRoot.CmdClause, data)
+	routingConfigDraftDelete := routingconfigdraft.NewDeleteCommand(routingConfigDraftCmdRoot.CmdClause, data)
+	routingConfigVersionCmdRoot := routingconfigversion.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigVersionList := routingconfigversion.NewListCommand(routingConfigVersionCmdRoot.CmdClause, data)
+	routingConfigVersionActivate := routingconfigversion.NewActivateCommand(routingConfigVersionCmdRoot.CmdClause, data)
+	routingConfigVersionDeleteInactive := routingconfigversion.NewDeleteInactiveCommand(routingConfigVersionCmdRoot.CmdClause, data)
+	routingConfigPathCmdRoot := routingconfigpath.NewRootCommand(routingConfigCmdRoot.CmdClause, data)
+	routingConfigPathCreate := routingconfigpath.NewCreateCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathDescribe := routingconfigpath.NewDescribeCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathList := routingconfigpath.NewListCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathUpdate := routingconfigpath.NewUpdateCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathDelete := routingconfigpath.NewDeleteCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathRuleCmdRoot := routingconfigpathrule.NewRootCommand(routingConfigPathCmdRoot.CmdClause, data)
+	routingConfigPathRuleCreate := routingconfigpathrule.NewCreateCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleDescribe := routingconfigpathrule.NewDescribeCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleList := routingconfigpathrule.NewListCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleUpdate := routingconfigpathrule.NewUpdateCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
+	routingConfigPathRuleDelete := routingconfigpathrule.NewDeleteCommand(routingConfigPathRuleCmdRoot.CmdClause, data)
 	secretstoreCmdRoot := secretstore.NewRootCommand(app, data)
 	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, data)
 	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, data)
@@ -639,6 +703,8 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	serviceloggingCmdRoot := servicelogging.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceloggingDebugCmd := serviceloggingdebug.NewDebugCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingInsightsCmd := servicelogginginsights.NewInsightsCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingLogExplorerCmd := servicelogginglogexplorer.NewLogExplorerCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCmdRoot := serviceloggingazureblob.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCreate := serviceloggingazureblob.NewCreateCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
 	serviceloggingAzureblobDelete := serviceloggingazureblob.NewDeleteCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
@@ -1182,6 +1248,28 @@ func Define( // nolint:revive // function-length
 	cmds = append(cmds, authCommands...)
 	cmds = append(cmds, authtokenCommands...)
 	cmds = append(cmds, []argparser.Command{
+		arcRoot,
+		arcKeyRoot,
+		arcKeyCreate,
+		arcKeyDelete,
+		arcKeyGet,
+		arcKeyList,
+		arcKeyRotate,
+		arcKeyUpdate,
+		arcProviderRoot,
+		arcProviderList,
+		arcProviderListModels,
+		arcProviderConnectionRoot,
+		arcProviderConnectionCreate,
+		arcProviderConnectionDelete,
+		arcProviderConnectionGet,
+		arcProviderConnectionList,
+		arcProviderConnectionUpdate,
+		arcSessionRoot,
+		arcSessionList,
+		arcUsageMetricsRoot,
+		arcUsageMetricsExport,
+		arcUsageMetricsList,
 		apisecurityRoot,
 		discoveredoperationsRoot,
 		discoveredoperationsList,
@@ -1326,6 +1414,8 @@ func Define( // nolint:revive // function-length
 		kvstoreentryList,
 		logtailCmdRoot,
 		serviceloggingDebugCmd,
+		serviceloggingInsightsCmd,
+		serviceloggingLogExplorerCmd,
 		serviceloggingAzureblobCmdRoot,
 		serviceloggingAzureblobCreate,
 		serviceloggingAzureblobDelete,
@@ -1659,6 +1749,35 @@ func Define( // nolint:revive // function-length
 		productsCmdRoot,
 	}...)
 	cmds = append(cmds, profileCommands...)
+	cmds = append(cmds, []argparser.Command{
+		routingConfigCmdRoot,
+		routingConfigCreate,
+		routingConfigDescribe,
+		routingConfigList,
+		routingConfigDelete,
+		routingConfigDeploy,
+		routingConfigDeactivate,
+		routingConfigDraftCmdRoot,
+		routingConfigDraftDiff,
+		routingConfigDraftUpdate,
+		routingConfigDraftDelete,
+		routingConfigVersionCmdRoot,
+		routingConfigVersionList,
+		routingConfigVersionActivate,
+		routingConfigVersionDeleteInactive,
+		routingConfigPathCmdRoot,
+		routingConfigPathCreate,
+		routingConfigPathDescribe,
+		routingConfigPathList,
+		routingConfigPathUpdate,
+		routingConfigPathDelete,
+		routingConfigPathRuleCmdRoot,
+		routingConfigPathRuleCreate,
+		routingConfigPathRuleDescribe,
+		routingConfigPathRuleList,
+		routingConfigPathRuleUpdate,
+		routingConfigPathRuleDelete,
+	}...)
 	cmds = append(cmds, []argparser.Command{
 		secretstoreCreate,
 		secretstoreDescribe,

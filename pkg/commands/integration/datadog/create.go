@@ -60,7 +60,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.CreateIntegrationInput{
 		Name:   &c.IntegrationName,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeDatadog),
+		Type:   new(fastly.IntegrationTypeDatadog),
 		Config: config.ToMap(),
 	}
 	if c.Description.WasSet {

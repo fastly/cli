@@ -206,8 +206,8 @@ var errTest = errors.New("fixture error")
 
 func createKinesisOK(_ context.Context, i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -219,32 +219,32 @@ func createKinesisError(_ context.Context, _ *fastly.CreateKinesisInput) (*fastl
 func listKinesesOK(_ context.Context, i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return []*fastly.Kinesis{
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("logs"),
-			StreamName:        fastly.ToPointer("my-logs"),
-			AccessKey:         fastly.ToPointer("1234"),
-			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
-			Region:            fastly.ToPointer("us-east-1"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("logs"),
+			StreamName:        new("my-logs"),
+			AccessKey:         new("1234"),
+			SecretKey:         new("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Region:            new("us-east-1"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("analytics"),
-			StreamName:        fastly.ToPointer("analytics"),
-			AccessKey:         fastly.ToPointer("1234"),
-			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
-			Region:            fastly.ToPointer("us-east-1"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("analytics"),
+			StreamName:        new("analytics"),
+			AccessKey:         new("1234"),
+			SecretKey:         new("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Region:            new("us-east-1"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 	}, nil
 }
@@ -296,18 +296,18 @@ Version: 1
 
 func getKinesisOK(_ context.Context, i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("logs"),
-		StreamName:        fastly.ToPointer("my-logs"),
-		AccessKey:         fastly.ToPointer("1234"),
-		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
-		Region:            fastly.ToPointer("us-east-1"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
-		ProcessingRegion:  fastly.ToPointer("us"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("logs"),
+		StreamName:        new("my-logs"),
+		AccessKey:         new("1234"),
+		SecretKey:         new("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Region:            new("us-east-1"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
+		ProcessingRegion:  new("us"),
 	}, nil
 }
 
@@ -332,17 +332,17 @@ Version: 1
 
 func updateKinesisOK(_ context.Context, i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("log"),
-		StreamName:        fastly.ToPointer("my-logs"),
-		AccessKey:         fastly.ToPointer("1234"),
-		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
-		Region:            fastly.ToPointer("us-west-1"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("log"),
+		StreamName:        new("my-logs"),
+		AccessKey:         new("1234"),
+		SecretKey:         new("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Region:            new("us-west-1"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
 	}, nil
 }
 

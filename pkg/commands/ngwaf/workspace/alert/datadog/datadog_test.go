@@ -64,7 +64,7 @@ func TestDatadogAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 					},
 				},
 			},
@@ -78,7 +78,7 @@ func TestDatadogAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 					},
 				},
 			},
@@ -92,7 +92,7 @@ func TestDatadogAlertCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 					},
 				},
 			},
@@ -241,7 +241,7 @@ func TestDatadogAlertGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 					},
 				},
 			},
@@ -255,7 +255,7 @@ func TestDatadogAlertGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 					},
 				},
 			},
@@ -322,13 +322,13 @@ func TestDatadogAlertUpdate(t *testing.T) {
 						{
 							StatusCode: http.StatusOK,
 							Status:     http.StatusText(http.StatusOK),
-							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 						},
 						// Second response for PATCH (updating alert)
 						{
 							StatusCode: http.StatusOK,
 							Status:     http.StatusText(http.StatusOK),
-							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(updatedAlert)))),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
 						},
 					},
 				},
@@ -345,13 +345,13 @@ func TestDatadogAlertUpdate(t *testing.T) {
 						{
 							StatusCode: http.StatusOK,
 							Status:     http.StatusText(http.StatusOK),
-							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(datadogAlert))),
 						},
 						// Second response for PATCH (updating alert)
 						{
 							StatusCode: http.StatusOK,
 							Status:     http.StatusText(http.StatusOK),
-							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(updatedAlert)))),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
 						},
 					},
 				},

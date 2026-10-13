@@ -42,25 +42,25 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.ToPointer("")
+						i.Content = new("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.ToPointer(0)
+						i.Dynamic = new(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.ToPointer("")
+						i.Name = new("")
 					}
 					if i.Priority == nil {
-						i.Priority = fastly.ToPointer("100")
+						i.Priority = new("100")
 					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-						SnippetID:      fastly.ToPointer("123"),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
+						SnippetID:      new("123"),
 					}, nil
 				},
 			},
@@ -76,25 +76,25 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.ToPointer("")
+						i.Content = new("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.ToPointer(0)
+						i.Dynamic = new(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.ToPointer("")
+						i.Name = new("")
 					}
 					if i.Priority == nil {
-						i.Priority = fastly.ToPointer("100")
+						i.Priority = new("100")
 					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-						SnippetID:      fastly.ToPointer("123"),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
+						SnippetID:      new("123"),
 					}, nil
 				},
 			},
@@ -110,25 +110,25 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.ToPointer("")
+						i.Content = new("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.ToPointer(0)
+						i.Dynamic = new(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.ToPointer("")
+						i.Name = new("")
 					}
 					if i.Priority == nil {
-						i.Priority = fastly.ToPointer("100")
+						i.Priority = new("100")
 					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-						SnippetID:      fastly.ToPointer("123"),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
+						SnippetID:      new("123"),
 					}, nil
 				},
 			},
@@ -145,25 +145,25 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.ToPointer("")
+						i.Content = new("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.ToPointer(0)
+						i.Dynamic = new(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.ToPointer("")
+						i.Name = new("")
 					}
 					if i.Priority == nil {
-						i.Priority = fastly.ToPointer("100")
+						i.Priority = new("100")
 					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-						SnippetID:      fastly.ToPointer("123"),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
+						SnippetID:      new("123"),
 					}, nil
 				},
 			},
@@ -179,25 +179,25 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.ToPointer("")
+						i.Content = new("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.ToPointer(0)
+						i.Dynamic = new(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.ToPointer("")
+						i.Name = new("")
 					}
 					if i.Priority == nil {
-						i.Priority = fastly.ToPointer("100")
+						i.Priority = new("100")
 					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-						SnippetID:      fastly.ToPointer("123"),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
+						SnippetID:      new("123"),
 					}, nil
 				},
 			},
@@ -546,9 +546,9 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Name:           i.NewName,
-						Priority:       fastly.ToPointer("100"),
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						Priority:       new("100"),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
 						Type:           i.Type,
 					}, nil
 				},
@@ -567,8 +567,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 
 					return &fastly.DynamicSnippet{
 						Content:   i.Content,
-						SnippetID: fastly.ToPointer(i.SnippetID),
-						ServiceID: fastly.ToPointer(i.ServiceID),
+						SnippetID: new(i.SnippetID),
+						ServiceID: new(i.ServiceID),
 					}, nil
 				},
 			},
@@ -611,8 +611,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 						Content:        i.Content,
 						Name:           i.NewName,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
 						Type:           i.Type,
 					}, nil
 				},
@@ -638,8 +638,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 						Content:        i.Content,
 						Name:           i.NewName,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
 						Type:           i.Type,
 					}, nil
 				},
@@ -665,8 +665,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 						Content:        i.Content,
 						Name:           i.NewName,
 						Priority:       i.Priority,
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
 						Type:           i.Type,
 					}, nil
 				},
@@ -684,14 +684,14 @@ func getSnippet(_ context.Context, i *fastly.GetSnippetInput) (*fastly.Snippet, 
 	t := testutil.Date
 
 	return &fastly.Snippet{
-		Content:        fastly.ToPointer("# some vcl content"),
-		Dynamic:        fastly.ToPointer(0),
-		SnippetID:      fastly.ToPointer("456"),
-		Name:           fastly.ToPointer(i.Name),
-		Priority:       fastly.ToPointer("0"),
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Type:           fastly.ToPointer(fastly.SnippetTypeRecv),
+		Content:        new("# some vcl content"),
+		Dynamic:        new(0),
+		SnippetID:      new("456"),
+		Name:           new(i.Name),
+		Priority:       new("0"),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Type:           new(fastly.SnippetTypeRecv),
 
 		CreatedAt: &t,
 		DeletedAt: &t,
@@ -703,9 +703,9 @@ func getDynamicSnippet(_ context.Context, i *fastly.GetDynamicSnippetInput) (*fa
 	t := testutil.Date
 
 	return &fastly.DynamicSnippet{
-		Content:   fastly.ToPointer("# some vcl content"),
-		SnippetID: fastly.ToPointer(i.SnippetID),
-		ServiceID: fastly.ToPointer(i.ServiceID),
+		Content:   new("# some vcl content"),
+		SnippetID: new(i.SnippetID),
+		ServiceID: new(i.ServiceID),
 
 		CreatedAt: &t,
 		UpdatedAt: &t,
@@ -716,28 +716,28 @@ func listSnippets(_ context.Context, i *fastly.ListSnippetsInput) ([]*fastly.Sni
 	t := testutil.Date
 	vs := []*fastly.Snippet{
 		{
-			Content:        fastly.ToPointer("# some vcl content"),
-			Dynamic:        fastly.ToPointer(1),
-			SnippetID:      fastly.ToPointer("abc"),
-			Name:           fastly.ToPointer("foo"),
-			Priority:       fastly.ToPointer("0"),
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Type:           fastly.ToPointer(fastly.SnippetTypeRecv),
+			Content:        new("# some vcl content"),
+			Dynamic:        new(1),
+			SnippetID:      new("abc"),
+			Name:           new("foo"),
+			Priority:       new("0"),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Type:           new(fastly.SnippetTypeRecv),
 
 			CreatedAt: &t,
 			DeletedAt: &t,
 			UpdatedAt: &t,
 		},
 		{
-			Content:        fastly.ToPointer("# some vcl content"),
-			Dynamic:        fastly.ToPointer(0),
-			SnippetID:      fastly.ToPointer("abc"),
-			Name:           fastly.ToPointer("bar"),
-			Priority:       fastly.ToPointer("0"),
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Type:           fastly.ToPointer(fastly.SnippetTypeRecv),
+			Content:        new("# some vcl content"),
+			Dynamic:        new(0),
+			SnippetID:      new("abc"),
+			Name:           new("bar"),
+			Priority:       new("0"),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Type:           new(fastly.SnippetTypeRecv),
 
 			CreatedAt: &t,
 			DeletedAt: &t,

@@ -33,7 +33,7 @@ func TestRateLimitCreate(t *testing.T) {
 				CreateERLFn: func(_ context.Context, i *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						Name:          i.Name,
-						RateLimiterID: fastly.ToPointer("123"),
+						RateLimiterID: new("123"),
 					}, nil
 				},
 				ListVersionsFn: testutil.ListVersions,
@@ -94,12 +94,12 @@ func TestRateLimitDescribe(t *testing.T) {
 				GetVersionFn: testutil.GetVersion,
 				GetERLFn: func(_ context.Context, _ *fastly.GetERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						RateLimiterID:      fastly.ToPointer("123"),
-						Name:               fastly.ToPointer("example"),
-						Action:             fastly.ToPointer(fastly.ERLActionResponse),
-						RpsLimit:           fastly.ToPointer(10),
-						WindowSize:         fastly.ToPointer(fastly.ERLSize60),
-						PenaltyBoxDuration: fastly.ToPointer(20),
+						RateLimiterID:      new("123"),
+						Name:               new("example"),
+						Action:             new(fastly.ERLActionResponse),
+						RpsLimit:           new(10),
+						WindowSize:         new(fastly.ERLSize60),
+						PenaltyBoxDuration: new(20),
 					}, nil
 				},
 			},
@@ -132,12 +132,12 @@ func TestRateLimitList(t *testing.T) {
 				ListERLsFn: func(_ context.Context, _ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return []*fastly.ERL{
 						{
-							RateLimiterID:      fastly.ToPointer("123"),
-							Name:               fastly.ToPointer("example"),
-							Action:             fastly.ToPointer(fastly.ERLActionResponse),
-							RpsLimit:           fastly.ToPointer(10),
-							WindowSize:         fastly.ToPointer(fastly.ERLSize60),
-							PenaltyBoxDuration: fastly.ToPointer(20),
+							RateLimiterID:      new("123"),
+							Name:               new("example"),
+							Action:             new(fastly.ERLActionResponse),
+							RpsLimit:           new(10),
+							WindowSize:         new(fastly.ERLSize60),
+							PenaltyBoxDuration: new(20),
 						},
 					}, nil
 				},
@@ -171,7 +171,7 @@ func TesRateLimitUpdate(t *testing.T) {
 				UpdateERLFn: func(_ context.Context, i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						Name:          i.Name,
-						RateLimiterID: fastly.ToPointer("123"),
+						RateLimiterID: new("123"),
 					}, nil
 				},
 			},

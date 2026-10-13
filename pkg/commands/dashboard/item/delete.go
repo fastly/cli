@@ -80,7 +80,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if success {
-		text.Success(out, `Removed %d dashboard item(s) from Custom Dashboard "%s" (dashboardID: %s)`, (numItems - (len(d.Items))), d.Name, d.ID)
+		text.Success(out, `Removed %d dashboard item(s) from Custom Dashboard "%s" (dashboardID: %s)`, (numItems - len(d.Items)), d.Name, d.ID)
 	} else {
 		text.Warning(out, "dashboard (%s) has no item with ID (%s)", d.ID, c.itemID)
 	}

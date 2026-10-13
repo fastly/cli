@@ -50,7 +50,7 @@ func TestCreateCommand(t *testing.T) {
 					if i.Config["apikey"] != apiKey {
 						return nil, fmt.Errorf("unexpected apikey: %s", i.Config["apikey"])
 					}
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Created Datadog integration '%s' (id: %s)", integrationName, integrationID),
@@ -62,7 +62,7 @@ func TestCreateCommand(t *testing.T) {
 					if i.Config["site"] != "datadoghq.eu" {
 						return nil, fmt.Errorf("unexpected site: %s", i.Config["site"])
 					}
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Created Datadog integration '%s' (id: %s)", integrationName, integrationID),
@@ -71,10 +71,10 @@ func TestCreateCommand(t *testing.T) {
 			Args: fmt.Sprintf("--name %s --api-key %s --json", integrationName, apiKey),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: new(integrationID)}),
 		},
 	}
 

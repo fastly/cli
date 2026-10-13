@@ -55,7 +55,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.CreateIntegrationInput{
 		Name:   &c.IntegrationName,
-		Type:   fastly.ToPointer(CommandName),
+		Type:   new(CommandName),
 		Config: map[string]string{"account": c.Account, "key": c.APIKey},
 	}
 	if c.Description.WasSet {

@@ -6,9 +6,43 @@
 
 ### Bug Fixes:
 
-- fix(json): `secret-store list --json` emits `[]` rather than `null` on an account with no secret stores
+- fix(secret-store): return `[]` instead of `null` when no secret stores exist. ([#1892](https://github.com/fastly/cli/pull/1892))
+- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
+- fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
+- fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
+  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector.
 
 ### Enhancements:
+
+- feat(service/logging): add support for the 'public-key` flag for GCS logging ([#1925](https://github.com/fastly/cli/pull/1925))
+- feat(help): add -h short flag for --help. ([#1918](https://github.com/fastly/cli/pull/1918))
+- feat(routing-config): add CLI support for routing configs ([#1931](https://github.com/fastly/cli/pull/1931))
+- docs(compute): for `compute deploy` and `compute publish`, the `--version` help now says that the flag is optional and
+  defaults to the active version, or to the latest version if none is active. ([#1928](https://github.com/fastly/cli/pull/1928))
+
+### Dependencies:
+- build(deps): `github.com/andybalholm/brotli` from 1.2.3 to 1.2.4 ([#1913](https://github.com/fastly/cli/pull/1913))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.29 to 0.0.30 ([#1913](https://github.com/fastly/cli/pull/1913))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.29 to 4.1.30 ([#1913](https://github.com/fastly/cli/pull/1913))
+- build(deps): `github.com/fastly/go-fastly/v17` from 17.3.2 to 17.4.0 ([#1913](https://github.com/fastly/cli/pull/1913))
+- build(deps): `github.com/hashicorp/cap` from 0.13.0 to 0.14.0 ([#1919](https://github.com/fastly/cli/pull/1919))
+- build(deps): `github.com/hashicorp/go-uuid` from 1.0.3 to 1.0.4 ([#1919](https://github.com/fastly/cli/pull/1919))
+- build(deps): `github.com/ulikunitz/xz` from 0.5.16 to 0.5.17 ([#1919](https://github.com/fastly/cli/pull/1919))
+- build(deps): `github.com/fastly/go-fastly/v17` from 17.4.0 to 17.7.0 ([#1919](https://github.com/fastly/cli/pull/1919))
+- build(deps): `@xhmikosr/decompress` from 11.1.3 to 11.1.4 ([#1927](https://github.com/fastly/cli/pull/1927))
+- build(deps): `github.com/minio/minlz` from 1.2.0 to 1.2.1 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/andybalholm/brotli` from 1.2.4 to 1.2.6 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/klauspost/compress` from 1.20.0 to 1.20.1 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/klauspost/pgzip` from 1.2.6 to 1.2.7 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.30 to 4.1.31 ([#1929](https://github.com/fastly/cli/pull/1929))
+- build(deps): `github.com/fastly/go-fastly/v17` from 17.7.0 to 17.8.0 ([#1929](https://github.com/fastly/cli/pull/1929))
+
+## [v16.1.0](https://github.com/fastly/cli/releases/tag/v16.1.0) (2026-09-14)
+
+### Enhancements:
+
+- feat(service/logging): add Log Explorer and Insights commands ([#1887](https://github.com/fastly/cli/pull/1887))
+- feat(ai-runtime-control): add support for AI Runtime Control ([#1901](https://github.com/fastly/cli/pull/1901))
 
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.54.0 to 0.55.0 ([#1888](https://github.com/fastly/cli/pull/1888))
@@ -21,6 +55,17 @@
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.27 to 0.0.28 ([#1894](https://github.com/fastly/cli/pull/1894))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.28 to 4.1.29 ([#1894](https://github.com/fastly/cli/pull/1894))
 - build(deps): `golang.org/x/net` from 0.57.0 to 0.58.0 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.3.0 to 2.4.1 ([#1898](https://github.com/fastly/cli/pull/1898))
+- build(deps): `github.com/fastly/go-fastly` from 17.3.0 to 17.3.1 ([#1902](https://github.com/fastly/cli/pull/1902))
+- build(deps): `golang.org/x/sys` from 0.47.0 to 0.48.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `golang.org/x/mod` from 0.40.0 to 0.41.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/andybalholm/brotli` from 1.2.2 to 1.2.3 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.20.0 to 3.21.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/klauspost/compress` from 1.19.2 to 1.20.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.28 to 0.0.29 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `golang.org/x/oauth2` from 0.36.0 to 0.37.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `golang.org/x/sync` from 0.22.0 to 0.23.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/fastly/go-fastly` from 17.3.0 to 17.3.1 ([#1902](https://github.com/fastly/cli/pull/1902))
 
 ## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
 

@@ -97,26 +97,26 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 func listVersions(_ context.Context, i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
-			ServiceID: fastly.ToPointer(i.ServiceID),
-			Number:    fastly.ToPointer(4),
-			Staging:   fastly.ToPointer(true),
+			ServiceID: new(i.ServiceID),
+			Number:    new(4),
+			Staging:   new(true),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 		},
 		{
-			ServiceID: fastly.ToPointer(i.ServiceID),
-			Number:    fastly.ToPointer(3),
+			ServiceID: new(i.ServiceID),
+			Number:    new(3),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
 		},
 		{
-			ServiceID: fastly.ToPointer(i.ServiceID),
-			Number:    fastly.ToPointer(2),
-			Locked:    fastly.ToPointer(true),
+			ServiceID: new(i.ServiceID),
+			Number:    new(2),
+			Locked:    new(true),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
 		},
 		{
-			ServiceID: fastly.ToPointer(i.ServiceID),
-			Number:    fastly.ToPointer(1),
-			Active:    fastly.ToPointer(true),
+			ServiceID: new(i.ServiceID),
+			Number:    new(1),
+			Active:    new(true),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		},
 	}, nil
@@ -125,13 +125,13 @@ func listVersions(_ context.Context, i *fastly.ListVersionsInput) ([]*fastly.Ver
 // getServiceDetails returns service details with active and latest version info.
 func getServiceDetails(_ context.Context, i *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	result := &fastly.ServiceDetail{
-		ServiceID: fastly.ToPointer(i.ServiceID),
+		ServiceID: new(i.ServiceID),
 	}
 
 	// Check if specific version is requested
 	if i.Version != nil {
 		result.Version = &fastly.Version{
-			ServiceID: fastly.ToPointer(i.ServiceID),
+			ServiceID: new(i.ServiceID),
 			Number:    i.Version,
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		}
@@ -142,18 +142,18 @@ func getServiceDetails(_ context.Context, i *fastly.GetServiceDetailsInput) (*fa
 	for _, filter := range i.Filters {
 		if filter.Key == "versions.active" && filter.Value {
 			result.ActiveVersion = &fastly.Version{
-				ServiceID: fastly.ToPointer(i.ServiceID),
-				Number:    fastly.ToPointer(1),
-				Active:    fastly.ToPointer(true),
+				ServiceID: new(i.ServiceID),
+				Number:    new(1),
+				Active:    new(true),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 			}
 			return result, nil
 		}
 		if filter.Key == "versions.staged" && filter.Value {
 			result.Version = &fastly.Version{
-				ServiceID: fastly.ToPointer(i.ServiceID),
-				Number:    fastly.ToPointer(4),
-				Staging:   fastly.ToPointer(true),
+				ServiceID: new(i.ServiceID),
+				Number:    new(4),
+				Staging:   new(true),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 			}
 			return result, nil
@@ -162,15 +162,15 @@ func getServiceDetails(_ context.Context, i *fastly.GetServiceDetailsInput) (*fa
 
 	// Default: return both active and latest
 	result.ActiveVersion = &fastly.Version{
-		ServiceID: fastly.ToPointer(i.ServiceID),
-		Number:    fastly.ToPointer(1),
-		Active:    fastly.ToPointer(true),
+		ServiceID: new(i.ServiceID),
+		Number:    new(1),
+		Active:    new(true),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 	}
 	result.Version = &fastly.Version{
-		ServiceID: fastly.ToPointer(i.ServiceID),
-		Number:    fastly.ToPointer(4),
-		Staging:   fastly.ToPointer(true),
+		ServiceID: new(i.ServiceID),
+		Number:    new(4),
+		Staging:   new(true),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 	}
 	return result, nil
@@ -186,46 +186,46 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 	}{
 		"version is editable": {
 			version: &fastly.Version{
-				Number: fastly.ToPointer(1),
-				Active: fastly.ToPointer(false),
-				Locked: fastly.ToPointer(false),
+				Number: new(1),
+				Active: new(false),
+				Locked: new(false),
 			},
 			wantVersion:    1,
 			expectEditable: true,
 		},
 		"version is locked": {
 			version: &fastly.Version{
-				Number: fastly.ToPointer(1),
-				Locked: fastly.ToPointer(true),
+				Number: new(1),
+				Locked: new(true),
 			},
 			wantVersion: 2,
 		},
 		"version is active": {
 			version: &fastly.Version{
-				Number: fastly.ToPointer(1),
-				Active: fastly.ToPointer(true),
+				Number: new(1),
+				Active: new(true),
 			},
 			wantVersion: 2,
 		},
 		"version is locked but flag omitted": {
 			version: &fastly.Version{
-				Number: fastly.ToPointer(1),
-				Locked: fastly.ToPointer(true),
+				Number: new(1),
+				Locked: new(true),
 			},
 			flagOmitted: true,
 			errExpected: true,
 		},
 		"version is active but flag omitted": {
 			version: &fastly.Version{
-				Number: fastly.ToPointer(1),
-				Active: fastly.ToPointer(true),
+				Number: new(1),
+				Active: new(true),
 			},
 			flagOmitted: true,
 			errExpected: true,
 		},
 		"version state unknown with autoclone": {
 			version: &fastly.Version{
-				Number: fastly.ToPointer(1),
+				Number: new(1),
 				Active: nil,
 				Locked: nil,
 			},
@@ -407,8 +407,8 @@ func TestContent(t *testing.T) {
 func cloneVersionResult(version int) func(_ context.Context, i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return func(_ context.Context, i *fastly.CloneVersionInput) (*fastly.Version, error) {
 		return &fastly.Version{
-			ServiceID: fastly.ToPointer(i.ServiceID),
-			Number:    fastly.ToPointer(version),
+			ServiceID: new(i.ServiceID),
+			Number:    new(version),
 		}, nil
 	}
 }

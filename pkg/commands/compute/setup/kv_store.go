@@ -283,8 +283,8 @@ func (o *KVStores) Create() error {
 			_, err = o.APIClient.CreateResource(context.TODO(), &fastly.CreateResourceInput{
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
-				Name:           fastly.ToPointer(store.Name),
-				ResourceID:     fastly.ToPointer(store.StoreID),
+				Name:           new(store.Name),
+				ResourceID:     new(store.StoreID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service '%s' and the KV Store '%s': %w", o.ServiceID, store.Name, err)

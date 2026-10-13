@@ -48,7 +48,7 @@ func TestCreateCommand(t *testing.T) {
 						i.Config["token"] != "abc123" || i.Config["projectkey"] != "PROJ" || i.Config["issuetype"] != "Bug" {
 						return nil, fmt.Errorf("unexpected config: %+v", i.Config)
 					}
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
 			WantOutput: fstfmt.Success("Created Jira Issue integration '%s' (id: %s)", integrationName, integrationID),
@@ -57,10 +57,10 @@ func TestCreateCommand(t *testing.T) {
 			Args: fmt.Sprintf("--name %s %s --json", integrationName, requiredFlags),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
-					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
+					return &fastly.CreateIntegrationResponse{ID: new(integrationID)}, nil
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}),
+			WantOutput: fstfmt.EncodeJSON(&fastly.CreateIntegrationResponse{ID: new(integrationID)}),
 		},
 	}
 

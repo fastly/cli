@@ -164,8 +164,8 @@ var errTest = errors.New("fixture error")
 
 func createPapertrailOK(_ context.Context, i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -177,28 +177,28 @@ func createPapertrailError(_ context.Context, _ *fastly.CreatePapertrailInput) (
 func listPapertrailsOK(_ context.Context, i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
 	return []*fastly.Papertrail{
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("logs"),
-			Address:           fastly.ToPointer("example.com:123"),
-			Port:              fastly.ToPointer(123),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("logs"),
+			Address:           new("example.com:123"),
+			Port:              new(123),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("analytics"),
-			Address:           fastly.ToPointer("127.0.0.1:456"),
-			Port:              fastly.ToPointer(456),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("analytics"),
+			Address:           new("127.0.0.1:456"),
+			Port:              new(456),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 	}, nil
 }
@@ -246,16 +246,16 @@ Version: 1
 
 func getPapertrailOK(_ context.Context, i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("logs"),
-		Address:           fastly.ToPointer("example.com:123"),
-		Port:              fastly.ToPointer(123),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
-		ProcessingRegion:  fastly.ToPointer("us"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("logs"),
+		Address:           new("example.com:123"),
+		Port:              new(123),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
+		ProcessingRegion:  new("us"),
 	}, nil
 }
 
@@ -278,15 +278,15 @@ Version: 1
 
 func updatePapertrailOK(_ context.Context, i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("log"),
-		Address:           fastly.ToPointer("example.com:123"),
-		Port:              fastly.ToPointer(123),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("log"),
+		Address:           new("example.com:123"),
+		Port:              new(123),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
 	}, nil
 }
 

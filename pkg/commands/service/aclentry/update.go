@@ -159,7 +159,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 		input.IP = &c.ip.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.ToPointer(fastly.Compatibool(c.negated.Value))
+		input.Negated = new(fastly.Compatibool(c.negated.Value))
 	}
 	if c.subnet.WasSet {
 		input.Subnet = &c.subnet.Value

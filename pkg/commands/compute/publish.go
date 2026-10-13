@@ -81,7 +81,7 @@ func NewPublishCommand(parent argparser.Registerer, g *global.Data, build *Build
 	c.CmdClause.Flag("status-check-timeout", "Set a timeout (in seconds) for the service availability check").Default("120").IntVar(&c.statusCheckTimeout)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionOptionalDesc,
 		Dst:         &c.serviceVersion.Value,
 		Action:      c.serviceVersion.Set,
 	})

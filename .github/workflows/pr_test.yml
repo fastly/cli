@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 env:
   GO_VERSION: 1.26.x
-  GOLANGCI_LINT_VERSION: v2.9
+  GOLANGCI_LINT_VERSION: v2.14.0
   WASI_SDK_VERSION: 25
   WASI_SDK_FULL_VERSION: "25.0"
 jobs:
@@ -53,7 +53,7 @@ jobs:
     name: Test (${{ matrix.platform }})
     strategy:
       matrix:
-        tinygo-version: [0.31.2]
+        tinygo-version: [0.42.0]
         go-version: [1.26.x]
         node-version: [18]
         platform: [ubuntu-latest]
@@ -73,7 +73,7 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           toolchain: stable
           target: wasm32-wasip1
@@ -87,7 +87,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Install uv"
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       - name: "Install WASI SDK"
         run: |
           wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
@@ -110,7 +110,7 @@ jobs:
     if: contains(github.head_ref, 'release')
     strategy:
       matrix:
-        tinygo-version: [0.31.2]
+        tinygo-version: [0.42.0]
         go-version: [1.26.x]
         node-version: [18]
         platform: [macos-latest, windows-latest]
@@ -130,7 +130,7 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           toolchain: stable
           target: wasm32-wasip1
@@ -144,7 +144,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Install uv"
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       - name: "Install WASI SDK (Ubuntu)"
         if: matrix.platform == 'ubuntu-latest'
         run: |

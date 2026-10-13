@@ -267,8 +267,8 @@ var errTest = errors.New("fixture error")
 
 func createDomainOK(_ context.Context, i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -280,16 +280,16 @@ func createDomainError(_ context.Context, _ *fastly.CreateDomainInput) (*fastly.
 func listDomainsOK(_ context.Context, i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer("www.test.com"),
-			Comment:        fastly.ToPointer("test"),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new("www.test.com"),
+			Comment:        new("test"),
 		},
 		{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer("www.example.com"),
-			Comment:        fastly.ToPointer("example"),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new("www.example.com"),
+			Comment:        new("example"),
 		},
 	}, nil
 }
@@ -321,10 +321,10 @@ Version: 1
 
 func getDomainOK(_ context.Context, i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer(i.Name),
-		Comment:        fastly.ToPointer("test"),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new(i.Name),
+		Comment:        new("test"),
 	}, nil
 }
 
@@ -341,8 +341,8 @@ Comment: test
 
 func updateDomainOK(_ context.Context, i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.NewName,
 	}, nil
 }
@@ -362,12 +362,12 @@ func deleteDomainError(_ context.Context, _ *fastly.DeleteDomainInput) error {
 func validateDomain(_ context.Context, i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 	return &fastly.DomainValidationResult{
 		Metadata: &fastly.DomainMetadata{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer(i.Name),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new(i.Name),
 		},
-		CName: fastly.ToPointer("foo"),
-		Valid: fastly.ToPointer(true),
+		CName: new("foo"),
+		Valid: new(true),
 	}, nil
 }
 
@@ -375,21 +375,21 @@ func validateAllDomains(_ context.Context, i *fastly.ValidateAllDomainsInput) ([
 	return []*fastly.DomainValidationResult{
 		{
 			Metadata: &fastly.DomainMetadata{
-				ServiceID:      fastly.ToPointer(i.ServiceID),
-				ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-				Name:           fastly.ToPointer("foo.example.com"),
+				ServiceID:      new(i.ServiceID),
+				ServiceVersion: new(i.ServiceVersion),
+				Name:           new("foo.example.com"),
 			},
-			CName: fastly.ToPointer("foo"),
-			Valid: fastly.ToPointer(true),
+			CName: new("foo"),
+			Valid: new(true),
 		},
 		{
 			Metadata: &fastly.DomainMetadata{
-				ServiceID:      fastly.ToPointer(i.ServiceID),
-				ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-				Name:           fastly.ToPointer("bar.example.com"),
+				ServiceID:      new(i.ServiceID),
+				ServiceVersion: new(i.ServiceVersion),
+				Name:           new("bar.example.com"),
 			},
-			CName: fastly.ToPointer("bar"),
-			Valid: fastly.ToPointer(true),
+			CName: new("bar"),
+			Valid: new(true),
 		},
 	}, nil
 }

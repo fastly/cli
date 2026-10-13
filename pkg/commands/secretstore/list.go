@@ -45,9 +45,6 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	// Initialised rather than declared nil so that an account with no secret
-	// stores encodes as `[]` instead of `null`: encoding/json writes a nil
-	// slice as null, and `--json` output should be a list either way.
 	data := make([]fastly.SecretStore, 0)
 
 	for {

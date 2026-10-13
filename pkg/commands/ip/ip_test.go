@@ -18,10 +18,10 @@ func TestAllIPs(t *testing.T) {
 			API: &mock.API{
 				AllIPsFn: func(_ context.Context) (v4, v6 fastly.IPAddrs, err error) {
 					return []string{
-							"00.123.45.6/78",
-						}, []string{
-							"0a12:3b45::/67",
-						}, nil
+						"00.123.45.6/78",
+					}, []string{
+						"0a12:3b45::/67",
+					}, nil
 				},
 			},
 			WantOutput: "\nIPv4\n\t00.123.45.6/78\n\nIPv6\n\t0a12:3b45::/67\n",

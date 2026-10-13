@@ -151,7 +151,7 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 	if debugMode {
 		debug.DumpHTTPRequest(req)
 	}
-	res, err := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req) //nolint:gosec // token endpoint comes from Fastly's own OIDC discovery metadata, not user input
 	if debugMode {
 		debug.DumpHTTPResponse(res)
 	}

@@ -112,7 +112,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		c.input.WriteOnly = fastly.ToPointer(fastly.Compatibool(writeOnly))
+		c.input.WriteOnly = new(fastly.Compatibool(writeOnly))
 	}
 
 	d, err := c.Globals.APIClient.UpdateDictionary(context.TODO(), &c.input)

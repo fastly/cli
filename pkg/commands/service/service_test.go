@@ -440,7 +440,7 @@ var errTest = errors.New("fixture error")
 
 func createServiceOK(_ context.Context, i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ServiceID: fastly.ToPointer("12345"),
+		ServiceID: new("12345"),
 		Name:      i.Name,
 	}, nil
 }
@@ -512,44 +512,44 @@ Service 3/3
 
 func getServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ServiceID: fastly.ToPointer("12345"),
-		Name:      fastly.ToPointer("Foo"),
-		Comment:   fastly.ToPointer("Bar"),
+		ServiceID: new("12345"),
+		Name:      new("Foo"),
+		Comment:   new("Bar"),
 	}, nil
 }
 
 func describeServiceOK(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
-		ServiceID:  fastly.ToPointer("123"),
-		Name:       fastly.ToPointer("Foo"),
-		Type:       fastly.ToPointer("wasm"),
-		Comment:    fastly.ToPointer("example"),
-		CustomerID: fastly.ToPointer("mycustomerid"),
+		ServiceID:  new("123"),
+		Name:       new("Foo"),
+		Type:       new("wasm"),
+		Comment:    new("example"),
+		CustomerID: new("mycustomerid"),
 		ActiveVersion: &fastly.Version{
-			Number:    fastly.ToPointer(2),
-			Comment:   fastly.ToPointer("c"),
-			ServiceID: fastly.ToPointer("d"),
-			Active:    fastly.ToPointer(true),
-			Deployed:  fastly.ToPointer(true),
+			Number:    new(2),
+			Comment:   new("c"),
+			ServiceID: new("d"),
+			Active:    new(true),
+			Deployed:  new(true),
 			CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 		},
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
 			{
-				Number:    fastly.ToPointer(1),
-				Comment:   fastly.ToPointer("a"),
-				ServiceID: fastly.ToPointer("b"),
+				Number:    new(1),
+				Comment:   new("a"),
+				ServiceID: new("b"),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
 			{
-				Number:    fastly.ToPointer(2),
-				Comment:   fastly.ToPointer("c"),
-				ServiceID: fastly.ToPointer("d"),
-				Active:    fastly.ToPointer(true),
-				Deployed:  fastly.ToPointer(true),
+				Number:    new(2),
+				Comment:   new("c"),
+				ServiceID: new("d"),
+				Active:    new(true),
+				Deployed:  new(true),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 			},
@@ -634,26 +634,26 @@ Versions: 2
 
 func searchServiceOK(_ context.Context, _ *fastly.SearchServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ServiceID:  fastly.ToPointer("123"),
-		Name:       fastly.ToPointer("Foo"),
-		Type:       fastly.ToPointer("wasm"),
-		CustomerID: fastly.ToPointer("mycustomerid"),
+		ServiceID:  new("123"),
+		Name:       new("Foo"),
+		Type:       new("wasm"),
+		CustomerID: new("mycustomerid"),
 		UpdatedAt:  testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
 			{
-				Number:    fastly.ToPointer(1),
-				Comment:   fastly.ToPointer("a"),
-				ServiceID: fastly.ToPointer("b"),
+				Number:    new(1),
+				Comment:   new("a"),
+				ServiceID: new("b"),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
 			{
-				Number:    fastly.ToPointer(2),
-				Comment:   fastly.ToPointer("c"),
-				ServiceID: fastly.ToPointer("d"),
-				Active:    fastly.ToPointer(true),
-				Deployed:  fastly.ToPointer(true),
+				Number:    new(2),
+				Comment:   new("c"),
+				ServiceID: new("d"),
+				Active:    new(true),
+				Deployed:  new(true),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 			},
@@ -714,7 +714,7 @@ Versions: 2
 
 func updateServiceOK(_ context.Context, _ *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ServiceID: fastly.ToPointer("12345"),
+		ServiceID: new("12345"),
 	}, nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	stderrors "errors"
 	"io"
 	"os"
 	"strings"
@@ -66,6 +67,7 @@ complete -F _fastly_bash_autocomplete fastly
 			Args: "--completion-bash",
 			WantOutput: `help
 auth
+ai-runtime-control
 apisecurity
 audit-log
 compute
@@ -85,6 +87,7 @@ ngwaf
 object-storage
 pops
 products
+routing-config
 secret-store
 secret-store-entry
 service
@@ -272,6 +275,36 @@ func TestHelpJSON(t *testing.T) {
 			}
 			if !strings.Contains(stdout.String(), `"commands"`) {
 				t.Errorf("expected JSON usage output containing \"commands\", got: %s", stdout.String())
+			}
+		})
+	}
+}
+
+// TestShortHelpFlag verifies that `-h` displays the usage template just like `--help`.
+func TestShortHelpFlag(t *testing.T) {
+	for _, flag := range []string{"--help", "-h"} {
+		t.Run(flag, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.SplitArgs(flag)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(args, &stdout), nil
+			}
+			err := app.Run(args, nil)
+			var output string
+			if err != nil {
+				var re errors.RemediationError
+				var se errors.SkipExitError
+				if ok := stderrors.As(err, &re); ok {
+					output = re.Prefix
+				} else if ok := stderrors.As(err, &se); ok {
+					if re, ok := se.Err.(errors.RemediationError); ok {
+						output = re.Prefix
+					}
+				}
+			}
+			output += stdout.String()
+			if !strings.Contains(output, "USAGE") {
+				t.Errorf("expected usage output containing \"USAGE\", got: %s", output)
 			}
 		})
 	}

@@ -42,8 +42,8 @@ var (
 		Title:    title,
 		Visualization: fastly.DashboardVisualization{
 			Config: fastly.VisualizationConfig{
-				CalculationMethod: fastly.ToPointer(fastly.CalculationMethod(calculationMethod)),
-				Format:            fastly.ToPointer(fastly.VisualizationFormat(format)),
+				CalculationMethod: new(fastly.CalculationMethod(calculationMethod)),
+				Format:            new(fastly.VisualizationFormat(format)),
 				PlotType:          fastly.PlotType(plotType),
 			},
 			Type: fastly.VisualizationType(vizType),

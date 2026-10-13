@@ -68,7 +68,7 @@ func TestCustomSignalCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(customSignal)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(customSignal))),
 					},
 				},
 			},
@@ -194,7 +194,7 @@ func TestCustomSignalGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(customSignal)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(customSignal))),
 					},
 				},
 			},
@@ -208,7 +208,7 @@ func TestCustomSignalGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(customSignal)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(customSignal))),
 					},
 				},
 			},

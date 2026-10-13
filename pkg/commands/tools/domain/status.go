@@ -60,7 +60,7 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 				Remediation: "Use `--scope=estimate` for an estimated status check",
 			}
 		}
-		input.Scope = fastly.ToPointer(scope)
+		input.Scope = new(scope)
 	}
 
 	fc, ok := g.Globals.APIClient.(*fastly.Client)

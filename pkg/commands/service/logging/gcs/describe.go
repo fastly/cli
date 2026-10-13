@@ -106,6 +106,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Processing region":  fastly.ToValue(o.ProcessingRegion),
 		"Project ID":         fastly.ToValue(o.ProjectID),
 		"Placement":          fastly.ToValue(o.Placement),
+		"Public key":         fastly.ToValue(o.PublicKey),
 		"Response condition": fastly.ToValue(o.ResponseCondition),
 		"Secret key":         fastly.ToValue(o.SecretKey),
 		"Timestamp format":   fastly.ToValue(o.TimestampFormat),

@@ -150,17 +150,17 @@ func TestDomainInspector(t *testing.T) {
 
 func domainMetricsOKResult() (*fastly.DomainInspector, error) {
 	return &fastly.DomainInspector{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Meta: &fastly.DomainMeta{
-			Start: fastly.ToPointer("2024-01-15T10:00:00Z"),
-			End:   fastly.ToPointer("2024-01-15T11:00:00Z"),
+			Start: new("2024-01-15T10:00:00Z"),
+			End:   new("2024-01-15T11:00:00Z"),
 		},
 		Data: []*fastly.DomainData{
 			{
 				Values: []*fastly.DomainMetrics{
 					{
-						Requests:  fastly.ToPointer(uint64(100)),
-						Bandwidth: fastly.ToPointer(uint64(5000)),
+						Requests:  new(uint64(100)),
+						Bandwidth: new(uint64(5000)),
 					},
 				},
 			},
@@ -184,7 +184,7 @@ func getDomainMetricsJSONNonSuccess(_ context.Context, _ *fastly.GetDomainMetric
 
 func getDomainMetricsNonSuccess(_ context.Context, _ *fastly.GetDomainMetricsInput) (*fastly.DomainInspector, error) {
 	return &fastly.DomainInspector{
-		Status: fastly.ToPointer("error"),
+		Status: new("error"),
 	}, nil
 }
 

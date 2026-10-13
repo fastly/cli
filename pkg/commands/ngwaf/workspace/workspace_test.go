@@ -76,7 +76,7 @@ func TestWorkspacesCreate(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(workspace)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
 					},
 				},
 			},
@@ -194,7 +194,7 @@ func TestWorkspaceGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(workspace)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
 					},
 				},
 			},
@@ -208,7 +208,7 @@ func TestWorkspaceGet(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(workspace)))),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
 					},
 				},
 			},

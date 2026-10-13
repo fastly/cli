@@ -98,7 +98,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Name = &c.name.Value
 	}
 	if c.writeOnly.WasSet {
-		input.WriteOnly = fastly.ToPointer(fastly.Compatibool(c.writeOnly.Value))
+		input.WriteOnly = new(fastly.Compatibool(c.writeOnly.Value))
 	}
 
 	d, err := c.Globals.APIClient.CreateDictionary(context.TODO(), &input)

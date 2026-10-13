@@ -468,11 +468,11 @@ func TestInit_ExistingService(t *testing.T) {
 				return &fastly.ServiceDetail{
 					ServiceID:  serviceID,
 					CustomerID: customerID,
-					Comment:    fastly.ToPointer(""),
-					Name:       fastly.ToPointer("example service"),
-					Type:       fastly.ToPointer("wasm"),
+					Comment:    new(""),
+					Name:       new("example service"),
+					Type:       new("wasm"),
 					ActiveVersion: &fastly.Version{
-						Number: fastly.ToPointer(1),
+						Number: new(1),
 					},
 				}, nil
 			},
@@ -531,10 +531,10 @@ func TestInit_ExistingService(t *testing.T) {
 					ActiveVersion: nil,
 					Versions: []*fastly.Version{
 						{
-							Active:   fastly.ToPointer(false),
-							Deployed: fastly.ToPointer(false),
-							Locked:   fastly.ToPointer(false),
-							Number:   fastly.ToPointer(1),
+							Active:   new(false),
+							Deployed: new(false),
+							Locked:   new(false),
+							Number:   new(1),
 						},
 					},
 				}, nil
@@ -575,7 +575,7 @@ func TestInit_ExistingService(t *testing.T) {
 					Comment:   fastly.NullString(""),
 					Type:      fastly.NullString("wasm"),
 					ActiveVersion: &fastly.Version{
-						Number: fastly.ToPointer(1),
+						Number: new(1),
 					},
 				}, nil
 			},
@@ -584,8 +584,8 @@ func TestInit_ExistingService(t *testing.T) {
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
 					Metadata: &fastly.PackageMetadata{
-						ClonedFrom: fastly.ToPointer("https://github.com/fastly/compute-starter-kit-rust-empty"),
-						Language:   fastly.ToPointer("rust"),
+						ClonedFrom: new("https://github.com/fastly/compute-starter-kit-rust-empty"),
+						Language:   new("rust"),
 					},
 				}, nil
 			},
@@ -602,7 +602,7 @@ func TestInit_ExistingService(t *testing.T) {
 					Comment:   fastly.NullString(""),
 					Type:      fastly.NullString("wasm"),
 					ActiveVersion: &fastly.Version{
-						Number: fastly.ToPointer(1),
+						Number: new(1),
 					},
 				}, nil
 			},
@@ -611,8 +611,8 @@ func TestInit_ExistingService(t *testing.T) {
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
 					Metadata: &fastly.PackageMetadata{
-						ClonedFrom: fastly.ToPointer("https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/rust/empty"),
-						Language:   fastly.ToPointer("rust"),
+						ClonedFrom: new("https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/rust/empty"),
+						Language:   new("rust"),
 					},
 				}, nil
 			},
@@ -629,7 +629,7 @@ func TestInit_ExistingService(t *testing.T) {
 					Comment:   fastly.NullString(""),
 					Type:      fastly.NullString("wasm"),
 					ActiveVersion: &fastly.Version{
-						Number: fastly.ToPointer(1),
+						Number: new(1),
 					},
 				}, nil
 			},
@@ -638,8 +638,8 @@ func TestInit_ExistingService(t *testing.T) {
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
 					Metadata: &fastly.PackageMetadata{
-						ClonedFrom: fastly.ToPointer("https://github.com/fastly/fake-template"),
-						Language:   fastly.ToPointer("rust"),
+						ClonedFrom: new("https://github.com/fastly/fake-template"),
+						Language:   new("rust"),
 					},
 				}, nil
 			},
@@ -656,7 +656,7 @@ func TestInit_ExistingService(t *testing.T) {
 					Comment:   fastly.NullString(""),
 					Type:      fastly.NullString("wasm"),
 					ActiveVersion: &fastly.Version{
-						Number: fastly.ToPointer(2),
+						Number: new(2),
 					},
 				}, nil
 			},
@@ -665,8 +665,8 @@ func TestInit_ExistingService(t *testing.T) {
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
 					Metadata: &fastly.PackageMetadata{
-						ClonedFrom: fastly.ToPointer("https://github.com/fastly/fake-template"),
-						Language:   fastly.ToPointer("rust"),
+						ClonedFrom: new("https://github.com/fastly/fake-template"),
+						Language:   new("rust"),
 					},
 				}, nil
 			},

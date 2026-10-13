@@ -341,8 +341,6 @@ func TestListStoresCommand(t *testing.T) {
 			wantAPIInvoked: true,
 			wantOutput:     fstfmt.EncodeJSON([]fastly.SecretStore{stores.Data[0]}),
 		},
-		// An account with no secret stores used to print `null` here while
-		// `config-store list --json` printed `[]` for the same situation.
 		{
 			args: "list --json",
 			api: mock.API{
@@ -353,8 +351,6 @@ func TestListStoresCommand(t *testing.T) {
 			wantAPIInvoked: true,
 			wantOutput:     "[]\n",
 		},
-		// The same, reached by the other route: the API returned no response
-		// body at all, so nothing was ever appended.
 		{
 			args: "list --json",
 			api: mock.API{
