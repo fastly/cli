@@ -6,6 +6,7 @@
 
 ### Bug Fixes:
 
+- fix(secret-store): return `[]` instead of `null` when no secret stores exist. ([#1892](https://github.com/fastly/cli/pull/1892))
 - fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
 - fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
 - fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
