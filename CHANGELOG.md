@@ -6,11 +6,19 @@
 
 ### Bug Fixes:
 
-- fix(secret-store): return `[]` instead of `null` when no secret stores exist. ([#1892](https://github.com/fastly/cli/pull/1892))
-- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
-- fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
+### Enhancements:
+
+### Dependencies:
+
+## [v16.2.0](https://github.com/fastly/cli/releases/tag/v16.2.0) (2026-10-15)
+
+### Bug Fixes:
+
+- fix(secret-store): return `[]` instead of `null` when no secret stores exist ([#1892](https://github.com/fastly/cli/pull/1892))
+- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID` ([#1907](https://github.com/fastly/cli/pull/1907))
+- fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found" ([#1916](https://github.com/fastly/cli/pull/1916))
 - fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
-  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector.
+  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector ([#1926](https://github.com/fastly/cli/pull/1926))
 
 ### Enhancements:
 
