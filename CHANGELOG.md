@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(ai-runtime-control): update AI Runtime Control command descriptions to reflect the latest API references ([#XXXX](https://github.com/fastly/cli/pull/XXXX))
+
 ### Enhancements:
 
 ### Dependencies:
