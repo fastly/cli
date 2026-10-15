@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/session"
 )
 
-// PrintSessionsTbl displays ARC session logs in a table format.
+// PrintSessionsTbl displays AI Runtime Control session logs in a table format.
 func PrintSessionsTbl(out io.Writer, sessionsToPrint []session.Session) {
 	tbl := NewTable(out)
 	tbl.AddHeader("ID", "Virtual Key", "Model", "Provider", "Requests", "Input Tokens", "Output Tokens", "Created At")

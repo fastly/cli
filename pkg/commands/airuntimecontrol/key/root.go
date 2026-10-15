@@ -21,7 +21,7 @@ const CommandName = "key"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage ARC virtual keys")
+	c.CmdClause = parent.Command(CommandName, "Manage AI Runtime Control virtual keys")
 	return &c
 }
 

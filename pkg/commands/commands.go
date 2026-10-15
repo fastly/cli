@@ -252,7 +252,7 @@ func Define( // nolint:revive // function-length
 		}
 	}
 
-	// AI Runtime Control (ARC) commands
+	// AI Runtime Control commands
 	arcRoot := airuntimecontrol.NewRootCommand(app, data)
 	arcKeyRoot := arckey.NewRootCommand(arcRoot.CmdClause, data)
 	arcKeyCreate := arckey.NewCreateCommand(arcKeyRoot.CmdClause, data)
