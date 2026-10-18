@@ -174,8 +174,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	c.setBackendsWithDefaultOverrideHostIfMissing(out)
-
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
@@ -202,6 +200,10 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
+	}
+
+	if err := c.setBackendsWithDefaultOverrideHostIfMissing(out, manifestPath); err != nil {
+		return err
 	}
 
 	bin, err := c.GetViceroy(spinner, out, manifestPath)
@@ -338,7 +340,11 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 // local_server.backends that is missing that property. The value will only be
 // set if the URL defined uses a hostname (e.g. http://127.0.0.1/ won't) so we
 // can set the override_host to match the hostname.
-func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer) {
+//
+// Viceroy reads backend configuration from the manifest file on disk, so any
+// defaults applied here are written back to manifestPath before Viceroy starts.
+func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer, manifestPath string) error {
+	updated := false
 	for k, backend := range c.Globals.Manifest.File.LocalServer.Backends {
 		if backend.OverrideHost == "" {
 			if u, err := url.Parse(backend.URL); err == nil {
@@ -349,10 +355,15 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 					}
 					backend.OverrideHost = u.Host
 					c.Globals.Manifest.File.LocalServer.Backends[k] = backend
+					updated = true
 				}
 			}
 		}
 	}
+	if !updated {
+		return nil
+	}
+	return c.Globals.Manifest.File.Write(manifestPath)
 }
 
 // GetViceroy returns the path to the installed binary.
