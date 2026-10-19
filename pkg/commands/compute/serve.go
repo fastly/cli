@@ -174,8 +174,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	c.setBackendsWithDefaultOverrideHostIfMissing(out)
-
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
@@ -202,6 +200,10 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
+	}
+
+	if err := c.setBackendsWithDefaultOverrideHostIfMissing(out, manifestPath); err != nil {
+		return err
 	}
 
 	bin, err := c.GetViceroy(spinner, out, manifestPath)
@@ -338,21 +340,28 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 // local_server.backends that is missing that property. The value will only be
 // set if the URL defined uses a hostname (e.g. http://127.0.0.1/ won't) so we
 // can set the override_host to match the hostname.
-func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer) {
+//
+// Viceroy reads backend configuration from the manifest file on disk, so any
+// defaults applied here are written back to manifestPath before Viceroy starts.
+func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer, manifestPath string) error {
+	updated := false
 	for k, backend := range c.Globals.Manifest.File.LocalServer.Backends {
 		if backend.OverrideHost == "" {
 			if u, err := url.Parse(backend.URL); err == nil {
 				segs := strings.Split(u.Host, ":") // avoid parsing IP with port
 				if ip := net.ParseIP(segs[0]); ip == nil {
-					if c.Globals.Verbose() {
-						text.Info(out, "[local_server.backends.%s] (%s) is configured without an `override_host`. We will use %s as a default to help avoid any unexpected errors. See https://www.fastly.com/documentation/reference/compute/fastly-toml#local-server for more details.", k, backend.URL, u.Host)
-					}
+					text.Info(out, "[local_server.backends.%s] (%s) is configured without an `override_host`. We will use %s as a default to help avoid any unexpected errors. See https://www.fastly.com/documentation/reference/compute/fastly-toml#local-server for more details.", k, backend.URL, u.Host)
 					backend.OverrideHost = u.Host
 					c.Globals.Manifest.File.LocalServer.Backends[k] = backend
+					updated = true
 				}
 			}
 		}
 	}
+	if !updated {
+		return nil
+	}
+	return c.Globals.Manifest.File.Write(manifestPath)
 }
 
 // GetViceroy returns the path to the installed binary.
