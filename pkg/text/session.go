@@ -10,7 +10,7 @@ import (
 // PrintSessionsTbl displays AI Runtime Control session logs in a table format.
 func PrintSessionsTbl(out io.Writer, sessionsToPrint []session.Session) {
 	tbl := NewTable(out)
-	tbl.AddHeader("ID", "Virtual Key", "Model", "Provider", "Requests", "Input Tokens", "Output Tokens", "Created At")
+	tbl.AddHeader("ID", "Virtual Key", "Model", "Provider", "Primary Provider", "Requests", "Input Tokens", "Output Tokens", "Created At")
 
 	if sessionsToPrint == nil {
 		tbl.Print()
@@ -23,6 +23,7 @@ func PrintSessionsTbl(out io.Writer, sessionsToPrint []session.Session) {
 			s.VirtualKeyName,
 			s.Model,
 			s.Provider,
+			s.PrimaryProvider,
 			strconv.Itoa(s.Requests),
 			strconv.Itoa(s.InputTokens),
 			strconv.Itoa(s.OutputTokens),

@@ -3,6 +3,7 @@ package text
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/key"
 )
@@ -22,6 +23,7 @@ func PrintVirtualKeyWithToken(out io.Writer, k *key.VirtualKeyWithToken) {
 	if k.ExpiresAt != nil {
 		fmt.Fprintf(out, "Expires At: %s\n", *k.ExpiresAt)
 	}
+	printVirtualKeyLimits(out, k.RPMLimit, k.TPMLimit, k.SpendLimitEnabled, k.SpendLimitEnabledOn)
 	fmt.Fprintf(out, "Created At: %s\n", k.CreatedAt)
 	fmt.Fprintf(out, "Updated At: %s\n", k.UpdatedAt)
 	fmt.Fprintf(out, "Access Token: %s\n", k.AccessToken)
@@ -38,6 +40,7 @@ func PrintVirtualKey(out io.Writer, k *key.VirtualKey) {
 	if k.ExpiresAt != nil {
 		fmt.Fprintf(out, "Expires At: %s\n", *k.ExpiresAt)
 	}
+	printVirtualKeyLimits(out, k.RPMLimit, k.TPMLimit, k.SpendLimitEnabled, k.SpendLimitEnabledOn)
 	fmt.Fprintf(out, "Created At: %s\n", k.CreatedAt)
 	fmt.Fprintf(out, "Updated At: %s\n", k.UpdatedAt)
 }
@@ -57,6 +60,13 @@ func PrintVirtualKeyListItem(out io.Writer, k *key.VirtualKeyListItem) {
 	if k.ExpiresAt != nil {
 		fmt.Fprintf(out, "Expires At: %s\n", *k.ExpiresAt)
 	}
+	if k.SecurityEnabled != nil {
+		fmt.Fprintf(out, "Security Enabled: %t\n", *k.SecurityEnabled)
+	}
+	if k.SecurityAction != nil {
+		fmt.Fprintf(out, "Security Action: %s\n", *k.SecurityAction)
+	}
+	printVirtualKeyLimits(out, k.RPMLimit, k.TPMLimit, k.SpendLimitEnabled, k.SpendLimitEnabledOn)
 	if k.LastUsedAt != nil {
 		fmt.Fprintf(out, "Last Used At: %s\n", *k.LastUsedAt)
 	}
@@ -65,6 +75,20 @@ func PrintVirtualKeyListItem(out io.Writer, k *key.VirtualKeyListItem) {
 	}
 	fmt.Fprintf(out, "Created At: %s\n", k.CreatedAt)
 	fmt.Fprintf(out, "Updated At: %s\n", k.UpdatedAt)
+}
+
+// printVirtualKeyLimits displays the rate and spend limits of a virtual key.
+func printVirtualKeyLimits(out io.Writer, rpmLimit, tpmLimit *int, spendLimitEnabled bool, spendLimitEnabledOn *string) {
+	if rpmLimit != nil {
+		fmt.Fprintf(out, "RPM Limit: %d\n", *rpmLimit)
+	}
+	if tpmLimit != nil {
+		fmt.Fprintf(out, "TPM Limit: %d\n", *tpmLimit)
+	}
+	fmt.Fprintf(out, "Spend Limit Enabled: %t\n", spendLimitEnabled)
+	if spendLimitEnabledOn != nil {
+		fmt.Fprintf(out, "Spend Limit Enabled On: %s\n", *spendLimitEnabledOn)
+	}
 }
 
 // PrintVirtualKeysTbl displays virtual keys in a table format.
@@ -81,4 +105,16 @@ func PrintVirtualKeysTbl(out io.Writer, keysToPrint []key.VirtualKeyListItem) {
 		tbl.AddLine(k.ID, k.Name, k.Model, k.Provider, k.CreatedBy, k.CreatedAt)
 	}
 	tbl.Print()
+}
+
+// PrintFailoverPolicy displays a virtual key's failover policy.
+func PrintFailoverPolicy(out io.Writer, f *key.FailoverPolicy) {
+	targets := make([]string, len(f.Targets))
+	for i, t := range f.Targets {
+		targets[i] = t.ProviderConnectionID
+	}
+	fmt.Fprintf(out, "Targets: %s\n", strings.Join(targets, ", "))
+	fmt.Fprintf(out, "Timeout Enabled: %t\n", f.TimeoutEnabled)
+	fmt.Fprintf(out, "Rate Limit 429 Enabled: %t\n", f.RateLimit429Enabled)
+	fmt.Fprintf(out, "Server Error 5xx Enabled: %t\n", f.ServerError5xxEnabled)
 }

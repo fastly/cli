@@ -49,8 +49,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	// The API returns all usage metrics in a single response; there is no
-	// pagination to handle here.
+	// usagemetrics.List() automatically paginates through all pages internally.
 	data, err := usagemetrics.List(context.TODO(), fc, c.filters.input())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -61,6 +60,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.PrintUsageMetricsTbl(out, data.Data)
+	text.PrintUsageMetricsTbl(out, data)
 	return nil
 }
