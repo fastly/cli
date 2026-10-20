@@ -22,12 +22,15 @@ type CreateCommand struct {
 
 	// Required.
 	name     string
-	model    string
 	provider string
-	userID   string
 
 	// Optional.
-	expiresAt time.Time
+	expiresAt       time.Time
+	model           argparser.OptionalString
+	securityEnabled argparser.OptionalString
+	securityAction  argparser.OptionalString
+	rpmLimit        argparser.OptionalInt
+	tpmLimit        argparser.OptionalInt
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -41,12 +44,15 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("name", "Human-readable name for the virtual key").Required().StringVar(&c.name)
-	c.CmdClause.Flag("model", "AI model identifier (e.g. \"claude-sonnet-4-20250514\")").Required().StringVar(&c.model)
 	c.CmdClause.Flag("provider", "AI model provider name (e.g. \"Anthropic\")").Required().StringVar(&c.provider)
-	c.CmdClause.Flag("user-id", "ID of the user creating the key").Required().StringVar(&c.userID)
 
 	// Optional.
 	c.CmdClause.Flag("expires-at", "Expiration timestamp (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expiresAt)
+	c.CmdClause.Flag("model", "AI model identifier (e.g. \"claude-fable-5-1\")").Action(c.model.Set).StringVar(&c.model.Value)
+	c.CmdClause.Flag("security-enabled", "Whether AI Firewall security is enabled for requests made with this key [true, false]").Action(c.securityEnabled.Set).StringVar(&c.securityEnabled.Value)
+	c.CmdClause.Flag("security-action", "Action AI Firewall takes when it detects a violation. One of: log, block, replace").HintOptions(securityActions...).Action(c.securityAction.Set).EnumVar(&c.securityAction.Value, securityActions...)
+	c.CmdClause.Flag("rpm-limit", "Requests-per-minute limit for this key").Action(c.rpmLimit.Set).IntVar(&c.rpmLimit.Value)
+	c.CmdClause.Flag("tpm-limit", "Tokens-per-minute limit for this key").Action(c.tpmLimit.Set).IntVar(&c.tpmLimit.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -60,12 +66,29 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &key.CreateInput{
 		Name:     &c.name,
-		Model:    &c.model,
 		Provider: &c.provider,
-		UserID:   &c.userID,
 	}
 	if !c.expiresAt.IsZero() {
 		input.ExpiresAt = &c.expiresAt
+	}
+	if c.model.WasSet {
+		input.Model = &c.model.Value
+	}
+	if c.securityEnabled.WasSet {
+		b, err := argparser.ConvertBoolFromStringFlag(c.securityEnabled.Value, "security-enabled")
+		if err != nil {
+			return err
+		}
+		input.SecurityEnabled = b
+	}
+	if c.securityAction.WasSet {
+		input.SecurityAction = &c.securityAction.Value
+	}
+	if c.rpmLimit.WasSet {
+		input.RPMLimit = &c.rpmLimit.Value
+	}
+	if c.tpmLimit.WasSet {
+		input.TPMLimit = &c.tpmLimit.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

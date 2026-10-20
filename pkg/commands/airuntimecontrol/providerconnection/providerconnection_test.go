@@ -26,11 +26,27 @@ var connection = providerconnection.ProviderConnection{
 	Name:      name,
 	Models:    []string{"gpt-4", "gpt-4o"},
 	BaseURL:   baseURL,
+	AuthType:  "api-key",
 	CreatedAt: "2026-07-29T16:22:36Z",
 	UpdatedAt: "2026-07-29T16:22:36Z",
 }
 
 func TestProviderConnectionCreate(t *testing.T) {
+	bedrockConnection := providerconnection.ProviderConnection{
+		ID:       connID,
+		Name:     "bedrock",
+		Models:   []string{"claude"},
+		AuthType: "aws-iam",
+		Region:   "us-east-1",
+	}
+	vertexConnection := providerconnection.ProviderConnection{
+		ID:       connID,
+		Name:     "vertex",
+		Models:   []string{"gemini"},
+		AuthType: "gcp-iam",
+		Region:   "us-central1",
+	}
+
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --name flag",
@@ -73,7 +89,82 @@ func TestProviderConnectionCreate(t *testing.T) {
 		{
 			Name:      "validate missing --api-key flag",
 			Args:      fmt.Sprintf("--name %s --models gpt-4,gpt-4o --base-url %s", name, baseURL),
-			WantError: "error parsing arguments: required flag --api-key not provided",
+			WantError: "error parsing arguments: required flag --api-key not provided for --auth-type api-key",
+		},
+		{
+			Name:      "validate missing --base-url flag",
+			Args:      fmt.Sprintf("--name %s --models gpt-4,gpt-4o --api-key %s", name, apiKey),
+			WantError: "error parsing arguments: required flag --base-url not provided for --auth-type api-key",
+		},
+		{
+			Name:      "validate --pool-id is not supported for api-key",
+			Args:      fmt.Sprintf("--name %s --models gpt-4,gpt-4o --base-url %s --api-key %s --pool-id example-pool", name, baseURL, apiKey),
+			WantError: "error parsing arguments: --pool-id is not supported with --auth-type api-key",
+		},
+		{
+			Name:      "validate --api-key is not supported for aws-iam",
+			Args:      fmt.Sprintf("--name bedrock --models claude --auth-type aws-iam --customer-role-arn arn:aws:iam::123456789012:role/example --region us-east-1 --api-key %s", apiKey),
+			WantError: "error parsing arguments: --api-key is not supported with --auth-type aws-iam",
+		},
+		{
+			Name:      "validate missing --region flag for aws-iam",
+			Args:      "--name bedrock --models claude --auth-type aws-iam --customer-role-arn arn:aws:iam::123456789012:role/example",
+			WantError: "error parsing arguments: required flag --region not provided for --auth-type aws-iam",
+		},
+		{
+			Name: "validate aws-iam API success",
+			Args: "--name bedrock --models claude --auth-type aws-iam --customer-role-arn arn:aws:iam::123456789012:role/example --region us-east-1",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     http.StatusText(http.StatusCreated),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(bedrockConnection))),
+					},
+				},
+			},
+			WantOutputs:    []string{"Auth Type: aws-iam", "Region: us-east-1"},
+			DontWantOutput: "Base URL:",
+		},
+		{
+			Name:      "validate missing --project-number flag for gcp-iam",
+			Args:      "--name vertex --models gemini --auth-type gcp-iam --pool-id example-pool --workload-provider-id example-provider --service-account-email example@example.iam.gserviceaccount.com --project-id my-project --region us-central1",
+			WantError: "error parsing arguments: required flag --project-number not provided for --auth-type gcp-iam",
+		},
+		{
+			Name:      "validate --customer-role-arn is not supported for gcp-iam",
+			Args:      "--name vertex --models gemini --auth-type gcp-iam --pool-id example-pool --workload-provider-id example-provider --service-account-email example@example.iam.gserviceaccount.com --project-id my-project --project-number 123456789012 --region us-central1 --customer-role-arn arn:aws:iam::123456789012:role/example",
+			WantError: "error parsing arguments: --customer-role-arn is not supported with --auth-type gcp-iam",
+		},
+		{
+			Name: "validate gcp-iam API success",
+			Args: "--name vertex --models gemini --auth-type gcp-iam --pool-id example-pool --workload-provider-id example-provider --service-account-email example@example.iam.gserviceaccount.com --project-id my-project --project-number 123456789012 --region us-central1",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     http.StatusText(http.StatusCreated),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(vertexConnection))),
+					},
+				},
+			},
+			WantOutputs:    []string{"Name: vertex", "Auth Type: gcp-iam", "Region: us-central1"},
+			DontWantOutput: "Base URL:",
+		},
+		{
+			Name:      "validate --name for aws-iam",
+			Args:      "--name my-bedrock --models claude --auth-type aws-iam --customer-role-arn arn:aws:iam::123456789012:role/example --region us-east-1",
+			WantError: "error parsing arguments: --name must be bedrock for --auth-type aws-iam",
+		},
+		{
+			Name:      "validate --name for gcp-iam",
+			Args:      "--name my-vertex --models gemini --auth-type gcp-iam",
+			WantError: "error parsing arguments: --name must be vertex for --auth-type gcp-iam",
+		},
+		{
+			Name:      "validate invalid --auth-type value",
+			Args:      fmt.Sprintf("--name %s --models gpt-4 --auth-type oauth", name),
+			WantError: "error parsing arguments: enum value must be one of api-key,aws-iam,gcp-iam, got 'oauth'",
 		},
 	}
 

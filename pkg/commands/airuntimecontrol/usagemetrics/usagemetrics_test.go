@@ -17,13 +17,14 @@ func TestUsageMetricsList(t *testing.T) {
 	metrics := usagemetrics.UsageMetrics{
 		Data: []usagemetrics.UsageMetric{
 			{
-				Date:           "2026-07-29",
-				UsageType:      "requests",
-				Quantity:       42,
-				VirtualKeyID:   "75352aad10d9828b8de7",
-				VirtualKeyName: "go-fastly-test-key",
-				Provider:       "Anthropic",
-				Model:          "claude-sonnet-4-20250514",
+				Date:            "2026-07-29",
+				UsageType:       "requests",
+				Quantity:        42,
+				VirtualKeyID:    "75352aad10d9828b8de7",
+				VirtualKeyName:  "go-fastly-test-key",
+				Provider:        "pTfnUUBcU1yv8SoRJn5PZ2",
+				PrimaryProvider: "3n9xK2mQpL8vRtY4wBzC7d",
+				Model:           "claude-sonnet-4-20250514",
 			},
 		},
 		Meta: usagemetrics.Meta{Total: 1},
@@ -42,7 +43,7 @@ func TestUsageMetricsList(t *testing.T) {
 					},
 				},
 			},
-			WantOutputs: []string{metrics.Data[0].VirtualKeyName, "requests"},
+			WantOutputs: []string{metrics.Data[0].VirtualKeyName, "requests", "Primary Provider", metrics.Data[0].PrimaryProvider},
 		},
 		{
 			Name: "validate optional --json flag",
@@ -56,7 +57,7 @@ func TestUsageMetricsList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(metrics),
+			WantOutput: fstfmt.EncodeJSON(metrics.Data),
 		},
 	}
 

@@ -10,7 +10,7 @@ import (
 // PrintUsageMetricsTbl displays AI Runtime Control usage metrics in a table format.
 func PrintUsageMetricsTbl(out io.Writer, metricsToPrint []usagemetrics.UsageMetric) {
 	tbl := NewTable(out)
-	tbl.AddHeader("Date", "Usage Type", "Quantity", "Virtual Key", "Provider", "Model")
+	tbl.AddHeader("Date", "Usage Type", "Quantity", "Virtual Key", "Provider", "Primary Provider", "Model")
 
 	if metricsToPrint == nil {
 		tbl.Print()
@@ -18,7 +18,7 @@ func PrintUsageMetricsTbl(out io.Writer, metricsToPrint []usagemetrics.UsageMetr
 	}
 
 	for _, m := range metricsToPrint {
-		tbl.AddLine(m.Date, m.UsageType, strconv.Itoa(m.Quantity), m.VirtualKeyName, m.Provider, m.Model)
+		tbl.AddLine(m.Date, m.UsageType, strconv.Itoa(m.Quantity), m.VirtualKeyName, m.Provider, m.PrimaryProvider, m.Model)
 	}
 	tbl.Print()
 }

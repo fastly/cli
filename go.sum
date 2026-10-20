@@ -36,6 +36,8 @@ github.com/dustinkirkland/golang-petname v0.0.0-20240428194347-eebcea082ee0 h1:a
 github.com/dustinkirkland/golang-petname v0.0.0-20240428194347-eebcea082ee0/go.mod h1:8AuBTZBRSFqEYBPYULd+NN474/zZBLP+6WeT5S9xlAc=
 github.com/fastly/go-fastly/v17 v17.8.0 h1:KvwZDd+Pgf2JGCt7BtYzRJkUdlOSrHbCbcZIZoO1Ttg=
 github.com/fastly/go-fastly/v17 v17.8.0/go.mod h1:ffln+YL+0T4nGgJG6wVhzi/z9O5TxI6tTDRwN0rDZc8=
+github.com/fastly/go-fastly/v17 v17.8.1-0.20261019141200-94bbd7f25758 h1:+iN1oe7qVtc9oEGFk53dRqb2tndxH02zLYkbAlKBghU=
+github.com/fastly/go-fastly/v17 v17.8.1-0.20261019141200-94bbd7f25758/go.mod h1:ffln+YL+0T4nGgJG6wVhzi/z9O5TxI6tTDRwN0rDZc8=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible h1:FhrXlfhgGCS+uc6YwyiFUt04alnjpoX7vgDKJxS6Qbk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible/go.mod h1:U8UynVoU1SQaqD2I4ZqgYd5lx3A1ipQYn4aSt2Y5h6c=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
