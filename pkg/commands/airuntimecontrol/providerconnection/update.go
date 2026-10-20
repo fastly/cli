@@ -44,7 +44,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Optional.
 	c.CmdClause.Flag("models", "An updated comma-separated list of allowed AI model identifiers").StringsVar(&c.models, kingpin.Separator(","))
-	c.CmdClause.Flag("base-url", "An updated base URL for the provider's API").Action(c.baseURL.Set).StringVar(&c.baseURL.Value)
+	c.CmdClause.Flag("base-url", "An updated base URL for the provider's API. Must be an absolute http or https URL").Action(c.baseURL.Set).StringVar(&c.baseURL.Value)
 	c.CmdClause.Flag("api-key", "An updated provider secret key for authentication").Action(c.apiKey.Set).StringVar(&c.apiKey.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 

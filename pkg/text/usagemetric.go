@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/usagemetrics"
 )
 
-// PrintUsageMetricsTbl displays ARC usage metrics in a table format.
+// PrintUsageMetricsTbl displays AI Runtime Control usage metrics in a table format.
 func PrintUsageMetricsTbl(out io.Writer, metricsToPrint []usagemetrics.UsageMetric) {
 	tbl := NewTable(out)
 	tbl.AddHeader("Date", "Usage Type", "Quantity", "Virtual Key", "Provider", "Model")

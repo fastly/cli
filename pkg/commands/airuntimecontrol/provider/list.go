@@ -27,7 +27,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("list", "List AI providers supported by ARC")
+	c.CmdClause = parent.Command("list", "List AI providers supported by AI Runtime Control")
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())

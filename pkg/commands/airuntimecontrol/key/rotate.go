@@ -32,7 +32,7 @@ func NewRotateCommand(parent argparser.Registerer, g *global.Data) *RotateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("rotate", "Rotate a virtual key, generating a new access token")
+	c.CmdClause = parent.Command("rotate", "Rotate a virtual key, generating a new access token and invalidating the previous one")
 
 	// Required.
 	c.CmdClause.Flag("key-id", "Alphanumeric string identifying the virtual key").Required().StringVar(&c.keyID)
