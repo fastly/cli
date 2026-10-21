@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/key"
+	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/key"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -24,7 +24,6 @@ type CreateCommand struct {
 	name     string
 	model    string
 	provider string
-	userID   string
 
 	// Optional.
 	expiresAt time.Time
@@ -43,7 +42,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("name", "Human-readable name for the virtual key").Required().StringVar(&c.name)
 	c.CmdClause.Flag("model", "AI model identifier (e.g. \"claude-sonnet-4-20250514\")").Required().StringVar(&c.model)
 	c.CmdClause.Flag("provider", "AI model provider name (e.g. \"Anthropic\")").Required().StringVar(&c.provider)
-	c.CmdClause.Flag("user-id", "ID of the user creating the key").Required().StringVar(&c.userID)
 
 	// Optional.
 	c.CmdClause.Flag("expires-at", "Expiration timestamp (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expiresAt)
@@ -62,7 +60,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Name:     &c.name,
 		Model:    &c.model,
 		Provider: &c.provider,
-		UserID:   &c.userID,
 	}
 	if !c.expiresAt.IsZero() {
 		input.ExpiresAt = &c.expiresAt

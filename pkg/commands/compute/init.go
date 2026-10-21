@@ -19,7 +19,7 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v18/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/debug"

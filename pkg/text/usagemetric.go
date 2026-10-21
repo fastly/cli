@@ -4,7 +4,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/usagemetrics"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/usagemetrics"
 )
 
 // PrintUsageMetricsTbl displays AI Runtime Control usage metrics in a table format.

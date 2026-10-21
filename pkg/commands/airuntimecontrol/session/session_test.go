@@ -10,7 +10,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/airuntimecontrol/session"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/session"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/session"
 )
 
 func TestSessionList(t *testing.T) {

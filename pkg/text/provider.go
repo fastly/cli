@@ -4,7 +4,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/provider"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/provider"
 )
 
 // PrintProvidersTbl displays AI Runtime Control providers in a table format. Model lists can

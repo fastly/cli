@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly/dns/v1/tsigkeys"
+	"github.com/fastly/go-fastly/v18/fastly/dns/v1/tsigkeys"
 
 	dnsroot "github.com/fastly/cli/pkg/commands/dns"
 	root "github.com/fastly/cli/pkg/commands/dns/tsigkey"

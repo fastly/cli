@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/workspaces/virtualpatches"
+	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/workspaces/virtualpatches"
 )
 
 // PrintVirtualPatch displays a single virtual patch.

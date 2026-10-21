@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	sdkdraft "github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/routingconfigs/draft"
-	"github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/routingconfigs/paths"
+	sdkdraft "github.com/fastly/go-fastly/v18/fastly/domainmanagement/v1/routingconfigs/draft"
+	"github.com/fastly/go-fastly/v18/fastly/domainmanagement/v1/routingconfigs/paths"
 
 	routingconfig "github.com/fastly/cli/pkg/commands/routingconfig"
 	root "github.com/fastly/cli/pkg/commands/routingconfig/draft"

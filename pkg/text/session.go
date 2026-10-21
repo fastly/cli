@@ -4,7 +4,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/session"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/session"
 )
 
 // PrintSessionsTbl displays AI Runtime Control session logs in a table format.

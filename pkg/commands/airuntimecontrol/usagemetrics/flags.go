@@ -3,7 +3,7 @@ package usagemetrics
 import (
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/usagemetrics"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/usagemetrics"
 
 	"github.com/fastly/cli/pkg/argparser"
 )

@@ -11,9 +11,9 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/auditlog/eventmapping"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/notifications/v1/eventmappings"
-	"github.com/fastly/go-fastly/v17/fastly/notifications/v1/eventmappings/eventtypes"
-	"github.com/fastly/go-fastly/v17/fastly/notifications/v1/eventmappings/scopetypes"
+	"github.com/fastly/go-fastly/v18/fastly/notifications/v1/eventmappings"
+	"github.com/fastly/go-fastly/v18/fastly/notifications/v1/eventmappings/eventtypes"
+	"github.com/fastly/go-fastly/v18/fastly/notifications/v1/eventmappings/scopetypes"
 )
 
 const (

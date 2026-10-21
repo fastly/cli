@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v17/fastly/notifications/v1/eventmappings"
-	"github.com/fastly/go-fastly/v17/fastly/notifications/v1/eventmappings/eventtypes"
-	"github.com/fastly/go-fastly/v17/fastly/notifications/v1/eventmappings/scopetypes"
+	"github.com/fastly/go-fastly/v18/fastly/notifications/v1/eventmappings"
+	"github.com/fastly/go-fastly/v18/fastly/notifications/v1/eventmappings/eventtypes"
+	"github.com/fastly/go-fastly/v18/fastly/notifications/v1/eventmappings/scopetypes"
 )
 
 // PrintEventMapping displays an audit log event mapping.

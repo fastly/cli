@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/routingconfigs"
-	"github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/routingconfigs/versions"
+	"github.com/fastly/go-fastly/v18/fastly/domainmanagement/v1/routingconfigs"
+	"github.com/fastly/go-fastly/v18/fastly/domainmanagement/v1/routingconfigs/versions"
 
 	routingconfig "github.com/fastly/cli/pkg/commands/routingconfig"
 	root "github.com/fastly/cli/pkg/commands/routingconfig/version"
