@@ -17,7 +17,6 @@ concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
 env:
-  GO_VERSION: 1.26.x
   GOLANGCI_LINT_VERSION: v2.14.0
   WASI_SDK_VERSION: 25
   WASI_SDK_FULL_VERSION: "25.0"
@@ -43,7 +42,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
@@ -54,7 +53,6 @@ jobs:
     strategy:
       matrix:
         tinygo-version: [0.42.0]
-        go-version: [1.26.x]
         node-version: [18]
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
@@ -66,7 +64,7 @@ jobs:
       - name: "Install Go"
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version-file: go.mod
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
       - uses: acifani/setup-tinygo@f51bf108c9895381060398804ce6cf6f62692106 # v3.0.1
@@ -111,7 +109,6 @@ jobs:
     strategy:
       matrix:
         tinygo-version: [0.42.0]
-        go-version: [1.26.x]
         node-version: [18]
         platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
@@ -123,7 +120,7 @@ jobs:
       - name: "Install Go"
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version-file: go.mod
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
       - uses: acifani/setup-tinygo@f51bf108c9895381060398804ce6cf6f62692106 # v3.0.1
@@ -215,7 +212,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
       - name: Run golangci-lint@latest
         id: lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
