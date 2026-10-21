@@ -26,7 +26,7 @@ jobs:
             homebrew-tap
           permission-contents: write
       - name: "Download Homebrew formula artifact"
-        uses: dawidd6/action-download-artifact@d63b86af1b34672e53c440b1b83979861906bad7 # v24
+        uses: dawidd6/action-download-artifact@eab87c9830c39eff17e5a6eadb20bfb4bc880477 # v27
         with:
           workflow: tag_to_draft_release.yml
           name: homebrew-formula-${{ github.event.release.tag_name }}
@@ -66,7 +66,7 @@ jobs:
       - name: "Fetch unshallow repo"
         run: git fetch --prune --unshallow
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'

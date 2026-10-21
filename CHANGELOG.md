@@ -6,16 +6,29 @@
 
 ### Bug Fixes:
 
-- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
-- fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
-- fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
-  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector.
+- fix(ai-runtime-control): update AI Runtime Control command descriptions to reflect the latest API references ([#1939](https://github.com/fastly/cli/pull/1939))
 
+### Enhancements:
+
+### Dependencies:
+
+## [v16.2.0](https://github.com/fastly/cli/releases/tag/v16.2.0) (2026-10-15)
+
+### Bug Fixes:
+
+- fix(secret-store): return `[]` instead of `null` when no secret stores exist ([#1892](https://github.com/fastly/cli/pull/1892))
+- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID` ([#1907](https://github.com/fastly/cli/pull/1907))
+- fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found" ([#1916](https://github.com/fastly/cli/pull/1916))
+- fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
+  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector ([#1926](https://github.com/fastly/cli/pull/1926))
 
 ### Enhancements:
 
 - feat(service/logging): add support for the 'public-key` flag for GCS logging ([#1925](https://github.com/fastly/cli/pull/1925))
 - feat(help): add -h short flag for --help. ([#1918](https://github.com/fastly/cli/pull/1918))
+- feat(routing-config): add CLI support for routing configs ([#1931](https://github.com/fastly/cli/pull/1931))
+- docs(compute): for `compute deploy` and `compute publish`, the `--version` help now says that the flag is optional and
+  defaults to the active version, or to the latest version if none is active. ([#1928](https://github.com/fastly/cli/pull/1928))
 
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.3 to 1.2.4 ([#1913](https://github.com/fastly/cli/pull/1913))

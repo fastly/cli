@@ -341,6 +341,26 @@ func TestListStoresCommand(t *testing.T) {
 			wantAPIInvoked: true,
 			wantOutput:     fstfmt.EncodeJSON([]fastly.SecretStore{stores.Data[0]}),
 		},
+		{
+			args: "list --json",
+			api: mock.API{
+				ListSecretStoresFn: func(_ context.Context, _ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+					return &fastly.SecretStores{Data: []fastly.SecretStore{}}, nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantOutput:     "[]\n",
+		},
+		{
+			args: "list --json",
+			api: mock.API{
+				ListSecretStoresFn: func(_ context.Context, _ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+					return nil, nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantOutput:     "[]\n",
+		},
 	}
 
 	for _, testcase := range scenarios {

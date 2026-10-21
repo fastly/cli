@@ -83,7 +83,7 @@ func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployComman
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceVersion.Set,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionOptionalDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Name:        argparser.FlagVersionName,
 	})

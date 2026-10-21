@@ -45,7 +45,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	var data []fastly.SecretStore
+	data := make([]fastly.SecretStore, 0)
 
 	for {
 		o, err := c.Globals.APIClient.ListSecretStores(context.TODO(), &c.Input)

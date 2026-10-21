@@ -30,7 +30,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delete a virtual key").Alias("remove")
+	c.CmdClause = parent.Command("delete", "Delete a virtual key and any associated security configuration").Alias("remove")
 
 	// Required.
 	c.CmdClause.Flag("key-id", "Alphanumeric string identifying the virtual key").Required().StringVar(&c.keyID)
