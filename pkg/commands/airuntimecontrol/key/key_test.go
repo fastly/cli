@@ -11,7 +11,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/airuntimecontrol/key"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/key"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/key"
 )
 
 const (
@@ -44,17 +44,17 @@ func TestKeyCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      fmt.Sprintf("--model %s --provider %s --user-id %s", model, provider, userID),
+			Args:      fmt.Sprintf("--model %s --provider %s", model, provider),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --model flag",
-			Args:      fmt.Sprintf("--name %s --provider %s --user-id %s", virtualKey, provider, userID),
+			Args:      fmt.Sprintf("--name %s --provider %s", virtualKey, provider),
 			WantError: "error parsing arguments: required flag --model not provided",
 		},
 		{
 			Name: "validate API success",
-			Args: fmt.Sprintf("--name %s --model %s --provider %s --user-id %s", virtualKey, model, provider, userID),
+			Args: fmt.Sprintf("--name %s --model %s --provider %s", virtualKey, model, provider),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -68,7 +68,7 @@ func TestKeyCreate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --json flag",
-			Args: fmt.Sprintf("--name %s --model %s --provider %s --user-id %s --json", virtualKey, model, provider, userID),
+			Args: fmt.Sprintf("--name %s --model %s --provider %s --json", virtualKey, model, provider),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{

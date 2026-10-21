@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/routingconfigs/paths/rules"
+	"github.com/fastly/go-fastly/v18/fastly/domainmanagement/v1/routingconfigs/paths/rules"
 
 	routingconfig "github.com/fastly/cli/pkg/commands/routingconfig"
 	path "github.com/fastly/cli/pkg/commands/routingconfig/path"

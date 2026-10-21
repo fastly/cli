@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v18/fastly"
 
 	"github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/commands/service/logging"

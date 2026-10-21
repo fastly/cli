@@ -9,9 +9,9 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v18/fastly"
 
-	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/workspaces"
+	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/workspaces"
 )
 
 // ListCommand calls the Fastly API to list all Workspaces for your API token.
@@ -57,6 +57,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.PrintWorkspaceTbl(out, workspaces.Data)
+	text.PrintWorkspaceTbl(out, workspaces)
 	return nil
 }

@@ -12,8 +12,8 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/rule"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/rules"
-	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/scope"
+	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/rules"
+	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/scope"
 )
 
 const (
@@ -340,7 +340,7 @@ func TestRuleList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(rulesObject),
+			WantOutput: fstfmt.EncodeJSON(rulesObject.Data),
 		},
 	}
 

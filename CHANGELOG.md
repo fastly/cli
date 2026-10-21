@@ -4,6 +4,9 @@
 
 ### Breaking:
 
+- breaking(ai-runtime-control): `key create` no longer accepts the `--user-id` flag, as it was removed from the API
+- breaking(json): `--json` output for `ai-runtime-control usage-metrics list`, `ngwaf workspace list`, `ngwaf rule list` and `ngwaf workspace rule list` is now a bare array instead of an object with `data` and `meta`
+
 ### Bug Fixes:
 
 - fix(ai-runtime-control): update AI Runtime Control command descriptions to reflect the latest API references ([#1939](https://github.com/fastly/cli/pull/1939))
@@ -11,6 +14,7 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `github.com/fastly/go-fastly` from v17.8.0 to v18.0.0
 - build(deps): `golang.org/x/term` from 0.46.0 to 0.47.0 ([#1944](https://github.com/fastly/cli/pull/1944))
 - build(deps): `golang.org/x/crypto` from 0.57.0 to 0.58.0 ([#1944](https://github.com/fastly/cli/pull/1944))
 - build(deps): `golang.org/x/mod` from 0.41.0 to 0.42.0 ([#1944](https://github.com/fastly/cli/pull/1944))

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v18/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"

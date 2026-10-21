@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/providerconnection"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/providerconnection"
 )
 
 // PrintProviderConnection displays a provider connection.

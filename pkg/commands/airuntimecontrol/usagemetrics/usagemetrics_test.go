@@ -10,7 +10,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/airuntimecontrol/usagemetrics"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/usagemetrics"
+	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/usagemetrics"
 )
 
 func TestUsageMetricsList(t *testing.T) {
@@ -56,7 +56,7 @@ func TestUsageMetricsList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(metrics),
+			WantOutput: fstfmt.EncodeJSON(metrics.Data),
 		},
 	}
 
