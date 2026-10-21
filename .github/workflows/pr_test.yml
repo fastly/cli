@@ -48,13 +48,38 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
-  test:
-    name: Test (${{ matrix.platform }})
+  # The Compute tests change the process working directory, so they cannot use
+  # t.Parallel(). Instead the slow tests are split into groups across
+  # parallel jobs, and the "rest" group runs everything else with those tests
+  # disabled (they are gated by the TEST_COMPUTE_* environment variables).
+  test-group:
+    name: Test group (${{ matrix.group }})
     strategy:
+      fail-fast: false
       matrix:
         tinygo-version: [0.42.0]
         node-version: [18]
         platform: [ubuntu-latest]
+        group: [build-rust, build-go, build-javascript, build-other, deploy-init, rest]
+        include:
+          - group: build-rust
+            slow: "true"
+            test_args: -v -timeout 15m -run '^TestBuildRust$$' ./pkg/commands/compute/...
+          - group: build-go
+            slow: "true"
+            test_args: -v -timeout 15m -run '^TestBuildGo$$' ./pkg/commands/compute/...
+          - group: build-javascript
+            slow: "true"
+            test_args: -v -timeout 15m -run '^TestBuildJavaScript$$' ./pkg/commands/compute/...
+          - group: build-other
+            slow: "true"
+            test_args: -v -timeout 15m -run '^(TestBuildPython|TestBuildCPP|TestBuildOther|TestBuildUnknownLanguage)$$' ./pkg/commands/compute/...
+          - group: deploy-init
+            slow: "true"
+            test_args: -v -timeout 15m -run '^(TestDeploy|TestInit)$$' ./pkg/commands/compute/...
+          - group: rest
+            slow: ""
+            test_args: -v -timeout 15m ./...
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
@@ -98,11 +123,24 @@ jobs:
         run: make test
         shell: bash
         env:
-          # NOTE: The following lets us focus the test run while debugging.
-          # TEST_ARGS: "-run TestBuild ./pkg/commands/compute/..."
-          TEST_COMPUTE_INIT: true
-          TEST_COMPUTE_BUILD: true
-          TEST_COMPUTE_DEPLOY: true
+          TEST_ARGS: ${{ matrix.test_args }}
+          TEST_COMPUTE_INIT: ${{ matrix.slow }}
+          TEST_COMPUTE_BUILD: ${{ matrix.slow }}
+          TEST_COMPUTE_DEPLOY: ${{ matrix.slow }}
+  test:
+    name: Test (ubuntu-latest)
+    needs: test-group
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check group results"
+        env:
+          RESULT: ${{ needs.test-group.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "Test groups finished with result: $RESULT"
+            exit 1
+          fi
   test-release:
     name: Test release (${{ matrix.platform }})
     if: contains(github.head_ref, 'release')
