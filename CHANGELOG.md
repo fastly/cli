@@ -11,6 +11,15 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `golang.org/x/term` from 0.46.0 to 0.47.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/crypto` from 0.57.0 to 0.58.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/mod` from 0.41.0 to 0.42.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.4.2 to 2.4.5 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/klauspost/compress` from 1.20.1 to 1.20.3 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/klauspost/pgzip` from 1.2.7 to 1.3.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.30 to 0.0.31 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/net` from 0.59.0 to 0.60.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/text` from 0.42.0 to 0.43.0 ([#1944](https://github.com/fastly/cli/pull/1944))
 
 ## [v16.2.0](https://github.com/fastly/cli/releases/tag/v16.2.0) (2026-10-15)
 
