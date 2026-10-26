@@ -13,7 +13,10 @@
 
 ### Enhancements:
 
+- feat(ngwaf): add `--autoEnableNewVirtualPatches` flag to `ngwaf workspace create` and `ngwaf workspace update` for Automated Virtual Patching, and show it in `ngwaf workspace get` ([#1953](https://github.com/fastly/cli/pull/1953))
+
 ### Dependencies:
+
 - build(deps): `github.com/fastly/go-fastly` from v17.8.0 to v18.0.0 ([#1949](https://github.com/fastly/cli/pull/1949))
 - build(deps): `golang.org/x/term` from 0.46.0 to 0.47.0 ([#1944](https://github.com/fastly/cli/pull/1944))
 - build(deps): `golang.org/x/crypto` from 0.57.0 to 0.58.0 ([#1944](https://github.com/fastly/cli/pull/1944))
