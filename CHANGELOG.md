@@ -4,6 +4,16 @@
 
 ### Breaking:
 
+### Bug Fixes:
+
+### Enhancements:
+
+### Dependencies:
+
+## [v17.0.0](https://github.com/fastly/cli/releases/tag/v17.0.0) (2026-10-26)
+
+### Breaking:
+
 - breaking(ai-runtime-control): `key create` no longer accepts the `--user-id` flag, as it was removed from the API ([#1949](https://github.com/fastly/cli/pull/1949))
 - breaking(json): `--json` output for `ai-runtime-control usage-metrics list`, `ngwaf workspace list`, `ngwaf rule list` and `ngwaf workspace rule list` is now a bare array instead of an object with `data` and `meta` ([#1949](https://github.com/fastly/cli/pull/1949))
 
