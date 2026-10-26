@@ -45,7 +45,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
-	github.com/minio/minlz v1.2.2 // indirect
+	github.com/minio/minlz v1.2.3 // indirect
 	github.com/nwaples/rardecode/v2 v2.4.5 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
@@ -75,7 +75,7 @@ require (
 	github.com/peterhellberg/link v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/ulikunitz/xz v0.5.17 // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/text v0.43.0
@@ -85,7 +85,7 @@ require (
 require (
 	4d63.com/optional v0.2.0
 	github.com/creack/pty v1.1.24
-	github.com/fastly/go-fastly/v18 v18.0.0
+	github.com/fastly/go-fastly/v18 v18.1.0
 	github.com/mholt/archives v0.1.5
 	github.com/mitchellh/go-ps v1.0.0
 )
