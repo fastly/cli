@@ -83,6 +83,20 @@ func TestWorkspacesCreate(t *testing.T) {
 			WantOutput: fstfmt.Success("Created workspace '%s' (workspace-id: %s)", workspaceName, workspaceID),
 		},
 		{
+			Name: "validate --autoEnableNewVirtualPatches flag",
+			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --autoEnableNewVirtualPatches", workspaceDescription, workspaceName, workspaceMode),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
+					},
+				},
+			},
+			WantOutput: fstfmt.Success("Created workspace '%s' (workspace-id: %s)", workspaceName, workspaceID),
+		},
+		{
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --clientIPHeaders %s --json", workspaceDescription, workspaceName, workspaceMode, workspaceClientIPHeaders),
 			Client: &http.Client{
