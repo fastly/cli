@@ -13,7 +13,10 @@
 
 ### Enhancements:
 
+- feat(ngwaf): add `--autoEnableNewVirtualPatches` flag to `ngwaf workspace create` and `ngwaf workspace update` for Automated Virtual Patching, and show it in `ngwaf workspace get` ([#1953](https://github.com/fastly/cli/pull/1953))
+
 ### Dependencies:
+
 - build(deps): `github.com/fastly/go-fastly` from v17.8.0 to v18.0.0 ([#1949](https://github.com/fastly/cli/pull/1949))
 - build(deps): `golang.org/x/term` from 0.46.0 to 0.47.0 ([#1944](https://github.com/fastly/cli/pull/1944))
 - build(deps): `golang.org/x/crypto` from 0.57.0 to 0.58.0 ([#1944](https://github.com/fastly/cli/pull/1944))
@@ -24,6 +27,9 @@
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.30 to 0.0.31 ([#1944](https://github.com/fastly/cli/pull/1944))
 - build(deps): `golang.org/x/net` from 0.59.0 to 0.60.0 ([#1944](https://github.com/fastly/cli/pull/1944))
 - build(deps): `golang.org/x/text` from 0.42.0 to 0.43.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/minio/minlz` from 1.2.2 to 1.2.3 ([#1951](https://github.com/fastly/cli/pull/1951))
+- build(deps): `golang.org/x/net` from 0.60.0 to 0.61.0 ([#1951](https://github.com/fastly/cli/pull/1951))
+- build(deps): `github.com/fastly/go-fastly/v18` from 18.0.0 to 18.1.0 ([#1951](https://github.com/fastly/cli/pull/1951))
 
 ## [v16.2.0](https://github.com/fastly/cli/releases/tag/v16.2.0) (2026-10-15)
 

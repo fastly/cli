@@ -25,14 +25,15 @@ type UpdateCommand struct {
 	workspaceID string
 
 	// Optional.
-	description         argparser.OptionalString
-	blockingMode        argparser.OptionalString
-	name                argparser.OptionalString
-	attackThresholds    argparser.OptionalString
-	defaultBlockingCode argparser.OptionalInt
-	defaultRedirectURL  argparser.OptionalString
-	clientIPHeaders     argparser.OptionalString
-	ipAnonymization     argparser.OptionalString
+	description              argparser.OptionalString
+	blockingMode             argparser.OptionalString
+	name                     argparser.OptionalString
+	attackThresholds         argparser.OptionalString
+	defaultBlockingCode      argparser.OptionalInt
+	defaultRedirectURL       argparser.OptionalString
+	clientIPHeaders          argparser.OptionalString
+	ipAnonymization          argparser.OptionalString
+	autoEnableVirtualPatches argparser.OptionalBool
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -56,6 +57,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("defaultBlockingCode", "Default status code that is returned when a request to your web application is blocked.").Action(c.defaultBlockingCode.Set).IntVar(&c.defaultBlockingCode.Value)
 	c.CmdClause.Flag("defaultRedirectURL", "Redirect url to be used if code 301 or 302 is used.").Action(c.defaultRedirectURL.Set).StringVar(&c.defaultRedirectURL.Value)
 	c.CmdClause.Flag("ipAnonymization", "Agents will anonymize IP addresses according to the option selected.").Action(c.ipAnonymization.Set).StringVar(&c.ipAnonymization.Value)
+	c.CmdClause.Flag("autoEnableNewVirtualPatches", "Automatically enable, in block mode, virtual patches released after this setting is enabled. Virtual patches released before it was enabled are not changed. Use --no-autoEnableNewVirtualPatches to disable.").Action(c.autoEnableVirtualPatches.Set).BoolVar(&c.autoEnableVirtualPatches.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -98,6 +100,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.ipAnonymization.WasSet {
 		input.IPAnonymization = &c.ipAnonymization.Value
+	}
+	if c.autoEnableVirtualPatches.WasSet {
+		input.AutoEnableNewVirtualPatches = &c.autoEnableVirtualPatches.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
