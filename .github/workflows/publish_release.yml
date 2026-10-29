@@ -25,6 +25,7 @@ jobs:
             ${{ github.repository }}
             homebrew-tap
           permission-contents: write
+          permission-pull-requests: write
       - name: "Download Homebrew formula artifact"
         uses: dawidd6/action-download-artifact@eab87c9830c39eff17e5a6eadb20bfb4bc880477 # v27
         with:
@@ -41,16 +42,26 @@ jobs:
       - name: "Copy formula to homebrew-tap repository"
         run: |
           cp fastly.rb homebrew-tap/Formula/fastly.rb
-      - name: "Commit and push Homebrew formula"
+      - name: "Open Homebrew formula pull request"
         working-directory: homebrew-tap
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ steps.github-token.outputs.token }}
         run: |
+          branch="update-fastly-${RELEASE_TAG}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
           git add Formula/fastly.rb
           git commit -m "Update fastly formula to ${RELEASE_TAG}"
-          git push
+          git push --force origin "$branch"
+          gh pr create \
+            --repo fastly/homebrew-tap \
+            --base master \
+            --head "$branch" \
+            --title "Update fastly formula to ${RELEASE_TAG}" \
+            --body "Automated formula update for fastly/cli ${RELEASE_TAG}."
+          gh pr merge "$branch" --repo fastly/homebrew-tap --auto --squash
   npm_release:
     name: Publish npm packages
     runs-on: ubuntu-latest
