@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(compute/serve): provide default `override_host` to Viceroy via temporary manifest and handle IPv6 hostnames ([#1940](https://github.com/fastly/cli/pull/1940))
+- fix(service-version): `service version stage --version` help no longer claims that `latest`, `active`, and `staged` are accepted. The command only stages a draft version.
 
 ### Enhancements:
 
