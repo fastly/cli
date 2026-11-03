@@ -6,7 +6,7 @@
 
 ### Bug Fixes:
 
-- fix(service-version): `service version stage --version` help no longer claims that `latest`, `active`, and `staged` are accepted. The command only stages a draft version.
+- fix(service-version): `service version stage --version` help no longer claims that `latest`, `active`, and `staged` are accepted. The command only stages a draft version. ([#1958](https://github.com/fastly/cli/pull/1958))
 
 ### Enhancements:
 
