@@ -1,15 +1,21 @@
 package version_test
 
 import (
+	"bytes"
 	"context"
+	stderrors "errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v18/fastly"
 
+	"github.com/fastly/cli/pkg/app"
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/version"
+	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -369,6 +375,34 @@ func TestVersionStage(t *testing.T) {
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "stage"}, scenarios)
+}
+
+func TestVersionStageHelp(t *testing.T) {
+	var stdout bytes.Buffer
+	args := testutil.SplitArgs("service version stage --help")
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		return testutil.MockGlobalData(args, &stdout), nil
+	}
+	err := app.Run(args, nil)
+	output := stdout.String()
+	if err != nil {
+		var re errors.RemediationError
+		var se errors.SkipExitError
+		if stderrors.As(err, &re) {
+			output += re.Prefix
+		} else if stderrors.As(err, &se) {
+			if inner, ok := se.Err.(errors.RemediationError); ok {
+				output += inner.Prefix
+			}
+		}
+		output += err.Error()
+	}
+	if !strings.Contains(output, "draft Fastly service version") {
+		t.Fatalf("stage --version help missing draft description:\n%s", output)
+	}
+	if strings.Contains(output, "'latest', 'active', 'staged'") {
+		t.Fatalf("stage --version help still advertises aliases this command rejects:\n%s", output)
+	}
 }
 
 func TestVersionUnstage(t *testing.T) {
