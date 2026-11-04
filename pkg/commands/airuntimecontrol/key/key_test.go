@@ -11,7 +11,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/airuntimecontrol/key"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/key"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/key"
 )
 
 const (

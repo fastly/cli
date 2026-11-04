@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/tls/custom"
 	sub "github.com/fastly/cli/pkg/commands/tls/custom/certificate"

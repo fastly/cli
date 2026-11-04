@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 )
 
 func PrintUsageTbl(out io.Writer, data *fastly.RegionsUsage) {

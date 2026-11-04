@@ -9,9 +9,9 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
-	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/workspaces"
+	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces"
 )
 
 // ListCommand calls the Fastly API to list all Workspaces for your API token.

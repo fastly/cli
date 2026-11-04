@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/mock"

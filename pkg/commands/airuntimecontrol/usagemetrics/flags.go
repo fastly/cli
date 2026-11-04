@@ -3,7 +3,7 @@ package usagemetrics
 import (
 	"time"
 
-	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/usagemetrics"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/usagemetrics"
 
 	"github.com/fastly/cli/pkg/argparser"
 )
@@ -51,4 +51,17 @@ func (f *filterFlags) input() *usagemetrics.ListInput {
 		input.Sort = &f.sort.Value
 	}
 	return input
+}
+
+// exportInput builds a usagemetrics.ExportInput from the parsed flag values.
+func (f *filterFlags) exportInput() *usagemetrics.ExportInput {
+	i := f.input()
+	return &usagemetrics.ExportInput{
+		Key:      i.Key,
+		Provider: i.Provider,
+		Model:    i.Model,
+		From:     i.From,
+		To:       i.To,
+		Sort:     i.Sort,
+	}
 }
