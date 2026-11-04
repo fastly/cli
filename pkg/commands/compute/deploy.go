@@ -44,60 +44,42 @@ type DeployCommand struct {
 	argparser.Base
 	manifestPath string
 
-	// NOTE: these are public so that the "publish" composite command can set the
-	// values appropriately before calling the Exec() function.
-	Comment            argparser.OptionalString
-	Dir                string
-	Domain             string
-	Env                string
-	NoDefaultDomain    argparser.OptionalBool
-	PackagePath        string
-	ServiceName        argparser.OptionalServiceNameID
-	ServiceVersion     argparser.OptionalServiceVersion
-	StatusCheckCode    int
-	StatusCheckOff     bool
-	StatusCheckPath    string
-	StatusCheckTimeout int
-	SkipChangeDir      bool // set by parent composite commands (e.g. serve, publish)
-}
-
-// NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployCommand {
-	var c DeployCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute service")
-
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &c.Globals.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceVersion.Set,
-		Description: argparser.FlagVersionOptionalDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Name:        argparser.FlagVersionName,
-	})
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
-	c.CmdClause.Flag("dir", "Project directory (default: current directory)").Short('C').StringVar(&c.Dir)
-	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Env)
-	c.CmdClause.Flag("no-default-domain", "Skip default domain creation").Action(c.NoDefaultDomain.Set).BoolVar(&c.NoDefaultDomain.Value)
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
-	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
-	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
-	c.CmdClause.Flag("status-check-path", "Specify the URL path for the service availability check").Default("/").StringVar(&c.StatusCheckPath)
-	c.CmdClause.Flag("status-check-timeout", "Set a timeout (in seconds) for the service availability check").Default("120").IntVar(&c.StatusCheckTimeout)
+	ServiceID      *string                          `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `name:"version" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version (default: the active version, or the latest version if none is active)"`
+
+	// NOTE: these are public so that the "publish" composite command can set the
+	// values appropriately before calling the Exec() function.
+	Comment            argparser.OptionalString `help:"Human-readable comment"`
+	Dir                string                   `short:"C" help:"Project directory (default: current directory)"`
+	Domain             string                   `help:"The name of the domain associated to the package"`
+	Env                string                   `help:"The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')"`
+	NoDefaultDomain    argparser.OptionalBool   `help:"Skip default domain creation"`
+	PackagePath        string                   `name:"package" short:"p" help:"Path to a package tar.gz"`
+	StatusCheckCode    int                      `help:"Set the expected status response for the service availability check"`
+	StatusCheckOff     bool                     `help:"Disable the service availability check"`
+	StatusCheckPath    string                   `default:"/" help:"Specify the URL path for the service availability check"`
+	StatusCheckTimeout int                      `default:"120" help:"Set a timeout (in seconds) for the service availability check"`
+	SkipChangeDir      bool                     `kong:"-"` // set by parent composite commands (e.g. serve, publish)
+}
+
+// NewDeployCommand returns a DeployCommand set up as it was before parsing.
+// Its flags now come from the struct's tags.
+func NewDeployCommand(g *global.Data) *DeployCommand {
+	var c DeployCommand
+	c.Globals = g
 	return &c
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeployCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.

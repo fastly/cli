@@ -9,43 +9,24 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 var states = []string{"pending", "processing", "issued", "renewing"}
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.CmdClause = parent.Command("list", "List all TLS subscriptions")
-	c.Globals = g
-
-	// Optional.
-	c.CmdClause.Flag("filter-active", "Limit the returned subscriptions to those that have currently active orders").BoolVar(&c.filterHasActiveOrder)
-	c.CmdClause.Flag("filter-domain", "Limit the returned subscriptions to those that include the specific domain").StringVar(&c.filterTLSDomainID)
-	c.CmdClause.Flag("filter-state", "Limit the returned subscriptions by state").HintOptions(states...).EnumVar(&c.filterState, states...)
-	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...) // include is defined in ./describe.go
-	c.RegisterFlagBool(c.JSONFlag())                                                                                                        // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.pageSize)
-	c.CmdClause.Flag("sort", "The order in which to list the results by creation date").StringVar(&c.sort)
-
-	return &c
-}
-
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	filterHasActiveOrder bool
-	filterState          string
-	filterTLSDomainID    string
-	include              string
-	pageNumber           int
-	pageSize             int
-	sort                 string
+	// Optional.
+	FilterHasActiveOrder bool   `name:"filter-active" help:"Limit the returned subscriptions to those that have currently active orders"`
+	FilterTLSDomainID    string `name:"filter-domain" help:"Limit the returned subscriptions to those that include the specific domain"`
+	FilterState          string `default:"" enum:"pending,processing,issued,renewing," hints:"pending,processing,issued,renewing" help:"Limit the returned subscriptions by state"`
+	Include              string `default:"" enum:"tls_authorizations,tls_authorizations.globalsign_email_challenge," hints:"tls_authorizations,tls_authorizations.globalsign_email_challenge" help:"Include related objects (comma-separated values)"`
+	argparser.JSONOutput
+	PageNumber int    `name:"page" help:"Page number of data set to fetch"`
+	PageSize   int    `name:"per-page" help:"Number of records per page"`
+	Sort       string `help:"The order in which to list the results by creation date"`
 }
 
 // Exec invokes the application logic for the command.
@@ -59,13 +40,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.ListTLSSubscriptions(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Filter Active":        c.filterHasActiveOrder,
-			"Filter State":         c.filterState,
-			"Filter TLS Domain ID": c.filterTLSDomainID,
-			"Include":              c.include,
-			"Page Number":          c.pageNumber,
-			"Page Size":            c.pageSize,
-			"Sort":                 c.sort,
+			"Filter Active":        c.FilterHasActiveOrder,
+			"Filter State":         c.FilterState,
+			"Filter TLS Domain ID": c.FilterTLSDomainID,
+			"Include":              c.Include,
+			"Page Number":          c.PageNumber,
+			"Page Size":            c.PageSize,
+			"Sort":                 c.Sort,
 		})
 		return err
 	}
@@ -89,26 +70,26 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListTLSSubscriptionsInput {
 	var input fastly.ListTLSSubscriptionsInput
 
-	if c.filterHasActiveOrder {
-		input.FilterActiveOrders = c.filterHasActiveOrder
+	if c.FilterHasActiveOrder {
+		input.FilterActiveOrders = c.FilterHasActiveOrder
 	}
-	if c.filterState != "" {
-		input.FilterState = c.filterState
+	if c.FilterState != "" {
+		input.FilterState = c.FilterState
 	}
-	if c.filterTLSDomainID != "" {
-		input.FilterTLSDomainsID = c.filterTLSDomainID
+	if c.FilterTLSDomainID != "" {
+		input.FilterTLSDomainsID = c.FilterTLSDomainID
 	}
-	if c.include != "" {
-		input.Include = c.include
+	if c.Include != "" {
+		input.Include = c.Include
 	}
-	if c.pageNumber > 0 {
-		input.PageNumber = c.pageNumber
+	if c.PageNumber > 0 {
+		input.PageNumber = c.PageNumber
 	}
-	if c.pageSize > 0 {
-		input.PageSize = c.pageSize
+	if c.PageSize > 0 {
+		input.PageSize = c.PageSize
 	}
-	if c.sort != "" {
-		input.Sort = c.sort
+	if c.Sort != "" {
+		input.Sort = c.Sort
 	}
 
 	return &input

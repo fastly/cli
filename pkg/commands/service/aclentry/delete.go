@@ -7,52 +7,34 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("delete", "Delete an ACL entry from a specified ACL").Alias("remove")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying an ACL Entry").Required().StringVar(&c.id)
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	return &c
+	return nil
 }
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
 
-	aclID       string
-	id          string
-	serviceName argparser.OptionalServiceNameID
+	// Required.
+	ACLID string `name:"acl-id" required:"" help:"Alphanumeric string identifying a ACL"`
+	ID    string `required:"" help:"Alphanumeric string identifying an ACL Entry"`
+
+	// Optional.
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -77,8 +59,8 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DeleteCommand) constructInput(serviceID string) *fastly.DeleteACLEntryInput {
 	var input fastly.DeleteACLEntryInput
 
-	input.ACLID = c.aclID
-	input.EntryID = c.id
+	input.ACLID = c.ACLID
+	input.EntryID = c.ID
 	input.ServiceID = serviceID
 
 	return &input

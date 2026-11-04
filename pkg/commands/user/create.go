@@ -2,38 +2,37 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a user of the Fastly API and web interface").Alias("add")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").Action(c.login.Set).StringVar(&c.login.Value)
-	c.CmdClause.Flag("name", "The real life name of the user").Action(c.name.Set).StringVar(&c.name.Value)
-
-	// Optional.
-	c.CmdClause.Flag("role", "The permissions role assigned to the user. Can be user, billing, engineer, or superuser").Action(c.role.Set).EnumVar(&c.role.Value, "user", "billing", "engineer", "superuser")
-
-	return &c
+// AfterApply checks the values kong cannot check by itself.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.Role.Value != "" || kongcompat.Given(ctx, "role")) && !slices.Contains([]string{"user", "billing", "engineer", "superuser"}, c.Role.Value) {
+		return fmt.Errorf("enum value must be one of user,billing,engineer,superuser, got '%s'", c.Role.Value)
+	}
+	return nil
 }
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
 
-	login argparser.OptionalString
-	name  argparser.OptionalString
-	role  argparser.OptionalString
+	// Required.
+	Login    argparser.OptionalString `help:"The login associated with the user (typically, an email address)"`
+	NameFlag argparser.OptionalString `name:"name" help:"The real life name of the user"`
+
+	// Optional.
+	Role argparser.OptionalString `hints:"user,billing,engineer,superuser" help:"The permissions role assigned to the user. Can be user, billing, engineer, or superuser"`
 }
 
 // Exec invokes the application logic for the command.
@@ -43,8 +42,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.CreateUser(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"User Login": c.login,
-			"User Name":  c.name,
+			"User Login": c.Login,
+			"User Name":  c.NameFlag,
 		})
 		return err
 	}
@@ -56,14 +55,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateUserInput {
 	var input fastly.CreateUserInput
-	if c.login.WasSet {
-		input.Login = &c.login.Value
+	if c.Login.WasSet {
+		input.Login = &c.Login.Value
 	}
-	if c.role.WasSet {
-		input.Role = &c.role.Value
+	if c.Role.WasSet {
+		input.Role = &c.Role.Value
 	}
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
 
 	return &input

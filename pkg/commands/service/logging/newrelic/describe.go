@@ -8,54 +8,33 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("describe", "Get the details of a New Relic Logs logging object for a particular service and version").Alias("get")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Required().StringVar(&c.name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	return &c
+	return nil
 }
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	name           string
-	serviceName    argparser.OptionalServiceNameID
+	// Required.
+	NameFlag       string `name:"name" required:"" help:"The name for the real-time logging configuration"`
 	serviceVersion argparser.OptionalServiceVersion
+
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	argparser.JSONOutput
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 }
 
 // Exec invokes the application logic for the command.
@@ -68,7 +47,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -102,7 +81,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *fastly.GetNewRelicInput {
 	var input fastly.GetNewRelicInput
 
-	input.Name = c.name
+	input.Name = c.NameFlag
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 

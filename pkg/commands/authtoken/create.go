@@ -8,10 +8,7 @@ import (
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
-	"github.com/fastly/kingpin"
-
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -19,14 +16,9 @@ import (
 // https://www.fastly.com/documentation/reference/api/auth-tokens#scopes
 var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create an API token (deprecated: use the Fastly API directly)").Alias("add")
+// CreateCommand calls the Fastly API to create an appropriate resource.
+type CreateCommand struct {
+	argparser.Base
 
 	// Required.
 	//
@@ -34,7 +26,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	// the sudo endpoint requires a password to be provided alongside an API
 	// token. The password must be for the user account that created the token
 	// being passed as authentication to the API endpoint.
-	c.CmdClause.Flag("password", "User password corresponding with --token or $FASTLY_API_TOKEN").Required().StringVar(&c.password)
+	Password string `required:"" help:"User password corresponding with --token or $FASTLY_API_TOKEN"`
 
 	// Optional.
 	//
@@ -43,22 +35,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	// to handle issues with passing a flag value with whitespace. When
 	// constructing the input for the API call we convert from a comma-separated
 	// value to a space-delimited value.
-	c.CmdClause.Flag("expires", "Time-stamp (UTC) of when the token will expire").HintOptions("2016-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expires)
-	c.CmdClause.Flag("name", "Name of the token").StringVar(&c.name)
-	c.CmdClause.Flag("scope", "Authorization scope (repeat flag per scope)").HintOptions(Scopes...).EnumsVar(&c.scope, Scopes...)
-	c.CmdClause.Flag("services", "A comma-separated list of alphanumeric strings identifying services (default: access to all services)").StringsVar(&c.services, kingpin.Separator(","))
-	return &c
-}
-
-// CreateCommand calls the Fastly API to create an appropriate resource.
-type CreateCommand struct {
-	argparser.Base
-
-	expires  time.Time
-	name     string
-	password string
-	scope    []string
-	services []string
+	Expires  time.Time `hints:"2016-07-28T19:24:50+00:00" format:"2006-01-02T15:04:05Z07:00" help:"Time-stamp (UTC) of when the token will expire"`
+	NameFlag string    `name:"name" help:"Name of the token"`
+	Scope    []string  `enum:"global,purge_select,purge_all,global:read" sep:"none" hints:"global,purge_select,purge_all,global:read" help:"Authorization scope (repeat flag per scope)"`
+	Services []string  `sep:"," help:"A comma-separated list of alphanumeric strings identifying services (default: access to all services)"`
 }
 
 // Exec invokes the application logic for the command.
@@ -88,19 +68,19 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 	var input fastly.CreateTokenInput
 
-	input.Password = new(c.password)
+	input.Password = new(c.Password)
 
-	if !c.expires.IsZero() {
-		input.ExpiresAt = &c.expires
+	if !c.Expires.IsZero() {
+		input.ExpiresAt = &c.Expires
 	}
-	if c.name != "" {
-		input.Name = new(c.name)
+	if c.NameFlag != "" {
+		input.Name = new(c.NameFlag)
 	}
-	if len(c.scope) > 0 {
-		input.Scope = new(fastly.TokenScope(strings.Join(c.scope, " ")))
+	if len(c.Scope) > 0 {
+		input.Scope = new(fastly.TokenScope(strings.Join(c.Scope, " ")))
 	}
-	if len(c.services) > 0 {
-		input.Services = c.services
+	if len(c.Services) > 0 {
+		input.Services = c.Services
 	}
 
 	return &input

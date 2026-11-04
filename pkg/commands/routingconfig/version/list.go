@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,31 +17,14 @@ import (
 // versions.
 type ListCommand struct {
 	argparser.Base
+
+	// Required.
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
+
 	argparser.JSONOutput
 
-	// Required.
-	routingConfigID string
-
 	// Optional.
-	sort argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List a routing config's inactive versions")
-
-	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
-	return &c
+	Sort argparser.OptionalString `help:"The order in which to list the results"`
 }
 
 // Exec invokes the application logic for the command.
@@ -52,10 +34,10 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &versions.ListInput{
-		RoutingConfigID: &c.routingConfigID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -66,7 +48,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	cl, err := versions.List(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}

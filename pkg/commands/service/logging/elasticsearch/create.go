@@ -9,9 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -19,83 +17,52 @@ import (
 // CreateCommand calls the Fastly API to create an Elasticsearch logging endpoint.
 type CreateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	Index             argparser.OptionalString
-	Password          argparser.OptionalString
-	Pipeline          argparser.OptionalString
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	RequestMaxBytes   argparser.OptionalInt
-	RequestMaxEntries argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
-	TLSCACert         argparser.OptionalString
-	TLSClientCert     argparser.OptionalString
-	TLSClientKey      argparser.OptionalString
-	TLSHostname       argparser.OptionalString
-	URL               argparser.OptionalString
-	User              argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	EndpointName      argparser.OptionalString    `name:"name" short:"n" help:"The name of the Elasticsearch logging object. Used as a primary key for API access"` // Can't shadow argparser.Base method Name().
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	Index             argparser.OptionalString    `help:"The name of the Elasticsearch index to send documents (logs) to. The index must follow the Elasticsearch index format rules (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html). We support strftime (http://man7.org/linux/man-pages/man3/strftime.3.html) interpolated variables inside braces prefixed with a pound symbol. For example, #{%F} will interpolate as YYYY-MM-DD with today's date"`
+	Password          argparser.OptionalString    `kong:"-"`
+	Pipeline          argparser.OptionalString    `kong:"-"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to Elasticsearch. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	RequestMaxBytes   argparser.OptionalInt       `help:"Maximum size of log batch, if non-zero. Defaults to 100MB"`
+	RequestMaxEntries argparser.OptionalInt       `help:"Maximum number of logs to append to a batch, if non-zero. Defaults to 10k"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	TLSCACert         argparser.OptionalString    `name:"tls-ca-cert" help:"A secure certificate to authenticate the server with. Must be in PEM format"`
+	TLSClientCert     argparser.OptionalString    `help:"The client certificate used to make authenticated requests. Must be in PEM format"`
+	TLSClientKey      argparser.OptionalString    `help:"The client private key used to make authenticated requests. Must be in PEM format"`
+	TLSHostname       argparser.OptionalString    `help:"Used during the TLS handshake to validate the certificate"`
+	URL               argparser.OptionalString    `help:"The URL to stream logs to. Must use HTTPS."`
+	User              argparser.OptionalString    `kong:"-"`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	PipelineFlag *string `name:"pipeline" help:"The ID of the Elasticsearch ingest pipeline to apply pre-process transformations to before indexing. For example my_pipeline_id. Learn more about creating a pipeline in the Elasticsearch docs (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)"`
+	ServiceID    *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.ServiceVersion.Value = c.Version
+	if c.PipelineFlag != nil {
+		c.Pipeline.Value = *c.PipelineFlag
+		c.Password.WasSet = true
 	}
-	c.CmdClause = parent.Command("create", "Create an Elasticsearch logging endpoint on a Fastly service version").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the Elasticsearch logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	c.CmdClause.Flag("index", `The name of the Elasticsearch index to send documents (logs) to. The index must follow the Elasticsearch index format rules (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html). We support strftime (http://man7.org/linux/man-pages/man3/strftime.3.html) interpolated variables inside braces prefixed with a pound symbol. For example, #{%F} will interpolate as YYYY-MM-DD with today's date`).Action(c.Index.Set).StringVar(&c.Index.Value)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	c.CmdClause.Flag("pipeline", "The ID of the Elasticsearch ingest pipeline to apply pre-process transformations to before indexing. For example my_pipeline_id. Learn more about creating a pipeline in the Elasticsearch docs (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)").Action(c.Password.Set).StringVar(&c.Pipeline.Value)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Elasticsearch")
-	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
-	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
-	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
-	c.CmdClause.Flag("url", "The URL to stream logs to. Must use HTTPS.").Action(c.URL.Set).StringVar(&c.URL.Value)
-	return &c
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -214,4 +181,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(d.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *CreateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "autoclone", "format", "format-version", "index",
+		"placement", "pipeline", "processing-region", "request-max-bytes",
+		"request-max-entries", "response-condition", "service-id",
+		"service-name", "tls-ca-cert", "tls-client-cert", "tls-client-key",
+		"tls-hostname", "url",
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/scope"
@@ -16,29 +15,12 @@ import (
 // GetCommand calls the Fastly API to get an account-level country list.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	listID string
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("get", "Get an account-level country list")
-
-	// Required.
-	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
+	ListID string `required:"" help:"List ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -49,7 +31,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := ngwaflist.ListGetInput{
 		CommandScope: scope.ScopeTypeAccount,
-		ListID:       c.listID,
+		ListID:       c.ListID,
 		WorkspaceID:  nil,
 	}
 

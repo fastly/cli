@@ -5,21 +5,12 @@ import (
 
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand wraps the UpdateCommand from the servicebackend package.
 type UpdateCommand struct {
-	*servicebackend.UpdateCommand
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{servicebackend.NewUpdateCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicebackend.UpdateCommand
 }
 
 // Exec implements the command interface.

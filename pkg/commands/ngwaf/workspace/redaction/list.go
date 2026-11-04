@@ -10,52 +10,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list redactions in a workspace.
 type ListCommand struct {
 	argparser.Base
+
+	// Required.
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+
+	// Optional.
+	Limit argparser.OptionalInt `help:"Limit how many results are returned"`
+
 	argparser.JSONOutput
-
-	// Required.
-	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-	limit argparser.OptionalInt
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List redactions in a workspace")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
-
-	// Optional.
-	c.CmdClause.Flag("limit", "Limit how many results are returned").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 
@@ -69,11 +44,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &redactions.ListInput{
-		WorkspaceID: &c.workspaceID.Value,
+		WorkspaceID: &c.WorkspaceID.Value,
 	}
 
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
+	if c.Limit.WasSet {
+		input.Limit = &c.Limit.Value
 	}
 
 	data, err := redactions.List(context.TODO(), fc, input)

@@ -7,7 +7,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/apisecurity/operations"
@@ -19,34 +18,17 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	serviceName argparser.OptionalServiceNameID
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	ServiceID   *string                         `help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-
-	c.CmdClause = parent.Command("list", "List all operation tags")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +37,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -113,4 +95,12 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.PrintOperationTagsTbl(out, allTags)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *ListCommand) FlagOrder() []string {
+	return []string{
+		"service-id", "service-name", "json",
+	}
 }

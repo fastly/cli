@@ -8,7 +8,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,26 +16,21 @@ type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input fastly.CreateKVStoreInput
+	Input fastly.CreateKVStoreInput `kong:"-"`
+
+	Location string `short:"l" default:"" enum:"US,EU,ASIA,AUS," hints:"US,EU,ASIA,AUS" help:"Regional location of KV Store"`
+	NameFlag string `name:"name" short:"n" required:"" help:"Name of KV Store"`
 }
 
 // locations is a list of supported regional location options.
 var locations = []string{"US", "EU", "ASIA", "AUS"}
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("create", "Create a KV Store")
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("location", "Regional location of KV Store").Short('l').HintOptions(locations...).EnumVar(&c.Input.Location, locations...)
-	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.Input.Location = c.Location
+	c.Input.Name = c.NameFlag
+	return nil
 }
 
 // Exec invokes the application logic for the command.

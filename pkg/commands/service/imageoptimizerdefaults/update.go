@@ -9,105 +9,44 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // UpdateCommand calls the Fastly API to update Image Optimizer default settings for a service.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	Input          fastly.UpdateImageOptimizerDefaultSettingsInput
-	serviceName    argparser.OptionalServiceNameID
+	Input          fastly.UpdateImageOptimizerDefaultSettingsInput `kong:"-"`
 	serviceVersion argparser.OptionalServiceVersion
 
-	// Image Optimizer setting flags
-	allowVideo   argparser.OptionalString
-	jpegQuality  argparser.OptionalInt
-	jpegType     argparser.OptionalString
-	resizeFilter argparser.OptionalString
-	upscale      argparser.OptionalString
-	webp         argparser.OptionalString
-	webpQuality  argparser.OptionalInt
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update Image Optimizer default settings for a service")
-
 	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	ServiceID *string `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	Version   string  `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional flags for Image Optimizer settings
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "allow-video",
-		Description: "Enables GIF to MP4 transformations on this service [true, false]",
-		Action:      c.allowVideo.Set,
-		Dst:         &c.allowVideo.Value,
-	})
-	c.RegisterFlagInt(argparser.IntFlagOpts{
-		Name:        "jpeg-quality",
-		Description: "The default quality to use with JPEG output (1-100)",
-		Dst:         &c.jpegQuality.Value,
-		Action:      c.jpegQuality.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "jpeg-type",
-		Description: "The default type of JPEG output to use (auto, baseline, progressive)",
-		Dst:         &c.jpegType.Value,
-		Action:      c.jpegType.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "resize-filter",
-		Description: "The type of filter to use while resizing an image (lanczos3, lanczos2, bicubic, bilinear, nearest)",
-		Dst:         &c.resizeFilter.Value,
-		Action:      c.resizeFilter.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "upscale",
-		Description: "Whether or not we should allow output images to render at sizes larger than input [true, false]",
-		Action:      c.upscale.Set,
-		Dst:         &c.upscale.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "webp",
-		Description: "Controls whether or not to default to WebP output when the client supports it [true, false]",
-		Action:      c.webp.Set,
-		Dst:         &c.webp.Value,
-	})
-	c.RegisterFlagInt(argparser.IntFlagOpts{
-		Name:        "webp-quality",
-		Description: "The default quality to use with WebP output (1-100)",
-		Dst:         &c.webpQuality.Value,
-		Action:      c.webpQuality.Set,
-	})
+
+	// Image Optimizer setting flags
+	AllowVideo   argparser.OptionalString `help:"Enables GIF to MP4 transformations on this service [true, false]"`
+	JpegQuality  argparser.OptionalInt    `help:"The default quality to use with JPEG output (1-100)"`
+	JpegType     argparser.OptionalString `help:"The default type of JPEG output to use (auto, baseline, progressive)"`
+	ResizeFilter argparser.OptionalString `help:"The type of filter to use while resizing an image (lanczos3, lanczos2, bicubic, bilinear, nearest)"`
+	Upscale      argparser.OptionalString `help:"Whether or not we should allow output images to render at sizes larger than input [true, false]"`
+	Webp         argparser.OptionalString `help:"Controls whether or not to default to WebP output when the client supports it [true, false]"`
+	WebpQuality  argparser.OptionalInt    `help:"The default quality to use with WebP output (1-100)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+	argparser.JSONOutput
+
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	c.serviceVersion.Value = c.Version
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -120,7 +59,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -136,9 +75,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	// Set optional fields only if they were provided
-	if c.resizeFilter.WasSet {
+	if c.ResizeFilter.WasSet {
 		// Convert string to ImageOptimizerResizeFilter constant
-		switch c.resizeFilter.Value {
+		switch c.ResizeFilter.Value {
 		case "lanczos3":
 			filter := fastly.ImageOptimizerLanczos3
 			c.Input.ResizeFilter = &filter
@@ -155,23 +94,23 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			filter := fastly.ImageOptimizerNearest
 			c.Input.ResizeFilter = &filter
 		default:
-			return fmt.Errorf("invalid resize filter: %s. Valid options: lanczos3, lanczos2, bicubic, bilinear, nearest", c.resizeFilter.Value)
+			return fmt.Errorf("invalid resize filter: %s. Valid options: lanczos3, lanczos2, bicubic, bilinear, nearest", c.ResizeFilter.Value)
 		}
 	}
-	if c.webp.WasSet {
-		webp, err := argparser.ConvertBoolFromStringFlag(c.webp.Value, "webp")
+	if c.Webp.WasSet {
+		webp, err := argparser.ConvertBoolFromStringFlag(c.Webp.Value, "webp")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		c.Input.Webp = webp
 	}
-	if c.webpQuality.WasSet {
-		c.Input.WebpQuality = &c.webpQuality.Value
+	if c.WebpQuality.WasSet {
+		c.Input.WebpQuality = &c.WebpQuality.Value
 	}
-	if c.jpegType.WasSet {
+	if c.JpegType.WasSet {
 		// Convert string to JPEG type constant
-		switch c.jpegType.Value {
+		switch c.JpegType.Value {
 		case "auto":
 			jpegType := fastly.ImageOptimizerAuto
 			c.Input.JpegType = &jpegType
@@ -182,22 +121,22 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			jpegType := fastly.ImageOptimizerProgressive
 			c.Input.JpegType = &jpegType
 		default:
-			return fmt.Errorf("invalid jpeg type: %s. Valid options: auto, baseline, progressive", c.jpegType.Value)
+			return fmt.Errorf("invalid jpeg type: %s. Valid options: auto, baseline, progressive", c.JpegType.Value)
 		}
 	}
-	if c.jpegQuality.WasSet {
-		c.Input.JpegQuality = &c.jpegQuality.Value
+	if c.JpegQuality.WasSet {
+		c.Input.JpegQuality = &c.JpegQuality.Value
 	}
-	if c.upscale.WasSet {
-		upscale, err := argparser.ConvertBoolFromStringFlag(c.upscale.Value, "upscale")
+	if c.Upscale.WasSet {
+		upscale, err := argparser.ConvertBoolFromStringFlag(c.Upscale.Value, "upscale")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		c.Input.Upscale = upscale
 	}
-	if c.allowVideo.WasSet {
-		allowVideo, err := argparser.ConvertBoolFromStringFlag(c.allowVideo.Value, "allow-video")
+	if c.AllowVideo.WasSet {
+		allowVideo, err := argparser.ConvertBoolFromStringFlag(c.AllowVideo.Value, "allow-video")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

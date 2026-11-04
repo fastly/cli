@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -12,18 +11,16 @@ import (
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Create CreateCommand `cmd:"" aliases:"add" help:"Create a workspace threshold"`
+	Delete DeleteCommand `cmd:"" help:"Deletes a workspace threshold"`
+	Get    GetCommand    `cmd:"" help:"Retrieves a workspace threshold"`
+	List   ListCommand   `cmd:"" help:"List workspace thresholds"`
+	Update UpdateCommand `cmd:"" help:"Update a workspace threshold"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "threshold"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage NGWAF Workspace Thresholds")
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {

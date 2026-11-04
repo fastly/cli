@@ -48,45 +48,36 @@ var ErrWasmtoolsNotFound = fsterr.RemediationError{
 
 // Flags represents the flags defined for the command.
 type Flags struct {
-	Dir         string
-	Env         string
-	IncludeSrc  bool
-	Lang        string
-	PackageName string
-	Timeout     int
+	Dir         string `short:"C" help:"Project directory to build (default: current directory)"`
+	Env         string `help:"The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')"`
+	IncludeSrc  bool   `name:"include-source" help:"Include source code in built package"`
+	Lang        string `name:"language" help:"Language type"`
+	PackageName string `help:"Package name"`
+	Timeout     int    `help:"Timeout, in seconds, for the build compilation step"`
 }
 
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	argparser.Base
 
+	// NOTE: when updating these flags, be sure to update the composite commands:
+	// `compute publish` and `compute serve`.
+
 	// NOTE: Composite commands require these build flags to be public.
 	// e.g. serve, publish, hash-files
 	// This is so they can set values appropriately before calling Build.Exec().
-	Flags                 Flags
-	MetadataDisable       bool
-	MetadataFilterEnvVars string
-	MetadataShow          bool
-	SkipChangeDir         bool // set by parent composite commands (e.g. serve, publish)
+	Flags                 Flags  `embed:""`
+	MetadataDisable       bool   `help:"Disable Wasm binary metadata annotations"`
+	MetadataFilterEnvVars string `name:"metadata-filter-envvars" help:"Redact specified environment variables from [scripts.env_vars] using comma-separated list"`
+	MetadataShow          bool   `help:"Inspect the Wasm binary metadata"`
+	SkipChangeDir         bool   `kong:"-"` // set by parent composite commands (e.g. serve, publish)
 }
 
-// NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent argparser.Registerer, g *global.Data) *BuildCommand {
+// NewBuildCommand returns a BuildCommand set up as it was before parsing.
+// Its flags now come from the struct's tags.
+func NewBuildCommand(g *global.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("build", "Build a Compute package locally")
-
-	// NOTE: when updating these flags, be sure to update the composite commands:
-	// `compute publish` and `compute serve`.
-	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').StringVar(&c.Flags.Dir)
-	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Flags.Env)
-	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
-	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
-	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").BoolVar(&c.MetadataDisable)
-	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").StringVar(&c.MetadataFilterEnvVars)
-	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").BoolVar(&c.MetadataShow)
-	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
-	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	return &c
 }
@@ -521,6 +512,15 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	}
 
 	return sanitize.BaseName(name), nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *BuildCommand) FlagOrder() []string {
+	return []string{
+		"dir", "env", "include-source", "language", "metadata-disable",
+		"metadata-filter-envvars", "metadata-show", "package-name", "timeout",
+	}
 }
 
 // ExecuteWasmTools calls the wasm-tools binary.

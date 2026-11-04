@@ -5,21 +5,12 @@ import (
 
 	newcmd "github.com/fastly/cli/pkg/commands/service/logging/logshuttle"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand wraps the DeleteCommand from the newcmd package.
 type DeleteCommand struct {
-	*newcmd.DeleteCommand
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{newcmd.NewDeleteCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	newcmd.DeleteCommand
 }
 
 // Exec implements the command interface.

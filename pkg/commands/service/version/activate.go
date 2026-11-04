@@ -10,58 +10,39 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ActivateCommand calls the Fastly API to activate a service version.
 type ActivateCommand struct {
 	argparser.Base
-	Input          fastly.ActivateVersionInput
-	serviceName    argparser.OptionalServiceNameID
+	Input          fastly.ActivateVersionInput     `kong:"-"`
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
+	Version        string                          `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 	serviceVersion argparser.OptionalServiceVersion
-	autoClone      argparser.OptionalAutoClone
+	AutoClone      argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
 }
 
-// NewActivateCommand returns a usable command registered under the parent.
-func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCommand {
-	var c ActivateCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ActivateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	c.serviceVersion.Value = c.Version
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})

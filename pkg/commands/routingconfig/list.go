@@ -10,32 +10,17 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // ListCommand calls the Fastly API to list routing configs.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	sort  argparser.OptionalString
-	state argparser.OptionalStringSlice
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List routing configs")
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.CmdClause.Flag("state", "Filter results by lifecycle state. Set flag multiple times to filter by multiple states").Action(c.state.Set).StringsVar(&c.state.Value)
-	return &c
+	argparser.JSONOutput
+
+	Sort  argparser.OptionalString      `help:"The order in which to list the results"`
+	State argparser.OptionalStringSlice `sep:"none" help:"Filter results by lifecycle state. Set flag multiple times to filter by multiple states"`
 }
 
 // Exec invokes the application logic for the command.
@@ -46,11 +31,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &routingconfigs.ListInput{}
 
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
-	if c.state.WasSet {
-		input.State = c.state.Value
+	if c.State.WasSet {
+		input.State = c.State.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -61,8 +46,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	cl, err := routingconfigs.List(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Sort":  c.sort.Value,
-			"State": c.state.Value,
+			"Sort":  c.Sort.Value,
+			"State": c.State.Value,
 		})
 		return err
 	}

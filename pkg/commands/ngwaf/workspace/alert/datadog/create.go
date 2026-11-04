@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/alerts/datadog"
@@ -18,41 +17,16 @@ import (
 // CreateCommand calls the Fastly API to create Datadog alerts.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	Key         string                        `required:"" help:"Datadog integration key."`
+	Site        string                        `required:"" help:"Datadog site."`
+
+	// Optional.
+	Description argparser.OptionalString `help:"An optional description for the alert."`
+
 	argparser.JSONOutput
-
-	// Required.
-	WorkspaceID argparser.OptionalWorkspaceID
-	Key         string
-	Site        string
-
-	// Optional.
-	Description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Datadog alert").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
-	})
-	c.CmdClause.Flag("key", "Datadog integration key.").Required().StringVar(&c.Key)
-	c.CmdClause.Flag("site", "Datadog site.").Required().StringVar(&c.Site)
-
-	// Optional.
-	c.CmdClause.Flag("description", "An optional description for the alert.").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

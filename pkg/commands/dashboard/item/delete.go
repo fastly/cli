@@ -9,34 +9,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *DeleteCommand {
-	var c DeleteCommand
-	c.CmdClause = parent.Command("delete", "Delete a custom dashboard item").Alias("add")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard containing the item").Required().StringVar(&c.dashboardID) // --dashboard-id
-	c.CmdClause.Flag("item-id", "ID of the Item to be deleted").Required().StringVar(&c.itemID)                      // --item-id
-
-	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
+
+	// Required flags
 
 	// required
-	dashboardID string
-	itemID      string
+	DashboardID string `required:"" help:"ID of the Dashboard containing the item"`
+	ItemID      string `required:"" help:"ID of the Item to be deleted"`
+
+	// Optional flags
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -45,7 +32,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
+	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.DashboardID})
 	if err != nil {
 		return err
 	}
@@ -54,7 +41,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	numItems := len(d.Items)
 
 	if slices.ContainsFunc(d.Items, func(di fastly.DashboardItem) bool {
-		return di.ID == c.itemID
+		return di.ID == c.ItemID
 	}) {
 		input := c.constructInput(d)
 		d, err = c.Globals.APIClient.UpdateObservabilityCustomDashboard(context.TODO(), input)
@@ -71,7 +58,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			Deleted  bool                                 `json:"deleted"`
 			NewState *fastly.ObservabilityCustomDashboard `json:"dashboard_state"`
 		}{
-			c.itemID,
+			c.ItemID,
 			success,
 			d,
 		}
@@ -82,7 +69,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if success {
 		text.Success(out, `Removed %d dashboard item(s) from Custom Dashboard "%s" (dashboardID: %s)`, (numItems - len(d.Items)), d.Name, d.ID)
 	} else {
-		text.Warning(out, "dashboard (%s) has no item with ID (%s)", d.ID, c.itemID)
+		text.Warning(out, "dashboard (%s) has no item with ID (%s)", d.ID, c.ItemID)
 	}
 	return nil
 }
@@ -96,7 +83,7 @@ func (c *DeleteCommand) constructInput(d *fastly.ObservabilityCustomDashboard) *
 	}
 
 	items := slices.DeleteFunc(d.Items, func(di fastly.DashboardItem) bool {
-		return di.ID == c.itemID
+		return di.ID == c.ItemID
 	})
 	input.Items = &items
 

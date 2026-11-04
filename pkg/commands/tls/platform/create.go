@@ -7,35 +7,20 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("upload", "Upload a new certificate")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob").Required().StringVar(&c.certBlob)
-	c.CmdClause.Flag("intermediates-blob", "The PEM-formatted chain of intermediate blobs").Required().StringVar(&c.intermediatesBlob)
-
-	// Optional.
-	c.CmdClause.Flag("allow-untrusted", "Allow certificates that chain to untrusted roots").Action(c.allowUntrusted.Set).BoolVar(&c.allowUntrusted.Value)
-	c.CmdClause.Flag("config", "Alphanumeric string identifying a TLS configuration (set flag once per Configuration ID)").StringsVar(&c.config)
-
-	return &c
-}
 
 // CreateCommand calls the Fastly API to update an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
 
-	allowUntrusted    argparser.OptionalBool
-	certBlob          string
-	config            []string
-	intermediatesBlob string
+	// Required.
+	CertBlob          string `required:"" help:"The PEM-formatted certificate blob"`
+	IntermediatesBlob string `required:"" help:"The PEM-formatted chain of intermediate blobs"`
+
+	// Optional.
+	AllowUntrusted argparser.OptionalBool `help:"Allow certificates that chain to untrusted roots"`
+	Config         []string               `sep:"none" help:"Alphanumeric string identifying a TLS configuration (set flag once per Configuration ID)"`
 }
 
 // Exec invokes the application logic for the command.
@@ -45,8 +30,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.CreateBulkCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Allow Untrusted": c.allowUntrusted.Value,
-			"Configs":         c.config,
+			"Allow Untrusted": c.AllowUntrusted.Value,
+			"Configs":         c.Config,
 		})
 		return err
 	}
@@ -59,15 +44,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateBulkCertificateInput {
 	var input fastly.CreateBulkCertificateInput
 
-	input.CertBlob = c.certBlob
-	input.IntermediatesBlob = c.intermediatesBlob
+	input.CertBlob = c.CertBlob
+	input.IntermediatesBlob = c.IntermediatesBlob
 
-	if c.allowUntrusted.WasSet {
-		input.AllowUntrusted = c.allowUntrusted.Value
+	if c.AllowUntrusted.WasSet {
+		input.AllowUntrusted = c.AllowUntrusted.Value
 	}
 
 	var configs []*fastly.TLSConfiguration
-	for _, v := range c.config {
+	for _, v := range c.Config {
 		configs = append(configs, &fastly.TLSConfiguration{ID: v})
 	}
 	input.Configurations = configs

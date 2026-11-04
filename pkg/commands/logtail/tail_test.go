@@ -21,22 +21,22 @@ func TestAdjustTimes(t *testing.T) {
 		exp cfg
 	}{
 		{
-			in:  cfg{from: 1601480668, to: 1601480768, searchPadding: dur},
-			exp: cfg{from: 1601480658, to: 1601480778, searchPadding: dur},
+			in:  cfg{From: 1601480668, To: 1601480768, SearchPadding: dur},
+			exp: cfg{From: 1601480658, To: 1601480778, SearchPadding: dur},
 		},
 		{
-			in:  cfg{from: 1601480668, to: 1601480768},
-			exp: cfg{from: 1601480668, to: 1601480768},
+			in:  cfg{From: 1601480668, To: 1601480768},
+			exp: cfg{From: 1601480668, To: 1601480768},
 		},
 		{
-			in:  cfg{searchPadding: dur},
-			exp: cfg{searchPadding: dur},
+			in:  cfg{SearchPadding: dur},
+			exp: cfg{SearchPadding: dur},
 		},
 	} {
-		c := RootCommand{cfg: test.in}
+		c := RootCommand{Cfg: test.in}
 		c.adjustTimes()
-		if equal := reflect.DeepEqual(test.exp, c.cfg); !equal {
-			t.Errorf("#%d: adjustTimes mismatch: got: %#+v  want: %#+v", i, c.cfg, test.exp)
+		if equal := reflect.DeepEqual(test.exp, c.Cfg); !equal {
+			t.Errorf("#%d: adjustTimes mismatch: got: %#+v  want: %#+v", i, c.Cfg, test.exp)
 		}
 	}
 }

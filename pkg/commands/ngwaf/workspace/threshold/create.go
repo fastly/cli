@@ -10,58 +10,26 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a workspace threshold.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	Action      string                        `required:"" help:"The action to take when the threshold is exceeded. [block, log]"`
+	DontNotify  argparser.OptionalString      `name:"do-not-notify" required:"" help:"Whether to silence notifications when action is taken. [true, false]"`
+	Duration    int                           `required:"" help:"The duration the action is in place in seconds. Default duration is 86,400 seconds (1 day)."`
+	EnabledFlag argparser.OptionalString      `name:"enabled" required:"" help:"Whether the threshold is active. [true, false]"`
+	Interval    int                           `required:"" help:"The threshold interval in seconds. The default interval is 3600 seconds (1 hour)."`
+	Limit       int                           `required:"" help:"The threshold limit. Input must be between 1 and 10000. Default limit is 10."`
+	NameFlag    string                        `name:"name" required:"" help:"User submitted display name of a signal threshold. Input must be between 3 and 50 characters"`
+	Signal      string                        `required:"" help:"The name of the signal this threshold is acting on"`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+
+	// Optional.
 	argparser.JSONOutput
-
-	// Required.
-	action      string
-	dontNotify  argparser.OptionalString
-	duration    int
-	enabled     argparser.OptionalString
-	interval    int
-	limit       int
-	name        string
-	signal      string
-	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a workspace threshold").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("action", "The action to take when the threshold is exceeded. [block, log]").Required().StringVar(&c.action)
-	c.CmdClause.Flag("do-not-notify", "Whether to silence notifications when action is taken. [true, false]").Required().Action(c.dontNotify.Set).StringVar(&c.dontNotify.Value)
-	c.CmdClause.Flag("duration", "The duration the action is in place in seconds. Default duration is 86,400 seconds (1 day).").Required().IntVar(&c.duration)
-	c.CmdClause.Flag("enabled", "Whether the threshold is active. [true, false]").Required().Action(c.enabled.Set).StringVar(&c.enabled.Value)
-	c.CmdClause.Flag("interval", "The threshold interval in seconds. The default interval is 3600 seconds (1 hour).").Required().IntVar(&c.interval)
-	c.CmdClause.Flag("limit", "The threshold limit. Input must be between 1 and 10000. Default limit is 10.").Required().IntVar(&c.limit)
-	c.CmdClause.Flag("name", "User submitted display name of a signal threshold. Input must be between 3 and 50 characters").Required().StringVar(&c.name)
-	c.CmdClause.Flag("signal", "The name of the signal this threshold is acting on").Required().StringVar(&c.signal)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -71,32 +39,32 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 
-	enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value, "enabled")
+	enabled, err := argparser.ConvertBoolFromStringFlag(c.EnabledFlag.Value, "enabled")
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value, "do-not-notify")
+	dontNotify, err := argparser.ConvertBoolFromStringFlag(c.DontNotify.Value, "do-not-notify")
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	input := &thresholds.CreateInput{
-		Action:      &c.action,
-		Duration:    &c.duration,
+		Action:      &c.Action,
+		Duration:    &c.Duration,
 		Enabled:     enabled,
-		Interval:    &c.interval,
-		Limit:       &c.limit,
-		Name:        &c.name,
+		Interval:    &c.Interval,
+		Limit:       &c.Limit,
+		Name:        &c.NameFlag,
 		DontNotify:  dontNotify,
-		Signal:      &c.signal,
-		WorkspaceID: &c.workspaceID.Value,
+		Signal:      &c.Signal,
+		WorkspaceID: &c.WorkspaceID.Value,
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -113,6 +81,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created threshold '%s' for workspace '%s'", data.ThresholdID, c.workspaceID.Value)
+	text.Success(out, "Created threshold '%s' for workspace '%s'", data.ThresholdID, c.WorkspaceID.Value)
 	return nil
 }

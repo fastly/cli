@@ -18,8 +18,9 @@ import (
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
-	"github.com/fastly/kingpin"
+	"github.com/alecthomas/kong"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/auth"
@@ -343,15 +344,21 @@ func Exec(data *global.Data) error {
 	return command.Exec(data.Input, data.Output)
 }
 
-func configureKingpin(data *global.Data) *kingpin.Application {
+func configureKingpin(data *global.Data) *kongcompat.Application {
 	// Set up the main application root, including global flags, and then each
 	// of the subcommands. Note that we deliberately don't use some of the more
 	// advanced features of the kingpin.Application flags, like env var
 	// bindings, because we need to do things like track where a config
 	// parameter came from.
-	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
+	app := kongcompat.New(&commands.CLI{Flags: &data.Flags},
+		"fastly",
+		"A tool to interact with the Fastly API",
+		kong.Bind(data),
+		commands.Conditional(),
+		kongcompat.HelpShortFlag('h'),
+	)
 	app.Writers(data.Output, io.Discard) // don't let kingpin write error output
-	app.UsageContext(&kingpin.UsageContext{
+	app.UsageContext(&kongcompat.UsageContext{
 		Template: VerboseUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
 	})
@@ -359,40 +366,6 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// Prevent kingpin from calling os.Exit, this gives us greater control over
 	// error states and output control flow.
 	app.Terminate(nil)
-	// The `help` flag is not one we registered ourselves: kingpin defines it
-	// internally when the application is created. We look it up by name to
-	// attach the `-h` shorthand, and only guard with a nil check because if a
-	// future kingpin version renamed or removed its built-in help flag we
-	// would panic here at startup instead of failing gracefully.
-	if helpFlag := app.GetFlag("help"); helpFlag != nil {
-		helpFlag.Short('h')
-	}
-
-	// IMPORTANT: Kingpin doesn't support global flags.
-	// Any flags defined below must also be added to two other places:
-	// 1. ./usage.go (`globalFlags` map).
-	// 2. ../cmd/argparser.go (`IsGlobalFlagsOnly` function).
-	//
-	// NOTE: Global flags (long and short) MUST be unique.
-	// A subcommand can't define a flag that is already global.
-	// Kingpin will otherwise trigger a runtime panic 🎉
-	// Interestingly, short flags can be reused but only across subcommands.
-	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&data.Flags.AcceptDefaults)
-	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&data.Flags.AccountEndpoint)
-	app.Flag("api", "Fastly API endpoint").Hidden().StringVar(&data.Flags.APIEndpoint)
-	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&data.Flags.AutoYes)
-	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
-	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
-	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
-	app.Flag("enable-sso", "[DEPRECATED: use 'fastly auth login --sso --token <name>'] Enable SSO for current profile").Hidden().BoolVar(&data.Flags.SSO)
-	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
-	app.Flag("profile", "[DEPRECATED: use 'fastly auth use'] Switch account profile for single command execution").Hidden().Short('o').StringVar(&data.Flags.Profile)
-	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&data.Flags.Quiet)
-	if !env.AuthCommandDisabled() {
-		tokenHelp := fmt.Sprintf("Fastly API token, or name of a stored auth token (use 'default' for the default token). Falls back to %s env var", env.APIToken)
-		app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&data.Flags.Token)
-	}
-	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&data.Flags.Verbose)
 
 	return app
 }

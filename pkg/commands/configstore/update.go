@@ -8,41 +8,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("update", "Update a config store")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "name",
-		Short:       'n',
-		Description: "New name for the config store",
-		Dst:         &c.input.Name,
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.input.Name = c.NameFlag
+	c.input.StoreID = c.StoreID
+	return nil
 }
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 	input fastly.UpdateConfigStoreInput
+
+	// Required.
+	NameFlag string `name:"name" short:"n" required:"" help:"New name for the config store"`
+	StoreID  string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

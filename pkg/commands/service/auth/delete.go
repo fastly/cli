@@ -7,28 +7,23 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete service authorizations.
 type DeleteCommand struct {
 	argparser.Base
-	Input fastly.DeleteServiceAuthorizationInput
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete service authorization").Alias("remove")
+	Input fastly.DeleteServiceAuthorizationInput `kong:"-"`
 
 	// Required.
-	c.CmdClause.Flag("id", "ID of the service authorization to delete").Required().StringVar(&c.Input.ID)
-	return &c
+	ID string `required:"" help:"ID of the service authorization to delete"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	c.Input.ID = c.ID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

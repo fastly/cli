@@ -10,38 +10,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to get a virtual patch.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	virtualpatchID string
-	workspaceID    string
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("retrieve", "Retrieve a virtual patch").Alias("get")
-
-	// Required.
-	c.CmdClause.Flag("virtual-patch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	VirtualpatchID string `name:"virtual-patch-id" required:"" help:"Virtual Patch ID"`
+	WorkspaceID    string `required:"" help:"Workspace ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,8 +37,8 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := virtualpatches.Get(context.TODO(), fc, &virtualpatches.GetInput{
-		VirtualPatchID: &c.virtualpatchID,
-		WorkspaceID:    &c.workspaceID,
+		VirtualPatchID: &c.VirtualpatchID,
+		WorkspaceID:    &c.WorkspaceID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

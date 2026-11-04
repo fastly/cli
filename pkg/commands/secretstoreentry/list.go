@@ -8,37 +8,31 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List secrets within a specified store")
-
-	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlag(argparser.CursorFlag(&c.Input.Cursor))  // --cursor
-	c.RegisterFlagBool(c.JSONFlag())                       // --json
-	c.RegisterFlagInt(argparser.LimitFlag(&c.Input.Limit)) // --limit
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	c.Input.StoreID = c.StoreID
+	c.Input.Cursor = c.Cursor
+	c.Input.Limit = c.Limit
+	return nil
 }
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	Input fastly.ListSecretsInput
+	Input fastly.ListSecretsInput `kong:"-"`
+
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	Cursor string `short:"c" help:"Pagination cursor (Use 'next_cursor' value from list output)"`
+	argparser.JSONOutput
+	Limit int `short:"l" default:"50" help:"Maximum number of items to list"`
 }
 
 // Exec invokes the application logic for the command.

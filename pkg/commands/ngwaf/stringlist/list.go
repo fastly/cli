@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 
 	"github.com/fastly/go-fastly/v19/fastly"
@@ -18,23 +17,9 @@ import (
 
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List all string lists for your account")
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

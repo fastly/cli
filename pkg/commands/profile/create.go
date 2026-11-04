@@ -13,7 +13,6 @@ import (
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -21,18 +20,8 @@ import (
 type CreateCommand struct {
 	argparser.Base
 
-	profile string
-	sso     bool
-}
-
-// NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	var c CreateCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("create", "Create user profile (deprecated: use 'fastly auth login' or 'fastly auth add' instead)")
-	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default("user").Short('p').StringVar(&c.profile)
-	c.CmdClause.Flag("sso", "Create an SSO-based token").BoolVar(&c.sso)
-	return &c
+	Profile string `arg:"" default:"user" help:"Profile to create (default 'user')"`
+	SSO     bool   `help:"Create an SSO-based token"`
 }
 
 // Exec implements the command interface.
@@ -44,11 +33,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.Globals.Verbose() {
 		text.Break(out)
 	}
-	text.Output(out, "Creating profile '%s'", c.profile)
+	text.Output(out, "Creating profile '%s'", c.Profile)
 
-	if c.Globals.Config.GetAuthToken(c.profile) != nil {
+	if c.Globals.Config.GetAuthToken(c.Profile) != nil {
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("profile '%s' already exists", c.profile),
+			Inner:       fmt.Errorf("profile '%s' already exists", c.Profile),
 			Remediation: "Re-run the command and pass a different value for the 'profile' argument.",
 		}
 	}
@@ -62,12 +51,12 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	text.Break(out)
 
-	if c.sso {
-		if err := authcmd.RunSSOWithTokenName(in, out, c.Globals, false, false, c.profile); err != nil {
+	if c.SSO {
+		if err := authcmd.RunSSOWithTokenName(in, out, c.Globals, false, false, c.Profile); err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
 		}
 		if makeDefault {
-			c.Globals.Config.Auth.Default = c.profile
+			c.Globals.Config.Auth.Default = c.Profile
 		}
 		text.Break(out)
 	} else {
@@ -81,7 +70,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	displayCfgPath(c.Globals.ConfigPath, out)
-	text.Success(out, "Profile '%s' created", c.profile)
+	text.Success(out, "Profile '%s' created", c.Profile)
 	return nil
 }
 
@@ -113,7 +102,7 @@ func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.W
 	}
 
 	return spinner.Process("Persisting configuration", func(_ *text.SpinnerWrapper) error {
-		authcmd.BuildAndStoreStaticToken(c.Globals, token, c.profile, md, makeDefault)
+		authcmd.BuildAndStoreStaticToken(c.Globals, token, c.Profile, md, makeDefault)
 		return nil
 	})
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,28 +17,13 @@ type CreateCommand struct {
 	argparser.Base
 
 	// Required.
-	name string
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a routing config").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the routing config").Required().StringVar(&c.name)
-
-	return &c
+	NameFlag string `name:"name" required:"" help:"The name of the routing config"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &routingconfigs.CreateInput{
-		Name: &c.name,
+		Name: &c.NameFlag,
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -50,7 +34,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	d, err := routingconfigs.Create(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Name": c.name,
+			"Name": c.NameFlag,
 		})
 		return err
 	}

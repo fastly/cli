@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/versions"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -19,24 +18,8 @@ type ActivateCommand struct {
 	argparser.Base
 
 	// Required.
-	routingConfigID string
-	versionID       string
-}
-
-// NewActivateCommand returns a usable command registered under the parent.
-func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCommand {
-	c := ActivateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("activate", "Reactivate a previous version of a routing config")
-
-	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-	c.CmdClause.Flag("version-id", "The identifier of the version to reactivate").Required().StringVar(&c.versionID)
-
-	return &c
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
+	VersionID       string `required:"" help:"The identifier of the version to reactivate"`
 }
 
 // Exec invokes the application logic for the command.
@@ -47,19 +30,19 @@ func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &versions.ActivateInput{
-		RoutingConfigID: &c.routingConfigID,
-		VersionID:       &c.versionID,
+		RoutingConfigID: &c.RoutingConfigID,
+		VersionID:       &c.VersionID,
 	}
 
 	d, err := versions.Activate(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
-			"Version ID":        c.versionID,
+			"Routing Config ID": c.RoutingConfigID,
+			"Version ID":        c.VersionID,
 		})
 		return err
 	}
 
-	text.Success(out, "Reactivated version '%s' for routing config '%s' (routing-config-id: %s)", c.versionID, d.Name, d.RoutingConfigID)
+	text.Success(out, "Reactivated version '%s' for routing config '%s' (routing-config-id: %s)", c.VersionID, d.Name, d.RoutingConfigID)
 	return nil
 }

@@ -11,39 +11,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create account-level custom signals.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	NameFlag string `name:"name" required:"" help:"User submitted display name of a custom signal. Is immutable and must be between 3 and 25 characters"`
+
+	// Optional.
+	Description argparser.OptionalString `help:"User submitted description of a custom signal."`
+
 	argparser.JSONOutput
-
-	// Required.
-	name string
-
-	// Optional.
-	description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create an account-level custom signal").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "User submitted display name of a custom signal. Is immutable and must be between 3 and 25 characters").Required().StringVar(&c.name)
-
-	// Optional.
-	c.CmdClause.Flag("description", "User submitted description of a custom signal.").Action(c.description.Set).StringVar(&c.description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -53,14 +34,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	var err error
 	input := &signals.CreateInput{
-		Name: &c.name,
+		Name: &c.NameFlag,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeAccount,
 			AppliesTo: []string{"*"},
 		},
 	}
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

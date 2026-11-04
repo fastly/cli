@@ -7,58 +7,37 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("create", "Add an ACL entry to an ACL").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
-
-	// Optional.
-	c.CmdClause.Flag("comment", "A freeform descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("ip", "An IP address").Action(c.ip.Set).StringVar(&c.ip.Value)
-	c.CmdClause.Flag("negated", "Whether to negate the match").Action(c.negated.Set).BoolVar(&c.negated.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("subnet", "Number of bits for the subnet mask applied to the IP address").Action(c.subnet.Set).IntVar(&c.subnet.Value)
-
-	return &c
+	return nil
 }
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
 
-	aclID       string
-	comment     argparser.OptionalString
-	ip          argparser.OptionalString
-	negated     argparser.OptionalBool
-	serviceName argparser.OptionalServiceNameID
-	subnet      argparser.OptionalInt
+	// Required.
+	ACLID string `name:"acl-id" required:"" help:"Alphanumeric string identifying a ACL"`
+
+	// Optional.
+	Comment     argparser.OptionalString        `help:"A freeform descriptive note"`
+	IP          argparser.OptionalString        `help:"An IP address"`
+	Negated     argparser.OptionalBool          `help:"Whether to negate the match"`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Subnet      argparser.OptionalInt           `help:"Number of bits for the subnet mask applied to the IP address"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -83,20 +62,20 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string) *fastly.CreateACLEntryInput {
 	input := fastly.CreateACLEntryInput{
-		ACLID:     c.aclID,
+		ACLID:     c.ACLID,
 		ServiceID: serviceID,
 	}
-	if c.ip.WasSet {
-		input.IP = &c.ip.Value
+	if c.IP.WasSet {
+		input.IP = &c.IP.Value
 	}
-	if c.comment.WasSet {
-		input.Comment = &c.comment.Value
+	if c.Comment.WasSet {
+		input.Comment = &c.Comment.Value
 	}
-	if c.negated.WasSet {
-		input.Negated = new(fastly.Compatibool(c.negated.Value))
+	if c.Negated.WasSet {
+		input.Negated = new(fastly.Compatibool(c.Negated.Value))
 	}
-	if c.subnet.WasSet {
-		input.Subnet = &c.subnet.Value
+	if c.Subnet.WasSet {
+		input.Subnet = &c.Subnet.Value
 	}
 
 	return &input

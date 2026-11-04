@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/kingpin"
-
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -15,9 +13,7 @@ import (
 )
 
 func newTokenCommand(g *global.Data) *authcmd.TokenCommand {
-	app := kingpin.New("fastly", "test")
-	parent := app.Command("auth", "test auth")
-	return authcmd.NewTokenCommand(parent, g)
+	return authcmd.NewTokenCommand(g)
 }
 
 func globalDataWithToken(token string) *global.Data {

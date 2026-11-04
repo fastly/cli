@@ -10,48 +10,30 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete an operation tag.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	tagID       string
-	serviceName argparser.OptionalServiceNameID
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete an operation tag")
-
-	// Required.
-	c.CmdClause.Flag("tag-id", "Tag ID").Required().StringVar(&c.tagID)
+	TagID string `required:"" help:"Tag ID"`
 
 	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlagBool(c.JSONFlag())
+	ServiceID   *string                         `help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 
-	return &c
+	argparser.JSONOutput
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -60,7 +42,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -79,7 +61,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	err = operations.DeleteTag(context.TODO(), fc, &operations.DeleteTagInput{
 		ServiceID: &serviceID,
-		TagID:     &c.tagID,
+		TagID:     &c.TagID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -93,13 +75,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			Deleted   bool   `json:"deleted"`
 		}{
 			serviceID,
-			c.tagID,
+			c.TagID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted operation tag (id: %s)", c.tagID)
+	text.Success(out, "Deleted operation tag (id: %s)", c.TagID)
 	return nil
 }

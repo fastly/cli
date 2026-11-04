@@ -10,39 +10,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // ListCommand calls the Fastly API to list rules within a path.
 type ListCommand struct {
 	argparser.Base
+
+	// Required.
+	PathID          string `required:"" help:"The Path Identifier"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
+
 	argparser.JSONOutput
 
-	// Required.
-	pathID          string
-	routingConfigID string
-
 	// Optional.
-	sort argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List rules within a path")
-
-	// Required.
-	c.CmdClause.Flag("path-id", "The Path Identifier").Required().StringVar(&c.pathID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
-	return &c
+	Sort argparser.OptionalString `help:"The order in which to list the results"`
 }
 
 // Exec invokes the application logic for the command.
@@ -52,11 +33,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &rules.ListInput{
-		PathID:          &c.pathID,
-		RoutingConfigID: &c.routingConfigID,
+		PathID:          &c.PathID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -67,8 +48,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	cl, err := rules.List(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path ID":           c.pathID,
-			"Routing Config ID": c.routingConfigID,
+			"Path ID":           c.PathID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}

@@ -7,28 +7,16 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Update the certificate used to terminate TLS traffic for the domain associated with this TLS activation")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("cert-id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.certID)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS activation").Required().StringVar(&c.id)
-	return &c
-}
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
 
-	certID string
-	id     string
+	// Required.
+	CertID string `required:"" help:"Alphanumeric string identifying a TLS certificate"`
+	ID     string `required:"" help:"Alphanumeric string identifying a TLS activation"`
 }
 
 // Exec invokes the application logic for the command.
@@ -38,8 +26,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.UpdateTLSActivation(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Activation ID":             c.id,
-			"TLS Activation Certificate ID": c.certID,
+			"TLS Activation ID":             c.ID,
+			"TLS Activation Certificate ID": c.CertID,
 		})
 		return err
 	}
@@ -52,8 +40,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput() *fastly.UpdateTLSActivationInput {
 	var input fastly.UpdateTLSActivationInput
 
-	input.ID = c.id
-	input.Certificate = &fastly.CustomTLSCertificate{ID: c.certID}
+	input.ID = c.ID
+	input.Certificate = &fastly.CustomTLSCertificate{ID: c.CertID}
 
 	return &input
 }

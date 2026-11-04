@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -12,18 +11,16 @@ import (
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Create   CreateCommand   `cmd:"" aliases:"add" help:"Create a BigQuery logging endpoint on a Fastly service version"`
+	Delete   DeleteCommand   `cmd:"" aliases:"remove" help:"Delete a BigQuery logging endpoint on a Fastly service version"`
+	Describe DescribeCommand `cmd:"" aliases:"get" help:"Show detailed information about a BigQuery logging endpoint on a Fastly service version"`
+	List     ListCommand     `cmd:"" help:"List BigQuery endpoints on a Fastly service version"`
+	Update   UpdateCommand   `cmd:"" help:"Update a BigQuery logging endpoint on a Fastly service version"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "bigquery"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version BigQuery logging endpoints")
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {

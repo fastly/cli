@@ -9,7 +9,6 @@ import (
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,18 +16,8 @@ import (
 type UpdateCommand struct {
 	argparser.Base
 
-	profile string
-	sso     bool
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("update", "Update user profile (deprecated: use 'fastly auth login' or 'fastly auth add' instead)")
-	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
-	c.CmdClause.Flag("sso", "Update profile to use an SSO-based token").BoolVar(&c.sso)
-	return &c
+	Profile string `arg:"" optional:"" help:"Profile to update (defaults to the currently active profile)"`
+	SSO     bool   `help:"Update profile to use an SSO-based token"`
 }
 
 // Exec invokes the application logic for the command.
@@ -75,7 +64,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 func (c *UpdateCommand) identifyProfile() (string, *config.AuthToken, error) {
-	if c.profile == "" && c.Globals.Flags.Profile == "" {
+	if c.Profile == "" && c.Globals.Flags.Profile == "" {
 		name, at := c.Globals.Config.GetDefaultAuthToken()
 		if at == nil {
 			return "", nil, fsterr.RemediationError{
@@ -86,7 +75,7 @@ func (c *UpdateCommand) identifyProfile() (string, *config.AuthToken, error) {
 		return name, at, nil
 	}
 
-	profileName := c.profile
+	profileName := c.Profile
 	if c.Globals.Flags.Profile != "" {
 		profileName = c.Globals.Flags.Profile
 	}
@@ -103,7 +92,7 @@ func (c *UpdateCommand) identifyProfile() (string, *config.AuthToken, error) {
 }
 
 func (c *UpdateCommand) updateToken(profileName string, at *config.AuthToken, in io.Reader, out io.Writer) error {
-	if c.sso || at.Type == config.AuthTokenTypeSSO {
+	if c.SSO || at.Type == config.AuthTokenTypeSSO {
 		if err := authcmd.RunSSOWithTokenName(in, out, c.Globals, false, false, profileName); err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
 		}

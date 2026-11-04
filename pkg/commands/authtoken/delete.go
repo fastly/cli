@@ -11,32 +11,16 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Revoke an API token (deprecated: use the Fastly API directly)").Alias("remove")
-
-	c.CmdClause.Flag("current", "Revoke the token used to authenticate the request").BoolVar(&c.current)
-	c.CmdClause.Flag("file", "Revoke tokens in bulk from a newline delimited list of tokens").StringVar(&c.file)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a token").StringVar(&c.id)
-	return &c
-}
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
 
-	current bool
-	file    string
-	id      string
+	Current bool   `help:"Revoke the token used to authenticate the request"`
+	File    string `help:"Revoke tokens in bulk from a newline delimited list of tokens"`
+	ID      string `help:"Alphanumeric string identifying a token"`
 }
 
 // Exec invokes the application logic for the command.
@@ -45,11 +29,11 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		text.Deprecated("The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
 	}
 
-	if !c.current && c.file == "" && c.id == "" {
+	if !c.Current && c.File == "" && c.ID == "" {
 		return fmt.Errorf("error parsing arguments: must provide either the --current, --file or --id flag")
 	}
 
-	if c.current {
+	if c.Current {
 		err := c.Globals.APIClient.DeleteTokenSelf(context.TODO())
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
@@ -60,7 +44,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if c.file != "" {
+	if c.File != "" {
 		input, err := c.constructInputBatch()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
@@ -81,7 +65,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if c.id != "" {
+	if c.ID != "" {
 		input := c.constructInput()
 
 		err := c.Globals.APIClient.DeleteToken(context.TODO(), input)
@@ -90,7 +74,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		text.Success(out, "Deleted token '%s'", c.id)
+		text.Success(out, "Deleted token '%s'", c.ID)
 		return nil
 	}
 
@@ -101,7 +85,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DeleteCommand) constructInput() *fastly.DeleteTokenInput {
 	var input fastly.DeleteTokenInput
 
-	input.TokenID = c.id
+	input.TokenID = c.ID
 
 	return &input
 }
@@ -116,7 +100,7 @@ func (c *DeleteCommand) constructInputBatch() (*fastly.BatchDeleteTokensInput, e
 		tokens []*fastly.BatchToken
 	)
 
-	if path, err = filepath.Abs(c.file); err == nil {
+	if path, err = filepath.Abs(c.File); err == nil {
 		if _, err = os.Stat(path); err == nil {
 			if file, err = os.Open(path); err == nil /* #nosec */ {
 				scanner := bufio.NewScanner(file)

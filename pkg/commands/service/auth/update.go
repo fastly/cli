@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -16,21 +15,18 @@ type UpdateCommand struct {
 	argparser.Base
 
 	input fastly.UpdateServiceAuthorizationInput
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update service authorization")
 
 	// Required.
-	c.CmdClause.Flag("id", "ID of the service authorization to delete").Required().StringVar(&c.input.ID)
-	c.CmdClause.Flag("permission", "The permission the user has in relation to the service").Required().HintOptions(Permissions...).Short('p').EnumVar(&c.input.Permission, Permissions...)
-	return &c
+	ID         string `required:"" help:"ID of the service authorization to delete"`
+	Permission string `short:"p" required:"" enum:"full,read_only,purge_select,purge_all" hints:"full,read_only,purge_select,purge_all" help:"The permission the user has in relation to the service"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.input.ID = c.ID
+	c.input.Permission = c.Permission
+	return nil
 }
 
 // Exec invokes the application logic for the command.

@@ -10,34 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a DNS Zone.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	zoneID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a DNS Zone").Alias("remove")
 
 	// Required.
-	c.CmdClause.Flag("zone-id", "The zone ID to delete.").Required().StringVar(&c.zoneID)
+	ZoneID string `required:"" help:"The zone ID to delete."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -52,11 +36,11 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := dnszones.Delete(context.TODO(), fc, &dnszones.DeleteInput{
-		ZoneID: &c.zoneID,
+		ZoneID: &c.ZoneID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Zone ID": c.zoneID,
+			"Zone ID": c.ZoneID,
 		})
 		return err
 	}
@@ -65,11 +49,11 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		o := struct {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
-		}{c.zoneID, true}
+		}{c.ZoneID, true}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted DNS zone (zone-id: %s)", c.zoneID)
+	text.Success(out, "Deleted DNS zone (zone-id: %s)", c.ZoneID)
 	return nil
 }

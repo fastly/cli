@@ -8,32 +8,24 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewListServicesCommand returns a usable command registered under the parent.
-func NewListServicesCommand(parent argparser.Registerer, g *global.Data) *ListServicesCommand {
-	c := ListServicesCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list-services", "List config store's services")
-
-	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListServicesCommand) AfterApply() error {
+	c.input.StoreID = c.StoreID
+	return nil
 }
 
 // ListServicesCommand calls the Fastly API to list appropriate resources.
 type ListServicesCommand struct {
 	argparser.Base
+
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
 	argparser.JSONOutput
 	input fastly.ListConfigStoreServicesInput
 }

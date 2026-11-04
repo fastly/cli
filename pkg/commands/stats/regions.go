@@ -6,21 +6,12 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // RegionsCommand exposes the Stats Regions API.
 type RegionsCommand struct {
 	argparser.Base
-}
-
-// NewRegionsCommand returns a new command registered under parent.
-func NewRegionsCommand(parent argparser.Registerer, g *global.Data) *RegionsCommand {
-	var c RegionsCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("regions", "List stats regions")
-	return &c
 }
 
 // Exec implements the command interface.

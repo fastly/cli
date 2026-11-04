@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // CommandName is the string to be used to invoke this command.
@@ -15,14 +14,10 @@ const CommandName = "mail"
 type RootCommand struct {
 	argparser.Base
 	// no flags
-}
 
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage Mailing List notification integrations")
-	return &c
+	Create  CreateCommand  `cmd:"" aliases:"add" help:"Create a Mailing List notification integration"`
+	Update  UpdateCommand  `cmd:"" help:"Update a Mailing List notification integration"`
+	Confirm ConfirmCommand `cmd:"" help:"Send a mailing list confirmation email"`
 }
 
 // Exec implements the command interface.

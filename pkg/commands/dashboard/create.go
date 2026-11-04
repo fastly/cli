@@ -8,33 +8,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, globals *global.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a custom dashboard").Alias("add")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("name", "A human-readable name for the dashboard").Short('n').Required().StringVar(&c.name) // --name
-
-	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag())                                                                                                  // --json
-	c.CmdClause.Flag("description", "A short description of the dashboard").Action(c.description.Set).StringVar(&c.description.Value) // --description
-
-	return &c
-}
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required flags
+	NameFlag string `name:"name" short:"n" required:"" help:"A human-readable name for the dashboard"`
+
+	// Optional flags
 	argparser.JSONOutput
 
-	name        string
-	description argparser.OptionalString
+	Description argparser.OptionalString `help:"A short description of the dashboard"`
 }
 
 // Exec invokes the application logic for the command.
@@ -60,12 +47,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateObservabilityCustomDashboardInput {
 	input := fastly.CreateObservabilityCustomDashboardInput{
-		Name:  c.name,
+		Name:  c.NameFlag,
 		Items: []fastly.DashboardItem{},
 	}
 
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
 	}
 
 	return &input

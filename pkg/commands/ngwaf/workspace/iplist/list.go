@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 
 	"github.com/fastly/go-fastly/v19/fastly"
@@ -18,34 +17,12 @@ import (
 
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	workspaceID argparser.OptionalWorkspaceID
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List all ip lists for your workspace")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -57,7 +34,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := ngwaflist.ListListInput{
 		CommandScope: scope.ScopeTypeWorkspace,
 		Type:         "ip",
-		WorkspaceID:  &c.workspaceID,
+		WorkspaceID:  &c.WorkspaceID,
 	}
 
 	var ok bool

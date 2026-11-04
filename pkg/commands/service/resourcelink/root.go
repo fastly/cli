@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // RootName is the name of this package's sub-command in the CLI,
@@ -23,18 +22,16 @@ const (
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Create   CreateCommand   `cmd:"" aliases:"link" help:"Create a Fastly service resource link"`
+	Delete   DeleteCommand   `cmd:"" aliases:"remove" help:"Delete a resource link for a Fastly service version"`
+	Describe DescribeCommand `cmd:"" aliases:"get" help:"Show detailed information about a Fastly service resource link"`
+	List     ListCommand     `cmd:"" help:"List all resource links for a Fastly service version"`
+	Update   UpdateCommand   `cmd:"" help:"Update a resource link for a Fastly service version"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "resource-link"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service resource links")
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {

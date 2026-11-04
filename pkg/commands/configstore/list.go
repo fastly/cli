@@ -8,29 +8,14 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List config stores")
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
 	argparser.JSONOutput
 }
 

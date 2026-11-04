@@ -4,30 +4,22 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "config-store-entry"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	c := RootCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Config Store items")
-
-	return &c
-}
 
 // RootCommand is the parent command for all subcommands.
 // It should be installed under the primary root command.
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Create   CreateCommand   `cmd:"" aliases:"insert" help:"Create a new config store item"`
+	Delete   DeleteCommand   `cmd:"" help:"Delete a config store item"`
+	Describe DescribeCommand `cmd:"" aliases:"get" help:"Retrieve a single config store item"`
+	List     ListCommand     `cmd:"" help:"List config store items"`
+	Update   UpdateCommand   `cmd:"" help:"Update a config store item"`
 }
 
 // Exec implements the command interface.

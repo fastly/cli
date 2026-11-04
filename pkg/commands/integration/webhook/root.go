@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // CommandName is the string to be used to invoke this command.
@@ -15,14 +14,11 @@ const CommandName = "webhook"
 type RootCommand struct {
 	argparser.Base
 	// no flags
-}
 
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage generic Webhook notification integrations")
-	return &c
+	Create           CreateCommand           `cmd:"" aliases:"add" help:"Create a Webhook notification integration"`
+	Update           UpdateCommand           `cmd:"" help:"Update a Webhook notification integration"`
+	GetSigningKey    GetSigningKeyCommand    `cmd:"" help:"Get the signing key for a Webhook notification integration"`
+	RotateSigningKey RotateSigningKeyCommand `cmd:"" help:"Rotate the signing key for a Webhook notification integration"`
 }
 
 // Exec implements the command interface.

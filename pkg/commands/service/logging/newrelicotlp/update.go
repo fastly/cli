@@ -11,9 +11,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -21,68 +19,34 @@ import (
 type UpdateCommand struct {
 	argparser.Base
 
-	endpointName   string
-	serviceName    argparser.OptionalServiceNameID
+	// Required.
+	EndpointName   string `name:"name" required:"" help:"The name for the real-time logging configuration to update"`
+	Version        string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 	serviceVersion argparser.OptionalServiceVersion
 
-	autoClone         argparser.OptionalAutoClone
-	format            argparser.OptionalString
-	formatVersion     argparser.OptionalInt
-	key               argparser.OptionalString
-	newName           argparser.OptionalString
-	placement         argparser.OptionalString
-	processingregion  argparser.OptionalString
-	region            argparser.OptionalString
-	responseCondition argparser.OptionalString
-	url               argparser.OptionalString
+	// Optional.
+	AutoClone         argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Format            argparser.OptionalString        `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt           `help:"The version of the custom logging format used for the configured endpoint"`
+	Key               argparser.OptionalString        `help:"The Insert API key from the Account page of your New Relic account"`
+	NewName           argparser.OptionalString        `help:"The name for the real-time logging configuration"`
+	Placement         argparser.OptionalString        `help:"Where in the generated VCL the logging call should be placed"`
+	Processingregion  argparser.OptionalString        `name:"processing-region" help:"The region where logs will be processed before streaming to New Relic. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	Region            argparser.OptionalString        `help:"The region to which to stream logs"`
+	ResponseCondition argparser.OptionalString        `help:"The name of an existing condition in the configured endpoint"`
+	URL               argparser.OptionalString        `help:"URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing"`
+	ServiceID         *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName       argparser.OptionalServiceNameID `help:"The name of the service"`
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update a New Relic Logs logging object for a particular service and version")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name for the real-time logging configuration to update").Required().StringVar(&c.endpointName)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	logflags.Format(c.CmdClause, &c.format)
-	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").Action(c.formatVersion.Set).IntVar(&c.formatVersion.Value)
-	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("new-name", "The name for the real-time logging configuration").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
-	logflags.ProcessingRegion(c.CmdClause, &c.processingregion, "New Relic")
-	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
-	c.CmdClause.Flag("url", "URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing").Action(c.url.Set).StringVar(&c.url.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -90,11 +54,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -118,8 +82,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	var prev string
-	if c.newName.WasSet {
-		prev = fmt.Sprintf("previously: %s, ", c.endpointName)
+	if c.NewName.WasSet {
+		prev = fmt.Sprintf("previously: %s, ", c.EndpointName)
 	}
 
 	text.Success(
@@ -137,40 +101,40 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fastly.UpdateNewRelicOTLPInput {
 	var input fastly.UpdateNewRelicOTLPInput
 
-	input.Name = c.endpointName
+	input.Name = c.EndpointName
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
-	if c.format.WasSet {
-		input.Format = new(argparser.Content(c.format.Value))
+	if c.Format.WasSet {
+		input.Format = new(argparser.Content(c.Format.Value))
 	}
-	if c.formatVersion.WasSet {
-		input.FormatVersion = &c.formatVersion.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
 	}
-	if c.key.WasSet {
-		input.Token = &c.key.Value
+	if c.Key.WasSet {
+		input.Token = &c.Key.Value
 	}
-	if c.newName.WasSet {
-		input.NewName = &c.newName.Value
+	if c.NewName.WasSet {
+		input.NewName = &c.NewName.Value
 	}
-	if c.placement.WasSet {
-		if strings.TrimSpace(c.placement.Value) == "" {
+	if c.Placement.WasSet {
+		if strings.TrimSpace(c.Placement.Value) == "" {
 			input.Placement = fastly.NullValue[string]()
 		} else {
-			input.Placement = fastly.NewNullable(c.placement.Value)
+			input.Placement = fastly.NewNullable(c.Placement.Value)
 		}
 	}
-	if c.processingregion.WasSet {
-		input.ProcessingRegion = &c.processingregion.Value
+	if c.Processingregion.WasSet {
+		input.ProcessingRegion = &c.Processingregion.Value
 	}
-	if c.region.WasSet {
-		input.Region = &c.region.Value
+	if c.Region.WasSet {
+		input.Region = &c.Region.Value
 	}
-	if c.responseCondition.WasSet {
-		input.ResponseCondition = &c.responseCondition.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
-	if c.url.WasSet {
-		input.URL = &c.url.Value
+	if c.URL.WasSet {
+		input.URL = &c.URL.Value
 	}
 
 	return &input

@@ -5,50 +5,27 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/kingpin"
-
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/providerconnection"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a provider connection.
 type UpdateCommand struct {
 	argparser.Base
+
+	// Required.
+	ID string `required:"" help:"Alphanumeric string identifying the provider connection"`
+
+	// Optional.
+	Models  []string                 `sep:"," help:"An updated comma-separated list of allowed AI model identifiers"`
+	BaseURL argparser.OptionalString `help:"An updated base URL for the provider's API. Must be an absolute http or https URL"`
+	APIKey  argparser.OptionalString `help:"An updated provider secret key for authentication"`
+
 	argparser.JSONOutput
-
-	// Required.
-	id string
-
-	// Optional.
-	models  []string
-	baseURL argparser.OptionalString
-	apiKey  argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a provider connection")
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying the provider connection").Required().StringVar(&c.id)
-
-	// Optional.
-	c.CmdClause.Flag("models", "An updated comma-separated list of allowed AI model identifiers").StringsVar(&c.models, kingpin.Separator(","))
-	c.CmdClause.Flag("base-url", "An updated base URL for the provider's API. Must be an absolute http or https URL").Action(c.baseURL.Set).StringVar(&c.baseURL.Value)
-	c.CmdClause.Flag("api-key", "An updated provider secret key for authentication").Action(c.apiKey.Set).StringVar(&c.apiKey.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -58,16 +35,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &providerconnection.UpdateInput{
-		ID: &c.id,
+		ID: &c.ID,
 	}
-	if len(c.models) > 0 {
-		input.Models = c.models
+	if len(c.Models) > 0 {
+		input.Models = c.Models
 	}
-	if c.baseURL.WasSet {
-		input.BaseURL = &c.baseURL.Value
+	if c.BaseURL.WasSet {
+		input.BaseURL = &c.BaseURL.Value
 	}
-	if c.apiKey.WasSet {
-		input.APIKey = &c.apiKey.Value
+	if c.APIKey.WasSet {
+		input.APIKey = &c.APIKey.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

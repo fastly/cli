@@ -10,43 +10,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list virtual keys.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
+	Model          argparser.OptionalString `help:"Filter by AI model identifier"`
+	Provider       argparser.OptionalString `help:"Filter by AI model provider"`
+	IncludeDeleted argparser.OptionalBool   `help:"Include deleted virtual keys"`
+	Search         argparser.OptionalString `help:"Search virtual keys by substring match on key name"`
 	argparser.JSONOutput
-
-	// Optional.
-	model          argparser.OptionalString
-	provider       argparser.OptionalString
-	includeDeleted argparser.OptionalBool
-	search         argparser.OptionalString
-	limit          int
-	sort           argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List virtual keys")
-
-	// Optional.
-	c.CmdClause.Flag("model", "Filter by AI model identifier").Action(c.model.Set).StringVar(&c.model.Value)
-	c.CmdClause.Flag("provider", "Filter by AI model provider").Action(c.provider.Set).StringVar(&c.provider.Value)
-	c.CmdClause.Flag("include-deleted", "Include deleted virtual keys").Action(c.includeDeleted.Set).BoolVar(&c.includeDeleted.Value)
-	c.CmdClause.Flag("search", "Search virtual keys by substring match on key name").Action(c.search.Set).StringVar(&c.search.Value)
-	c.RegisterFlagBool(c.JSONFlag())                 // --json
-	c.RegisterFlagInt(argparser.LimitFlag(&c.limit)) // --limit
-	c.CmdClause.Flag("sort", "Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")").Default("created_at").Action(c.sort.Set).StringVar(&c.sort.Value)
-
-	return &c
+	Limit int                      `short:"l" default:"50" help:"Maximum number of items to list"`
+	Sort  argparser.OptionalString `default:"created_at" placeholder:"\"created_at\"" help:"Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")"`
 }
 
 // Exec invokes the application logic for the command.
@@ -61,22 +39,22 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &key.ListInput{
-		Limit: &c.limit,
+		Limit: &c.Limit,
 	}
-	if c.model.WasSet {
-		input.Model = &c.model.Value
+	if c.Model.WasSet {
+		input.Model = &c.Model.Value
 	}
-	if c.provider.WasSet {
-		input.Provider = &c.provider.Value
+	if c.Provider.WasSet {
+		input.Provider = &c.Provider.Value
 	}
-	if c.includeDeleted.WasSet {
-		input.IncludeDeleted = &c.includeDeleted.Value
+	if c.IncludeDeleted.WasSet {
+		input.IncludeDeleted = &c.IncludeDeleted.Value
 	}
-	if c.search.WasSet {
-		input.Search = &c.search.Value
+	if c.Search.WasSet {
+		input.Search = &c.Search.Value
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	// key.List() automatically paginates through all pages internally.

@@ -9,7 +9,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
@@ -18,36 +17,22 @@ import (
 // DescribeCommand calls the Fastly API to describe a service.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input       fastly.GetServiceDetailsInput
-	serviceName argparser.OptionalServiceNameID
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly service").Alias("get")
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+	argparser.JSONOutput
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+
+	Input       fastly.GetServiceDetailsInput   `kong:"-"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -56,7 +41,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -64,7 +49,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	if source == manifest.SourceUndefined && !c.serviceName.WasSet {
+	if source == manifest.SourceUndefined && !c.ServiceName.WasSet {
 		err := fsterr.ErrNoServiceID
 		c.Globals.ErrLog.Add(err)
 		return err

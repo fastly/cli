@@ -9,34 +9,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 var include = []string{"tls_authorizations", "tls_authorizations.globalsign_email_challenge"}
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "Show a TLS subscription").Alias("get")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS subscription").Required().StringVar(&c.id)
-
-	// Optional.
-	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
-
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	id      string
-	include string
+	// Required.
+	ID string `required:"" help:"Alphanumeric string identifying a TLS subscription"`
+
+	// Optional.
+	Include string `default:"" enum:"tls_authorizations,tls_authorizations.globalsign_email_challenge," hints:"tls_authorizations,tls_authorizations.globalsign_email_challenge" help:"Include related objects (comma-separated values)"`
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -50,8 +36,8 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.GetTLSSubscription(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Subscription ID": c.id,
-			"Include":             c.include,
+			"TLS Subscription ID": c.ID,
+			"Include":             c.Include,
 		})
 		return err
 	}
@@ -67,10 +53,10 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DescribeCommand) constructInput() *fastly.GetTLSSubscriptionInput {
 	var input fastly.GetTLSSubscriptionInput
 
-	input.ID = c.id
+	input.ID = c.ID
 
-	if c.include != "" {
-		input.Include = &c.include
+	if c.Include != "" {
+		input.Include = &c.Include
 	}
 
 	return &input

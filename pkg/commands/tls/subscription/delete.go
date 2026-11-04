@@ -7,31 +7,18 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	var c DeleteCommand
-	c.CmdClause = parent.Command("delete", "Destroy a TLS subscription. A subscription cannot be destroyed if there are domains in the TLS enabled state").Alias("remove")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS subscription").Required().StringVar(&c.id)
-
-	// Optional.
-	c.CmdClause.Flag("force", "A flag that allows you to edit and delete a subscription with active domains").Action(c.force.Set).BoolVar(&c.force.Value)
-
-	return &c
-}
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
 
-	force argparser.OptionalBool
-	id    string
+	// Required.
+	ID string `required:"" help:"Alphanumeric string identifying a TLS subscription"`
+
+	// Optional.
+	Force argparser.OptionalBool `help:"A flag that allows you to edit and delete a subscription with active domains"`
 }
 
 // Exec invokes the application logic for the command.
@@ -41,13 +28,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	err := c.Globals.APIClient.DeleteTLSSubscription(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Subscription ID": c.id,
-			"Force":               c.force.Value,
+			"TLS Subscription ID": c.ID,
+			"Force":               c.Force.Value,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted TLS Subscription '%s' (force: %t)", c.id, c.force.Value)
+	text.Success(out, "Deleted TLS Subscription '%s' (force: %t)", c.ID, c.Force.Value)
 	return nil
 }
 
@@ -55,10 +42,10 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DeleteCommand) constructInput() *fastly.DeleteTLSSubscriptionInput {
 	var input fastly.DeleteTLSSubscriptionInput
 
-	input.ID = c.id
+	input.ID = c.ID
 
-	if c.force.WasSet {
-		input.Force = c.force.Value
+	if c.Force.WasSet {
+		input.Force = c.Force.Value
 	}
 
 	return &input

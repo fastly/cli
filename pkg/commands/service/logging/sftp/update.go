@@ -10,9 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,91 +18,50 @@ import (
 // UpdateCommand calls the Fastly API to update an SFTP logging endpoint.
 type UpdateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	EndpointName   string
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	EndpointName   string                           `name:"name" short:"n" required:"" help:"The name of the SFTP logging object"`
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	Address           argparser.OptionalString
-	AutoClone         argparser.OptionalAutoClone
-	CompressionCodec  argparser.OptionalString
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
-	MessageType       argparser.OptionalString
-	NewName           argparser.OptionalString
-	Password          argparser.OptionalString
-	Path              argparser.OptionalString
-	Period            argparser.OptionalInt
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	Port              argparser.OptionalInt
-	PublicKey         argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	SSHKnownHosts     argparser.OptionalString
-	SecretKey         argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
-	User              argparser.OptionalString
+	Address           argparser.OptionalString    `help:"The hostname or IPv4 address"`
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	CompressionCodec  argparser.OptionalString    `help:"The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is \"gzip\", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error."`
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	GzipLevel         argparser.OptionalInt       `help:"What level of GZIP encoding to have when dumping logs (default 0, no compression)"`
+	MessageType       argparser.OptionalString    `help:"How the message should be formatted. One of: classic (default), loggly, logplex or blank"`
+	NewName           argparser.OptionalString    `help:"New name of the SFTP logging object"`
+	Password          argparser.OptionalString    `help:"The password for the server. If both password and secret_key are passed, secret_key will be used in preference"`
+	Path              argparser.OptionalString    `help:"The path to upload logs to. The directory must exist on the SFTP server before logs can be saved to it"`
+	Period            argparser.OptionalInt       `help:"How frequently log files are finalized so they can be available for reading (in seconds, default 3600)"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to SFTP. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	Port              argparser.OptionalInt       `help:"The port number"`
+	PublicKey         argparser.OptionalString    `help:"A PGP public key that Fastly will use to encrypt your log files before writing them to disk"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	SSHKnownHosts     argparser.OptionalString    `help:"A list of host keys for all hosts we can connect to over SFTP"`
+	SecretKey         argparser.OptionalString    `help:"The SSH private key for the server. If both password and secret_key are passed, secret_key will be used in preference"`
+	TimestampFormat   argparser.OptionalString    `help:"strftime specified timestamp formatting (default \"%Y-%m-%dT%H:%M:%S.000\")"`
+	User              argparser.OptionalString    `help:"The username for the server"`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update an SFTP logging endpoint on a Fastly service version")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the SFTP logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("address", "The hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
-	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	c.CmdClause.Flag("new-name", "New name of the SFTP logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
-	logflags.MessageType(c.CmdClause, &c.MessageType)
-	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
-	c.CmdClause.Flag("path", "The path to upload logs to. The directory must exist on the SFTP server before logs can be saved to it").Action(c.Path.Set).StringVar(&c.Path.Value)
-	logflags.Period(c.CmdClause, &c.Period)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "SFTP")
-	logflags.PublicKey(c.CmdClause, &c.PublicKey)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("secret-key", "The SSH private key for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Action(c.SSHKnownHosts.Set).StringVar(&c.SSHKnownHosts.Value)
-	c.CmdClause.Flag("user", "The username for the server").Action(c.User.Set).StringVar(&c.User.Value)
-	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	return &c
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -239,4 +196,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(sftp.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *UpdateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "autoclone", "address", "compression-codec",
+		"new-name", "format", "format-version", "gzip-level", "message-type",
+		"password", "path", "period", "placement", "port", "processing-region",
+		"public-key", "response-condition", "secret-key", "service-id",
+		"service-name", "ssh-known-hosts", "user", "timestamp-format",
+	}
 }

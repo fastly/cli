@@ -12,7 +12,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -27,42 +26,21 @@ const DeleteKeysMaxErrors int = 100
 // DeleteCommand calls the Fastly API to delete a kv store.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-	key    argparser.OptionalString
-	prefix argparser.OptionalString
-
-	// NOTE: Public fields can be set via `kv-store delete`.
-	DeleteAll         bool
-	Force             bool
-	IfGenerationMatch string
-	MaxErrors         int
-	PoolSize          int
-	StoreID           string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete one, multiple, or all keys")
 
 	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.StoreID)
+
+	// NOTE: Public fields can be set via `kv-store delete`.
+	StoreID string `short:"s" required:"" help:"Store ID"`
 
 	// Optional.
-	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.DeleteAll)
-	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysPoolSize)).Short('r').IntVar(&c.PoolSize)
-	c.CmdClause.Flag("force", "Return a successful result from a 'delete' operation even if the specified key was not found").BoolVar(&c.Force)
-	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for a delete operation to proceed").StringVar(&c.IfGenerationMatch)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("prefix", "Delete items whose keys match this prefix").Action(c.prefix.Set).StringVar(&c.prefix.Value)
-	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysMaxErrors)).Short('m').IntVar(&c.MaxErrors)
-
-	return &c
+	DeleteAll         bool   `name:"all" short:"a" help:"Delete all entries within the store"`
+	PoolSize          int    `name:"concurrency" short:"r" default:"100" help:"The thread pool size (ignored when set without the --all flag)"`
+	Force             bool   `help:"Return a successful result from a 'delete' operation even if the specified key was not found"`
+	IfGenerationMatch string `help:"Value which must match the current generation marker in an item for a delete operation to proceed"`
+	argparser.JSONOutput
+	Key       argparser.OptionalString `short:"k" help:"Key name"`
+	Prefix    argparser.OptionalString `help:"Delete items whose keys match this prefix"`
+	MaxErrors int                      `short:"m" default:"100" help:"The number of errors to accept before stopping (ignored when set without the --all flag)"`
 }
 
 // Exec invokes the application logic for the command.
@@ -71,19 +49,19 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	// TODO: Support --json for bulk deletions.
-	if (c.DeleteAll || c.prefix.WasSet) && c.JSONOutput.Enabled {
+	if (c.DeleteAll || c.Prefix.WasSet) && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidDeleteMultipleJSONKeyCombo
 	}
-	if c.DeleteAll && c.key.WasSet {
+	if c.DeleteAll && c.Key.WasSet {
 		return fsterr.ErrInvalidDeleteMultipleKeyCombo
 	}
-	if c.DeleteAll && c.prefix.WasSet {
+	if c.DeleteAll && c.Prefix.WasSet {
 		return fsterr.ErrInvalidDeleteMultipleKeyCombo
 	}
-	if c.prefix.WasSet && c.key.WasSet {
+	if c.Prefix.WasSet && c.Key.WasSet {
 		return fsterr.ErrInvalidDeleteMultipleKeyCombo
 	}
-	if !c.DeleteAll && !c.prefix.WasSet && !c.key.WasSet {
+	if !c.DeleteAll && !c.Prefix.WasSet && !c.Key.WasSet {
 		return fsterr.ErrMissingDeleteMultipleKeyCombo
 	}
 
@@ -102,7 +80,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return c.DeleteMultipleKeys(out, "")
 	}
 
-	if c.prefix.WasSet {
+	if c.Prefix.WasSet {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 			text.Warning(out, "This may delete MANY entries from your store!\n\n")
 			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
@@ -114,13 +92,13 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			}
 			text.Break(out)
 		}
-		return c.DeleteMultipleKeys(out, c.prefix.Value)
+		return c.DeleteMultipleKeys(out, c.Prefix.Value)
 	}
 
 	input := fastly.DeleteKVStoreKeyInput{
 		StoreID: c.StoreID,
 		Force:   c.Force,
-		Key:     c.key.Value,
+		Key:     c.Key.Value,
 	}
 
 	// Validate generation value if provided.
@@ -144,7 +122,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			ID      string `json:"store_id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.key.Value,
+			c.Key.Value,
 			c.StoreID,
 			true,
 		}
@@ -152,7 +130,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted key '%s' from KV Store '%s'", c.key.Value, c.StoreID)
+	text.Success(out, "Deleted key '%s' from KV Store '%s'", c.Key.Value, c.StoreID)
 	return nil
 }
 

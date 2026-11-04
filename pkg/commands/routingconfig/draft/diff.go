@@ -11,32 +11,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DiffCommand calls the Fastly API to diff a routing config's draft and
 // active versions.
 type DiffCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-	routingConfigID string
-}
-
-// NewDiffCommand returns a usable command registered under the parent.
-func NewDiffCommand(parent argparser.Registerer, g *global.Data) *DiffCommand {
-	c := DiffCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("diff", "Show the differences between a routing config's active and draft versions")
 
 	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -51,13 +37,13 @@ func (c *DiffCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &sdkdraft.GetDiffInput{
-		RoutingConfigID: &c.routingConfigID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
 	d, err := sdkdraft.GetDiff(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}

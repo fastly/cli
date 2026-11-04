@@ -12,48 +12,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to describe an operation.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	serviceName argparser.OptionalServiceNameID
-	operationID string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Retrieve a single operation").Alias("get")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("operation-id", "The unique identifier of the operation").Required().StringVar(&c.operationID)
+	ServiceID   *string                         `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	OperationID string                          `required:"" help:"The unique identifier of the operation"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	argparser.JSONOutput
+}
 
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -62,7 +42,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -72,7 +52,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &operations.DescribeInput{
 		ServiceID:   &serviceID,
-		OperationID: &c.operationID,
+		OperationID: &c.OperationID,
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -84,7 +64,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":   serviceID,
-			"Operation ID": c.operationID,
+			"Operation ID": c.OperationID,
 		})
 		return err
 	}

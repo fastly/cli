@@ -10,78 +10,50 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a resource link.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	autoClone      argparser.OptionalAutoClone
 	input          fastly.CreateResourceInput
-	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-		input: fastly.CreateResourceInput{
-			// Kingpin requires the following to be initialized.
-			ResourceID: new(string),
-			Name:       new(string),
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Fastly service resource link").Alias("link")
 
 	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "resource-id",
-		Short:       'r',
-		Description: flagResourceIDDescription,
-		Dst:         c.input.ResourceID,
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	ResourceID string `short:"r" required:"" help:"Resource ID"`
+	Version    string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// At least one of the following is required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Short:       's',
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceName,
-		Action:      c.serviceName.Set,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 
 	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "name",
-		Short:       'n',
-		Description: flagNameDescription,
-		Dst:         c.input.Name,
-	})
+	AutoClone argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	argparser.JSONOutput
+	NameFlag string `name:"name" short:"n" help:"Resource link name (alias). Defaults to resource's name"`
+}
 
-	return &c
+// BeforeApply sets the command up before kong applies the command line.
+func (c *CreateCommand) BeforeApply() error {
+	c.input = fastly.CreateResourceInput{
+		// Kingpin requires the following to be initialized.
+		ResourceID: new(string),
+		Name:       new(string),
+	}
+	return nil
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.input.ResourceID = &c.ResourceID
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	c.input.Name = &c.NameFlag
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -93,11 +65,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})

@@ -13,7 +13,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -22,13 +21,15 @@ type UpdateCommand struct {
 	argparser.Base
 
 	// Required.
-	computeACLID string
+	ComputeACLID string `name:"acl-id" required:"" help:"Alphanumeric string identifying a compute ACL"`
 
 	// Optional.
-	file      argparser.OptionalString
-	operation argparser.OptionalString
-	prefix    argparser.OptionalString
-	action    argparser.OptionalString
+	File          argparser.OptionalString `help:"Batch update JSON file passed as file path or content, e.g. $(< batch.json)"`
+	OperationFlag string                   `name:"operation" default:"" enum:"create,update," hints:"create,update" help:"Indicating that this entry is to be added to/updated in the ACL"`
+	operation     argparser.OptionalString
+	Prefix        argparser.OptionalString `help:"An IP prefix defined in Classless Inter-Domain Routing (CIDR) format, i.e. a valid IP address (v4 or v6) followed by a forward slash (/) and a prefix length (0-32 or 0-128, depending on address family)"`
+	action        argparser.OptionalString
+	ActionFlag    string `name:"action" default:"" enum:"BLOCK,ALLOW," hints:"BLOCK,ALLOW" help:"The action taken on the IP address"`
 }
 
 // operations is a list of supported operation options.
@@ -37,26 +38,12 @@ var operations = []string{"create", "update"}
 // actions is a list of supported action options.
 var actions = []string{"BLOCK", "ALLOW"}
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("update", "Update a compute ACL")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a compute ACL").Required().StringVar(&c.computeACLID)
-
-	// Optional.
-	c.CmdClause.Flag("file", "Batch update JSON file passed as file path or content, e.g. $(< batch.json)").Action(c.file.Set).StringVar(&c.file.Value)
-	c.CmdClause.Flag("operation", "Indicating that this entry is to be added to/updated in the ACL").HintOptions(operations...).EnumVar(&c.operation.Value, operations...)
-	c.CmdClause.Flag("prefix", "An IP prefix defined in Classless Inter-Domain Routing (CIDR) format, i.e. a valid IP address (v4 or v6) followed by a forward slash (/) and a prefix length (0-32 or 0-128, depending on address family)").Action(c.prefix.Set).StringVar(&c.prefix.Value)
-	c.CmdClause.Flag("action", "The action taken on the IP address").HintOptions(actions...).EnumVar(&c.action.Value, actions...)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.operation.Value = c.OperationFlag
+	c.action.Value = c.ActionFlag
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -66,7 +53,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	if c.file.WasSet {
+	if c.File.WasSet {
 		input, err := c.constructBatchInput()
 		if err != nil {
 			return err
@@ -78,7 +65,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		text.Success(out, "Updated %d compute ACL entries (id: %s)", len(input.Entries), c.computeACLID)
+		text.Success(out, "Updated %d compute ACL entries (id: %s)", len(input.Entries), c.ComputeACLID)
 		return nil
 	}
 
@@ -93,7 +80,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated compute ACL entry (prefix: %s, id: %s)", c.prefix.Value, c.computeACLID)
+	text.Success(out, "Updated compute ACL entry (prefix: %s, id: %s)", c.Prefix.Value, c.ComputeACLID)
 	return nil
 }
 
@@ -101,9 +88,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructBatchInput() (*computeacls.UpdateInput, error) {
 	var input computeacls.UpdateInput
 
-	input.ComputeACLID = &c.computeACLID
+	input.ComputeACLID = &c.ComputeACLID
 
-	s := argparser.Content(c.file.Value)
+	s := argparser.Content(c.File.Value)
 	bs := []byte(s)
 
 	err := json.Unmarshal(bs, &input)
@@ -116,7 +103,7 @@ func (c *UpdateCommand) constructBatchInput() (*computeacls.UpdateInput, error) 
 
 	if len(input.Entries) == 0 {
 		err := fsterr.RemediationError{
-			Inner:       fmt.Errorf("missing 'entries' %s", c.file.Value),
+			Inner:       fmt.Errorf("missing 'entries' %s", c.File.Value),
 			Remediation: "Consult the API documentation for the JSON format: https://www.fastly.com/documentation/reference/api/acls/acls/#compute-acl-update-acls",
 		}
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -132,14 +119,14 @@ func (c *UpdateCommand) constructBatchInput() (*computeacls.UpdateInput, error) 
 func (c *UpdateCommand) constructInput() (*computeacls.UpdateInput, error) {
 	var input computeacls.UpdateInput
 
-	if c.operation.Value == "" || c.prefix.Value == "" || c.action.Value == "" {
+	if c.operation.Value == "" || c.Prefix.Value == "" || c.action.Value == "" {
 		return nil, fsterr.ErrInvalidComputeACLCombo
 	}
 
-	input.ComputeACLID = &c.computeACLID
+	input.ComputeACLID = &c.ComputeACLID
 	input.Entries = []*computeacls.BatchComputeACLEntry{
 		{
-			Prefix:    &c.prefix.Value,
+			Prefix:    &c.Prefix.Value,
 			Action:    &c.action.Value,
 			Operation: &c.operation.Value,
 		},

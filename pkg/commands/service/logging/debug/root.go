@@ -15,7 +15,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -28,13 +27,14 @@ type batch struct {
 type Command struct {
 	argparser.Base
 
-	serviceName     argparser.OptionalServiceNameID
+	ServiceIDFlag   *string                         `name:"service-id" short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName     argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceID       string
-	from            uint64
-	to              uint64
-	filter          string
-	printTimestamps bool
-	jsonOutput      bool
+	From            uint64 `help:"From time, in Unix seconds"`
+	To              uint64 `help:"To time, in Unix seconds"`
+	Filter          string `help:"Filter errors by logging endpoint name"`
+	PrintTimestamps bool   `name:"timestamps" help:"Print full timestamps instead of compact time"`
+	JSONOutput      bool   `name:"json" help:"Output error stream as JSON"`
 	batchCh         chan batch
 	dieCh           chan struct{}
 	doneCh          chan struct{}
@@ -43,34 +43,18 @@ type Command struct {
 // CommandName is the string to be used to invoke this command.
 const CommandName = "debug"
 
-// NewDebugCommand returns a new command registered in the parent.
-func NewDebugCommand(parent argparser.Registerer, g *global.Data) *Command {
-	var c Command
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Stream live logging endpoint errors")
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("from", "From time, in Unix seconds").Uint64Var(&c.from)
-	c.CmdClause.Flag("to", "To time, in Unix seconds").Uint64Var(&c.to)
-	c.CmdClause.Flag("filter", "Filter errors by logging endpoint name").StringVar(&c.filter)
-	c.CmdClause.Flag("timestamps", "Print full timestamps instead of compact time").BoolVar(&c.printTimestamps)
-	c.CmdClause.Flag("json", "Output error stream as JSON").BoolVar(&c.jsonOutput)
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *Command) AfterApply() error {
+	if c.ServiceIDFlag != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceIDFlag
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *Command) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -114,18 +98,18 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 // stream fetches error data from the API and sends it to the output loop.
 func (c *Command) stream(out io.Writer) error {
 	var curWindow *uint64
-	if c.from != 0 {
-		curWindow = &c.from
+	if c.From != 0 {
+		curWindow = &c.From
 	}
 	var toWindow *uint64
-	if c.to != 0 {
-		toWindow = &c.to
+	if c.To != 0 {
+		toWindow = &c.To
 	}
 
 	// Prepare filter slice
 	var filter []string
-	if c.filter != "" {
-		filter = []string{c.filter}
+	if c.Filter != "" {
+		filter = []string{c.Filter}
 	}
 
 	ctx := context.Background()
@@ -194,7 +178,7 @@ func (c *Command) printErrors(out io.Writer, errors []fastly.LoggingEndpointErro
 		return
 	}
 
-	if c.jsonOutput {
+	if c.JSONOutput {
 		// Output as JSON array
 		encoder := json.NewEncoder(out)
 		for _, e := range errors {
@@ -217,7 +201,7 @@ func (c *Command) printErrors(out io.Writer, errors []fastly.LoggingEndpointErro
 			// #nosec G115 -- Timestamp is in microseconds, multiplication by 1000 for nanoseconds is safe for reasonable time values
 			timestamp := time.Unix(0, int64(e.Timestamp)*1000) // Convert microseconds to nanoseconds
 			var timeStr string
-			if c.printTimestamps {
+			if c.PrintTimestamps {
 				// Full timestamp with --timestamps flag
 				timeStr = timestamp.UTC().Format(time.RFC3339)
 			} else {

@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/paths"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,40 +17,21 @@ type UpdateCommand struct {
 	argparser.Base
 
 	// Required.
-	pathID          string
-	routingConfigID string
+	PathID          string `required:"" help:"The Path Identifier"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 
 	// Optional.
-	path argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a path")
-
-	// Required.
-	c.CmdClause.Flag("path-id", "The Path Identifier").Required().StringVar(&c.pathID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	// Optional.
-	c.CmdClause.Flag("path", "The URL path pattern (max 2048 characters, starts with \"/\")").Action(c.path.Set).StringVar(&c.path.Value)
-
-	return &c
+	Path argparser.OptionalString `help:"The URL path pattern (max 2048 characters, starts with \"/\")"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &paths.UpdateInput{
-		PathID:          &c.pathID,
-		RoutingConfigID: &c.routingConfigID,
+		PathID:          &c.PathID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
-	if c.path.WasSet {
-		input.Path = &c.path.Value
+	if c.Path.WasSet {
+		input.Path = &c.Path.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -62,8 +42,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	d, err := paths.Update(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path ID":           c.pathID,
-			"Routing Config ID": c.routingConfigID,
+			"Path ID":           c.PathID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}

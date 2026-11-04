@@ -12,36 +12,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to get an account-level custom signal.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	signalID string
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("get", "Get a custom signal")
-
-	// Required.
-	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)
+	SignalID string `required:"" help:"Custom Signal ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,7 +38,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := signals.Get(context.TODO(), fc, &signals.GetInput{
-		SignalID: &c.signalID,
+		SignalID: &c.SignalID,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeAccount,
 			AppliesTo: []string{"*"},

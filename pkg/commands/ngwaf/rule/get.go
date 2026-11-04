@@ -12,36 +12,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to get an account-level rule.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	ruleID string
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("get", "Get an account-level rule")
-
-	// Required.
-	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
+	RuleID string `required:"" help:"Rule ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,7 +38,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := rules.Get(context.TODO(), fc, &rules.GetInput{
-		RuleID: &c.ruleID,
+		RuleID: &c.RuleID,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeAccount,
 			AppliesTo: []string{"*"},

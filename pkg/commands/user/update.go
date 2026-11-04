@@ -8,38 +8,23 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Update a user of the Fastly API and web interface")
-	c.Globals = g
-	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
-	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").StringVar(&c.login)
-	c.CmdClause.Flag("name", "The real life name of the user").StringVar(&c.name)
-	c.CmdClause.Flag("password-reset", "Requests a password reset for the specified user").BoolVar(&c.reset)
-	c.CmdClause.Flag("role", "The permissions role assigned to the user. Can be user, billing, engineer, or superuser").EnumVar(&c.role, "user", "billing", "engineer", "superuser")
-
-	return &c
-}
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
 
-	id    string
-	login string
-	name  string
-	reset bool
-	role  string
+	ID       string `help:"Alphanumeric string identifying the user"`
+	Login    string `help:"The login associated with the user (typically, an email address)"`
+	NameFlag string `name:"name" help:"The real life name of the user"`
+	Reset    bool   `name:"password-reset" help:"Requests a password reset for the specified user"`
+	Role     string `default:"" enum:"user,billing,engineer,superuser," help:"The permissions role assigned to the user. Can be user, billing, engineer, or superuser"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.reset {
+	if c.Reset {
 		input, err := c.constructInputReset()
 		if err != nil {
 			return err
@@ -50,7 +35,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		text.Success(out, "Reset user password (login: %s)", c.login)
+		text.Success(out, "Reset user password (login: %s)", c.Login)
 		return nil
 	}
 
@@ -62,7 +47,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.UpdateUser(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"User ID": c.id,
+			"User ID": c.ID,
 		})
 		return err
 	}
@@ -75,20 +60,20 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	var input fastly.UpdateUserInput
 
-	if c.id == "" {
+	if c.ID == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --id flag")
 	}
-	input.UserID = c.id
+	input.UserID = c.ID
 
-	if c.name == "" && c.role == "" {
+	if c.NameFlag == "" && c.Role == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide either the --name or --role with the --id flag")
 	}
 
-	if c.name != "" {
-		input.Name = &c.name
+	if c.NameFlag != "" {
+		input.Name = &c.NameFlag
 	}
-	if c.role != "" {
-		input.Role = &c.role
+	if c.Role != "" {
+		input.Role = &c.Role
 	}
 
 	return &input, nil
@@ -98,10 +83,10 @@ func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 func (c *UpdateCommand) constructInputReset() (*fastly.ResetUserPasswordInput, error) {
 	var input fastly.ResetUserPasswordInput
 
-	if c.login == "" {
+	if c.Login == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --login when requesting a password reset")
 	}
-	input.Login = c.login
+	input.Login = c.Login
 
 	return &input, nil
 }

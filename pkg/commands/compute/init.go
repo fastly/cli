@@ -44,35 +44,28 @@ var (
 type InitCommand struct {
 	argparser.Base
 
+	Author []string `short:"a" sep:"none" help:"Author(s) of the package"`
+	Branch string   `hidden:"" help:"Git branch name to clone from package template repository"`
+	Dir    string   `name:"directory" short:"p" help:"Destination to write the new package, defaulting to the current directory"`
 	// CloneFrom is the value of the --from flag.
 	// NOTE: CloneFrom is public so that we can check to see if we need
 	// a token (to use --from=service-id) or not (to use a git
 	// repository).
-	CloneFrom string
-
-	branch   string
-	dir      string
-	language string
-	tag      string
+	CloneFrom string `name:"from" short:"f" help:"one of: (a) a starter kit identifier (starter-kit/<lang>/<name>); (b) a local project directory, a Git repository URL, or a URL referencing a .zip/.tar.gz file containing a package template; or (c) the service ID of a service created from a starter kit"`
+	Language  string `short:"l" default:"" enum:"rust,javascript,go,cpp,python,other," hints:"rust,javascript,go,cpp,python,other" help:"Language of the package"`
+	Tag       string `hidden:"" help:"Git tag name to clone from package template repository"`
 }
 
 // Languages is a list of supported language options.
 var Languages = []string{"rust", "javascript", "go", "cpp", "python", "other"}
 
-// NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
-	var c InitCommand
-	c.Globals = g
-
-	c.CmdClause = parent.Command("init", "Initialize a new Compute package locally")
-	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&g.Manifest.File.Authors)
-	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
-	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
-	c.CmdClause.Flag("from", "one of: (a) a starter kit identifier (starter-kit/<lang>/<name>); (b) a local project directory, a Git repository URL, or a URL referencing a .zip/.tar.gz file containing a package template; or (c) the service ID of a service created from a starter kit").Short('f').StringVar(&c.CloneFrom)
-	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
-	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *InitCommand) AfterApply() error {
+	if c.Author != nil {
+		c.Globals.Manifest.File.Authors = c.Author
+	}
+	return nil
 }
 
 // Exec implements the command interface.
@@ -95,7 +88,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	text.Output(out, "Press ^C at any time to quit.")
 
-	if c.CloneFrom != "" && !isExistingService && c.language == "" {
+	if c.CloneFrom != "" && !isExistingService && c.Language == "" {
 		text.Warning(out, "\nWhen using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
 	}
 
@@ -129,9 +122,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.Globals.Flags.Quiet {
 		mf.SetQuiet(true)
 	}
-	if c.dir == "" && !mf.Exists() && c.Globals.Verbose() {
+	if c.Dir == "" && !mf.Exists() && c.Globals.Verbose() {
 		text.Info(out, "--directory not specified, using current directory\n\n")
-		c.dir = wd
+		c.Dir = wd
 	}
 
 	spinner, err := text.NewSpinner(out)
@@ -142,11 +135,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	dst, err := c.VerifyDestination(spinner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Directory": c.dir,
+			"Directory": c.Dir,
 		})
 		return err
 	}
-	c.dir = dst
+	c.Dir = dst
 
 	if notEmpty {
 		text.Break(out)
@@ -172,7 +165,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Description": desc,
-				"Directory":   c.dir,
+				"Directory":   c.Dir,
 			})
 			return err
 		}
@@ -182,7 +175,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var language *Language
 
-	if c.language == "" && c.CloneFrom == "" && c.Globals.Manifest.File.Language == "" {
+	if c.Language == "" && c.CloneFrom == "" && c.Globals.Manifest.File.Language == "" {
 		language, err = c.PromptForLanguage(languages, in, out)
 		if err != nil {
 			return err
@@ -190,9 +183,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	// NOTE: The --language flag is an EnumVar, meaning it's already validated.
-	if c.language != "" || mf.Language != "" {
-		l := c.language
-		if c.language == "" {
+	if c.Language != "" || mf.Language != "" {
+		l := c.Language
+		if c.Language == "" {
 			l = mf.Language
 		}
 		for _, recognisedLanguage := range languages {
@@ -223,8 +216,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"From":           c.CloneFrom,
-				"Branch":         c.branch,
-				"Tag":            c.tag,
+				"Branch":         c.Branch,
+				"Tag":            c.Tag,
 				"Manifest Exist": false,
 			})
 			return err
@@ -273,7 +266,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					"From":      from,
 					"Branch":    branch,
 					"Tag":       tag,
-					"Directory": c.dir,
+					"Directory": c.Dir,
 				})
 				return err
 			}
@@ -290,7 +283,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				if err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]any{
 						"From":      c.CloneFrom,
-						"Directory": c.dir,
+						"Directory": c.Dir,
 					})
 					if hErr, ok := err.(*fastly.HTTPError); ok && hErr.IsNotFound() {
 						return fmt.Errorf("the service %s could not be found", c.CloneFrom)
@@ -390,7 +383,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// mf.Profile = profileName
 			mf.Authors = authors
 
-			mp := filepath.Join(c.dir, manifest.Filename)
+			mp := filepath.Join(c.Dir, manifest.Filename)
 			err = mf.Write(mp)
 			if err != nil {
 				return fmt.Errorf("error creating fastly.toml: %w", err)
@@ -408,7 +401,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	mf, err = c.UpdateManifest(mf, spinner, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Directory":   c.dir,
+			"Directory":   c.Dir,
 			"Description": desc,
 			"Language":    language,
 		})
@@ -520,7 +513,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // empty.
 func (c *InitCommand) VerifyDirectory(in io.Reader, out io.Writer) (cont, notEmpty bool, err error) {
 	flags := c.Globals.Flags
-	dir := c.dir
+	dir := c.Dir
 
 	if dir == "" {
 		dir = "."
@@ -557,7 +550,7 @@ func (c *InitCommand) VerifyDirectory(in io.Reader, out io.Writer) (cont, notEmp
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
 func (c *InitCommand) VerifyDestination(spinner text.Spinner) (dst string, err error) {
-	dst, err = filepath.Abs(c.dir)
+	dst, err = filepath.Abs(c.Dir)
 	if err != nil {
 		return "", err
 	}
@@ -656,7 +649,7 @@ func (c *InitCommand) PromptOrReturn(email string, in io.Reader, out io.Writer) 
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
 func (c *InitCommand) PromptPackageName(flags global.Flags, name string, in io.Reader, out io.Writer) (string, error) {
-	defaultName := filepath.Base(c.dir)
+	defaultName := filepath.Base(c.Dir)
 
 	if name == "" && (flags.AcceptDefaults || flags.NonInteractive) {
 		return defaultName, nil
@@ -897,7 +890,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
 	if fi, err := os.Stat(c.CloneFrom); err == nil && fi.IsDir() {
-		if err := cp.Copy(c.CloneFrom, c.dir); err != nil {
+		if err := cp.Copy(c.CloneFrom, c.Dir); err != nil {
 			spinner.StopFailMessage(msg)
 			if spinErr := spinner.StopFail(); spinErr != nil {
 				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
@@ -1083,7 +1076,7 @@ mimes:
 			filename = filenameWithExt
 		}
 
-		archive.SetDestination(c.dir)
+		archive.SetDestination(c.Dir)
 		archive.SetFilename(filename)
 
 		err = archive.Extract()
@@ -1233,7 +1226,7 @@ mimes:
 		filename = filenameWithExt
 	}
 
-	archive.SetDestination(c.dir)
+	archive.SetDestination(c.Dir)
 	archive.SetFilename(filename)
 
 	if err := archive.Extract(); err != nil {
@@ -1339,7 +1332,7 @@ func (c *InitCommand) ClonePackageFromEndpoint(from, branch, tag string) error {
 			return nil
 		}
 
-		dst := filepath.Join(c.dir, rel)
+		dst := filepath.Join(c.Dir, rel)
 		if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
 			return err
 		}
@@ -1375,7 +1368,7 @@ func tempDir(prefix string) (abspath string, err error) {
 // NOTE: The language argument might be nil (if the user passes --from flag).
 func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name, desc string, authors []string, language *Language) (manifest.File, error) {
 	var returnEarly bool
-	mp := filepath.Join(c.dir, manifest.Filename)
+	mp := filepath.Join(c.Dir, manifest.Filename)
 
 	err := spinner.Process("Reading fastly.toml", func(_ *text.SpinnerWrapper) error {
 		if err := m.Read(mp); err != nil {
@@ -1463,8 +1456,8 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 // InitializeLanguage for newly cloned package.
 func (c *InitCommand) InitializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd string) (*Language, error) {
 	err := spinner.Process("Initializing package", func(_ *text.SpinnerWrapper) error {
-		if wd != c.dir {
-			err := os.Chdir(c.dir)
+		if wd != c.Dir {
+			err := os.Chdir(c.Dir)
 			if err != nil {
 				return fmt.Errorf("error changing to your project directory: %w", err)
 			}

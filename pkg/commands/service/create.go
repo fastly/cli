@@ -2,12 +2,16 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -16,39 +20,31 @@ type CreateCommand struct {
 	argparser.Base
 
 	// Optional.
-	comment argparser.OptionalString
-	name    argparser.OptionalString
-	stype   argparser.OptionalString
+	Comment  argparser.OptionalString `help:"Human-readable comment"`
+	NameFlag argparser.OptionalString `name:"name" short:"n" help:"Service name"`
+	Stype    argparser.OptionalString `name:"type" default:"vcl" hints:"wasm,vcl" help:"Service type. Can be one of \"wasm\" or \"vcl\", defaults to \"vcl\"."`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply checks the values kong cannot check by itself.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.Stype.Value != "" || kongcompat.Given(ctx, "type")) && !slices.Contains([]string{"wasm", "vcl"}, c.Stype.Value) {
+		return fmt.Errorf("enum value must be one of wasm,vcl, got '%s'", c.Stype.Value)
 	}
-	c.CmdClause = parent.Command("create", "Create a Fastly service").Alias("add")
-
-	// Optional.
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").Action(c.stype.Set).EnumVar(&c.stype.Value, "wasm", "vcl")
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := fastly.CreateServiceInput{}
 
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.comment.WasSet {
-		input.Comment = &c.comment.Value
+	if c.Comment.WasSet {
+		input.Comment = &c.Comment.Value
 	}
-	if c.stype.WasSet {
-		input.Type = &c.stype.Value
+	if c.Stype.WasSet {
+		input.Type = &c.Stype.Value
 	}
 	s, err := c.Globals.APIClient.CreateService(context.TODO(), &input)
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/alerts/jira"
@@ -17,47 +16,19 @@ import (
 // CreateCommand calls the Fastly API to create Jira alerts.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	Host        string                        `required:"" help:"Host name of the Jira instance."`
+	Key         string                        `required:"" help:"Jira API key."`
+	Project     string                        `required:"" help:"Specifies the Jira project where the issue will be created."`
+	Username    string                        `required:"" help:"Jira username of the user who created the ticket."`
+
+	// Optional.
+	Description argparser.OptionalString `help:"An optional description for the alert."`
+	IssueType   string                   `help:"An optional Jira issue type associated with the ticket. (Default Task)"`
+
 	argparser.JSONOutput
-
-	// Required.
-	WorkspaceID argparser.OptionalWorkspaceID
-	Host        string
-	Key         string
-	Project     string
-	Username    string
-
-	// Optional.
-	Description argparser.OptionalString
-	IssueType   string
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Jira alert").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
-	})
-	c.CmdClause.Flag("host", "Host name of the Jira instance.").Required().StringVar(&c.Host)
-	c.CmdClause.Flag("key", "Jira API key.").Required().StringVar(&c.Key)
-	c.CmdClause.Flag("project", "Specifies the Jira project where the issue will be created.").Required().StringVar(&c.Project)
-	c.CmdClause.Flag("username", "Jira username of the user who created the ticket.").Required().StringVar(&c.Username)
-
-	// Optional.
-	c.CmdClause.Flag("description", "An optional description for the alert.").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.CmdClause.Flag("issue-type", "An optional Jira issue type associated with the ticket. (Default Task)").StringVar(&c.IssueType)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

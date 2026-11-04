@@ -16,11 +16,11 @@ type TokenCommand struct {
 	argparser.Base
 }
 
-// NewTokenCommand returns a new command registered under the parent.
-func NewTokenCommand(parent argparser.Registerer, g *global.Data) *TokenCommand {
+// NewTokenCommand returns a TokenCommand set up as it was before parsing.
+// Its flags now come from the struct's tags.
+func NewTokenCommand(g *global.Data) *TokenCommand {
 	var c TokenCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("token", "Output the active API token (for use in shell substitutions)")
 	return &c
 }
 

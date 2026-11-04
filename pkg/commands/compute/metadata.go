@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -15,96 +14,78 @@ import (
 type MetadataCommand struct {
 	argparser.Base
 
-	disable        bool
-	disableBuild   bool
-	disableMachine bool
-	disablePackage bool
-	disableScript  bool
-	enable         bool
-	enableBuild    bool
-	enableMachine  bool
-	enablePackage  bool
-	enableScript   bool
-}
-
-// NewMetadataCommand returns a new command registered in the parent.
-func NewMetadataCommand(parent argparser.Registerer, g *global.Data) *MetadataCommand {
-	var c MetadataCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("metadata", "Control what metadata is collected")
-	c.CmdClause.Flag("disable", "Disable all metadata").BoolVar(&c.disable)
-	c.CmdClause.Flag("disable-build", "Disable metadata for information regarding the time taken for builds and compilation processes").BoolVar(&c.disableBuild)
-	c.CmdClause.Flag("disable-machine", "Disable metadata for general, non-identifying system specifications (CPU, RAM, operating system)").BoolVar(&c.disableMachine)
-	c.CmdClause.Flag("disable-package", "Disable metadata for packages and libraries utilized in your source code").BoolVar(&c.disablePackage)
-	c.CmdClause.Flag("disable-script", "Disable metadata for script info from the fastly.toml manifest (i.e. [scripts] section).").BoolVar(&c.disableScript)
-	c.CmdClause.Flag("enable", "Enable all metadata").BoolVar(&c.enable)
-	c.CmdClause.Flag("enable-build", "Enable metadata for information regarding the time taken for builds and compilation processes").BoolVar(&c.enableBuild)
-	c.CmdClause.Flag("enable-machine", "Enable metadata for general, non-identifying system specifications (CPU, RAM, operating system)").BoolVar(&c.enableMachine)
-	c.CmdClause.Flag("enable-package", "Enable metadata for packages and libraries utilized in your source code").BoolVar(&c.enablePackage)
-	c.CmdClause.Flag("enable-script", "Enable metadata for script info from the fastly.toml manifest (i.e. [scripts] section).").BoolVar(&c.enableScript)
-	return &c
+	Disable        bool `help:"Disable all metadata"`
+	DisableBuild   bool `help:"Disable metadata for information regarding the time taken for builds and compilation processes"`
+	DisableMachine bool `help:"Disable metadata for general, non-identifying system specifications (CPU, RAM, operating system)"`
+	DisablePackage bool `help:"Disable metadata for packages and libraries utilized in your source code"`
+	DisableScript  bool `help:"Disable metadata for script info from the fastly.toml manifest (i.e. [scripts] section)."`
+	Enable         bool `help:"Enable all metadata"`
+	EnableBuild    bool `help:"Enable metadata for information regarding the time taken for builds and compilation processes"`
+	EnableMachine  bool `help:"Enable metadata for general, non-identifying system specifications (CPU, RAM, operating system)"`
+	EnablePackage  bool `help:"Enable metadata for packages and libraries utilized in your source code"`
+	EnableScript   bool `help:"Enable metadata for script info from the fastly.toml manifest (i.e. [scripts] section)."`
 }
 
 // Exec implements the command interface.
 func (c *MetadataCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.disable && c.enable {
+	if c.Disable && c.Enable {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 
 	var modified bool
 
 	// Global enable/disable
-	if c.enable {
+	if c.Enable {
 		c.Globals.Config.WasmMetadata = toggleAll("enable")
 		modified = true
 	}
-	if c.disable {
+	if c.Disable {
 		c.Globals.Config.WasmMetadata = toggleAll("disable")
 		modified = true
 	}
 
 	// Specific enablement
-	if c.enableBuild {
+	if c.EnableBuild {
 		c.Globals.Config.WasmMetadata.BuildInfo = "enable"
 		modified = true
 	}
-	if c.enableMachine {
+	if c.EnableMachine {
 		c.Globals.Config.WasmMetadata.MachineInfo = "enable"
 		modified = true
 	}
-	if c.enablePackage {
+	if c.EnablePackage {
 		c.Globals.Config.WasmMetadata.PackageInfo = "enable"
 		modified = true
 	}
-	if c.enableScript {
+	if c.EnableScript {
 		c.Globals.Config.WasmMetadata.ScriptInfo = "enable"
 		modified = true
 	}
 
 	// Specific disablement
-	if c.disableBuild {
+	if c.DisableBuild {
 		c.Globals.Config.WasmMetadata.BuildInfo = "disable"
 		modified = true
 	}
-	if c.disableMachine {
+	if c.DisableMachine {
 		c.Globals.Config.WasmMetadata.MachineInfo = "disable"
 		modified = true
 	}
-	if c.disablePackage {
+	if c.DisablePackage {
 		c.Globals.Config.WasmMetadata.PackageInfo = "disable"
 		modified = true
 	}
-	if c.disableScript {
+	if c.DisableScript {
 		c.Globals.Config.WasmMetadata.ScriptInfo = "disable"
 		modified = true
 	}
 
 	if modified {
-		if c.disable && (c.enableBuild || c.enableMachine || c.enablePackage || c.enableScript) {
+		if c.Disable && (c.EnableBuild || c.EnableMachine || c.EnablePackage || c.EnableScript) {
 			text.Info(out, "We will disable all metadata except for the specified `--enable-*` flags")
 			text.Break(out)
 		}
-		if c.enable && (c.disableBuild || c.disableMachine || c.disablePackage || c.disableScript) {
+		if c.Enable && (c.DisableBuild || c.DisableMachine || c.DisablePackage || c.DisableScript) {
 			text.Info(out, "We will enable all metadata except for the specified `--disable-*` flags")
 			text.Break(out)
 		}

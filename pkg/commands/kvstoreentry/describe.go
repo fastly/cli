@@ -9,36 +9,35 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from a kv store.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	Input fastly.GetKVStoreItemInput
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-			// This argument suppresses the 'Fastly API' output from the global verbose command.
-			SuppressVerbose: true,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Get the associated attributes of a key")
+	Input fastly.GetKVStoreItemInput `kong:"-"`
 
 	// Required.
-	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
+	Key     string `short:"k" required:"" help:"Key name"`
+	StoreID string `short:"s" required:"" help:"Store ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	argparser.JSONOutput
+}
 
-	return &c
+// BeforeApply sets the command up before kong applies the command line.
+func (c *DescribeCommand) BeforeApply() error {
+	// This argument suppresses the 'Fastly API' output from the global verbose command.
+	c.SuppressVerbose = true
+	return nil
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.Input.Key = c.Key
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

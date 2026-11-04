@@ -9,30 +9,17 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "Show a TLS certificate").Alias("get")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.id)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	id string
+	// Required.
+	ID string `required:"" help:"Alphanumeric string identifying a TLS certificate"`
+
+	// Optional.
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -46,7 +33,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.GetCustomTLSCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Certificate ID": c.id,
+			"TLS Certificate ID": c.ID,
 		})
 		return err
 	}
@@ -62,7 +49,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DescribeCommand) constructInput() *fastly.GetCustomTLSCertificateInput {
 	var input fastly.GetCustomTLSCertificateInput
 
-	input.ID = c.id
+	input.ID = c.ID
 
 	return &input
 }

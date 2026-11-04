@@ -9,53 +9,36 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list dictionary items.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	direction     string
-	input         fastly.GetDictionaryItemsInput
-	page, perPage int
-	serviceName   argparser.OptionalServiceNameID
-	sort          string
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List items in a Fastly edge dictionary")
 
 	// Required.
-	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.input.DictionaryID)
+	DictionaryID string `required:"" help:"Dictionary ID"`
 
 	// Optional.
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.direction, argparser.PaginationDirection...)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.sort)
-	return &c
+	Direction string `default:"ascend" enum:"ascend,descend" hints:"ascend,descend" help:"Direction in which to sort results"`
+	argparser.JSONOutput
+
+	input       fastly.GetDictionaryItemsInput
+	Page        int                             `help:"Page number of data set to fetch"`
+	PerPage     int                             `help:"Number of records per page"`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Sort        string                          `default:"created" help:"Field on which to sort"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	c.input.DictionaryID = c.DictionaryID
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -64,7 +47,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -72,11 +55,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.input.Direction = &c.direction
-	c.input.Page = &c.page
-	c.input.PerPage = &c.perPage
+	c.input.Direction = &c.Direction
+	c.input.Page = &c.Page
+	c.input.PerPage = &c.PerPage
 	c.input.ServiceID = serviceID
-	c.input.Sort = &c.sort
+	c.input.Sort = &c.Sort
 	paginator := c.Globals.APIClient.GetDictionaryItems(context.TODO(), &c.input)
 
 	var o []*fastly.DictionaryItem

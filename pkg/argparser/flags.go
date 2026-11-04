@@ -15,8 +15,7 @@ import (
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
-	"github.com/fastly/kingpin"
-
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -27,87 +26,6 @@ var (
 	completionRegExp       = regexp.MustCompile("completion-bash$")
 	completionScriptRegExp = regexp.MustCompile("completion-script-(?:bash|zsh)$")
 )
-
-// StringFlagOpts enables easy configuration of a flag.
-type StringFlagOpts struct {
-	Action      kingpin.Action
-	Description string
-	Dst         *string
-	Name        string
-	Required    bool
-	Short       rune
-}
-
-// RegisterFlag defines a flag.
-func (b Base) RegisterFlag(opts StringFlagOpts) {
-	clause := b.CmdClause.Flag(opts.Name, opts.Description)
-	if opts.Short > 0 {
-		clause = clause.Short(opts.Short)
-	}
-	if opts.Required {
-		clause = clause.Required()
-	}
-	if opts.Action != nil {
-		clause = clause.Action(opts.Action)
-	}
-	clause.StringVar(opts.Dst)
-}
-
-// BoolFlagOpts enables easy configuration of a flag.
-type BoolFlagOpts struct {
-	Action      kingpin.Action
-	Description string
-	Dst         *bool
-	Name        string
-	Required    bool
-	Short       rune
-}
-
-// RegisterFlagBool defines a boolean flag.
-//
-// TODO: Use generics support in go 1.18 to remove the need for multiple functions.
-func (b Base) RegisterFlagBool(opts BoolFlagOpts) {
-	clause := b.CmdClause.Flag(opts.Name, opts.Description)
-	if opts.Short > 0 {
-		clause = clause.Short(opts.Short)
-	}
-	if opts.Required {
-		clause = clause.Required()
-	}
-	if opts.Action != nil {
-		clause = clause.Action(opts.Action)
-	}
-	clause.BoolVar(opts.Dst)
-}
-
-// IntFlagOpts enables easy configuration of a flag.
-type IntFlagOpts struct {
-	Action      kingpin.Action
-	Default     int
-	Description string
-	Dst         *int
-	Name        string
-	Required    bool
-	Short       rune
-}
-
-// RegisterFlagInt defines an integer flag.
-func (b Base) RegisterFlagInt(opts IntFlagOpts) {
-	clause := b.CmdClause.Flag(opts.Name, opts.Description)
-	if opts.Short > 0 {
-		clause = clause.Short(opts.Short)
-	}
-	if opts.Required {
-		clause = clause.Required()
-	}
-	if opts.Action != nil {
-		clause = clause.Action(opts.Action)
-	}
-	if opts.Default != 0 {
-		clause = clause.Default(strconv.Itoa(opts.Default))
-	}
-	clause.IntVar(opts.Dst)
-}
 
 // OptionalServiceVersion represents a Fastly service version.
 type OptionalServiceVersion struct {
@@ -257,19 +175,6 @@ func (sv *OptionalWorkspaceID) Parse() error {
 	return nil
 }
 
-// AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
-// via the RegisterAutoCloneFlag constructor.
-type AutoCloneFlagOpts struct {
-	Action kingpin.Action
-	Dst    *bool
-}
-
-// RegisterAutoCloneFlag defines a --autoclone flag that will cause a clone of the
-// identified service version if it's found to be active or locked.
-func (b Base) RegisterAutoCloneFlag(opts AutoCloneFlagOpts) {
-	b.CmdClause.Flag("autoclone", "If the selected service version is not editable, clone it and use the clone.").Action(opts.Action).BoolVar(opts.Dst)
-}
-
 // OptionalAutoClone defines a method set for abstracting the logic required to
 // identify if a given service version needs to be cloned.
 type OptionalAutoClone struct {
@@ -330,7 +235,7 @@ func IntToBool(i int) bool {
 
 // ContextHasHelpFlag asserts whether a given kingpin.ParseContext contains a
 // `help` flag.
-func ContextHasHelpFlag(ctx *kingpin.ParseContext) bool {
+func ContextHasHelpFlag(ctx *kongcompat.ParseContext) bool {
 	_, ok := ctx.Elements.FlagMap()["help"]
 	return ok
 }
@@ -363,17 +268,7 @@ func IsCompletion(args []string) bool {
 // JSONOutput is a helper for adding a `--json` flag and encoding
 // values to JSON. It can be embedded into command structs.
 type JSONOutput struct {
-	Enabled bool // Set via flag.
-}
-
-// JSONFlag creates a flag for enabling JSON output.
-func (j *JSONOutput) JSONFlag() BoolFlagOpts {
-	return BoolFlagOpts{
-		Name:        FlagJSONName,
-		Description: FlagJSONDesc,
-		Dst:         &j.Enabled,
-		Short:       'j',
-	}
+	Enabled bool `name:"json" short:"j" help:"Render output as JSON"` // Set via flag.
 }
 
 // WriteJSON checks whether the enabled flag is set or not. If set,

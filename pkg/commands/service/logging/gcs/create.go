@@ -10,9 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,87 +18,48 @@ import (
 // CreateCommand calls the Fastly API to create a GCS logging endpoint.
 type CreateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	AccountName       argparser.OptionalString
-	AutoClone         argparser.OptionalAutoClone
-	Bucket            argparser.OptionalString
-	CompressionCodec  argparser.OptionalString
-	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
-	MessageType       argparser.OptionalString
-	Path              argparser.OptionalString
-	Period            argparser.OptionalInt
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	ProjectID         argparser.OptionalString
-	PublicKey         argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	SecretKey         argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
-	User              argparser.OptionalString
+	AccountName       argparser.OptionalString    `help:"The google account name used to obtain temporary credentials (default none)"`
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Bucket            argparser.OptionalString    `help:"The bucket of the GCS bucket"`
+	CompressionCodec  argparser.OptionalString    `help:"The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is \"gzip\", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error."`
+	EndpointName      argparser.OptionalString    `name:"name" short:"n" help:"The name of the GCS logging object. Used as a primary key for API access"` // Can't shadow argparser.Base method Name().
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	GzipLevel         argparser.OptionalInt       `help:"What level of GZIP encoding to have when dumping logs (default 0, no compression)"`
+	MessageType       argparser.OptionalString    `help:"How the message should be formatted. One of: classic (default), loggly, logplex or blank"`
+	Path              argparser.OptionalString    `help:"The path to upload logs to"`
+	Period            argparser.OptionalInt       `help:"How frequently log files are finalized so they can be available for reading (in seconds, default 3600)"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to GCS. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	ProjectID         argparser.OptionalString    `help:"The google project ID"`
+	PublicKey         argparser.OptionalString    `help:"A PGP public key that Fastly will use to encrypt your log files before writing them to disk"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	SecretKey         argparser.OptionalString    `help:"Your GCS account secret key. The private_key field in your service account authentication JSON"`
+	TimestampFormat   argparser.OptionalString    `help:"strftime specified timestamp formatting (default \"%Y-%m-%dT%H:%M:%S.000\")"`
+	User              argparser.OptionalString    `help:"Your GCS service account email address. The client_email field in your service account authentication JSON"`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("create", "Create a GCS logging endpoint on a Fastly service version").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the GCS logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	logflags.AccountName(c.CmdClause, &c.AccountName)
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
-	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
-	logflags.MessageType(c.CmdClause, &c.MessageType)
-	logflags.Path(c.CmdClause, &c.Path)
-	logflags.Period(c.CmdClause, &c.Period)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "GCS")
-	logflags.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("project-id", "The google project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	c.CmdClause.Flag("user", "Your GCS service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)
-	return &c
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -215,4 +174,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(d.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *CreateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "account-name", "autoclone", "bucket",
+		"compression-codec", "format", "format-version", "gzip-level",
+		"message-type", "path", "period", "placement", "processing-region",
+		"public-key", "project-id", "response-condition", "secret-key",
+		"service-id", "service-name", "timestamp-format", "user",
+	}
 }

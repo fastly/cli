@@ -5,21 +5,12 @@ import (
 
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand wraps the UpdateCommand from the servicehealthcheck package.
 type UpdateCommand struct {
-	*servicehealthcheck.UpdateCommand
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{servicehealthcheck.NewUpdateCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicehealthcheck.UpdateCommand
 }
 
 // Exec implements the command interface.

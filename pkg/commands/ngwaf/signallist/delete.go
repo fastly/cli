@@ -10,36 +10,18 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete an account-level signal list.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	listID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete an account signal list")
-
-	// Required.
-	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
+	ListID string `required:"" help:"List ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -50,7 +32,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := ngwaflist.ListDeleteInput{
 		CommandScope: scope.ScopeTypeAccount,
-		ListID:       c.listID,
+		ListID:       c.ListID,
 		WorkspaceID:  nil,
 	}
 
@@ -70,13 +52,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.listID,
+			c.ListID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted Account Signal List (list id: %s)", c.listID)
+	text.Success(out, "Deleted Account Signal List (list id: %s)", c.ListID)
 	return nil
 }

@@ -9,49 +9,30 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
-// NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCommand {
-	var c ValidateCommand
-	c.CmdClause = parent.Command("validate", "Checks the status of a specific domain's DNS record for a Service Version")
-	c.Globals = g
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.CmdClause.Flag("all", "Checks the status of all domains' DNS records for a Service Version").Short('a').BoolVar(&c.all)
-	c.CmdClause.Flag("name", "The name of the domain associated with this service").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ValidateCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // ValidateCommand calls the Fastly API to describe an appropriate resource.
 type ValidateCommand struct {
 	argparser.Base
 
-	all            bool
-	name           argparser.OptionalString
-	serviceName    argparser.OptionalServiceNameID
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	All            bool                            `short:"a" help:"Checks the status of all domains' DNS records for a Service Version"`
+	NameFlag       argparser.OptionalString        `name:"name" short:"n" help:"The name of the domain associated with this service"`
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceVersion argparser.OptionalServiceVersion
 }
 
@@ -61,7 +42,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -75,7 +56,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
-	if c.all {
+	if c.All {
 		input := c.constructInputAll(serviceID, serviceVersionNumber)
 
 		r, err := c.Globals.APIClient.ValidateAllDomains(context.TODO(), input)
@@ -101,7 +82,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersionNumber,
-			"Domain Name":     c.name,
+			"Domain Name":     c.NameFlag,
 		})
 		return err
 	}
@@ -117,13 +98,13 @@ func (c *ValidateCommand) constructInput(serviceID string, serviceVersion int) (
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
-	if !c.name.WasSet {
+	if !c.NameFlag.WasSet {
 		return nil, errors.RemediationError{
 			Inner:       fmt.Errorf("error parsing arguments: must provide --name flag"),
 			Remediation: "Alternatively pass --all to validate all domains.",
 		}
 	}
-	input.Name = c.name.Value
+	input.Name = c.NameFlag.Value
 
 	return &input, nil
 }

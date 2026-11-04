@@ -5,21 +5,12 @@ import (
 
 	servicedictionaryentry "github.com/fastly/cli/pkg/commands/service/dictionaryentry"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand wraps the ListCommand from the servicedictionaryentry package.
 type ListCommand struct {
-	*servicedictionaryentry.ListCommand
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{servicedictionaryentry.NewListCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicedictionaryentry.ListCommand
 }
 
 // Exec implements the command interface.

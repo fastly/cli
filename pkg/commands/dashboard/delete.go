@@ -8,31 +8,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *DeleteCommand {
-	var c DeleteCommand
-	c.CmdClause = parent.Command("delete", "Delete a custom dashboard").Alias("remove")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("id", "ID of the Dashboard to delete").Required().StringVar(&c.dashboardID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	dashboardID string
+	// Required flags
+	DashboardID string `name:"id" required:"" help:"ID of the Dashboard to delete"`
+
+	// Optional.
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -52,7 +39,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"dashboard_id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.dashboardID,
+			c.DashboardID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
@@ -67,7 +54,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DeleteCommand) constructInput() *fastly.DeleteObservabilityCustomDashboardInput {
 	var input fastly.DeleteObservabilityCustomDashboardInput
 
-	input.ID = &c.dashboardID
+	input.ID = &c.DashboardID
 
 	return &input
 }

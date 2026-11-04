@@ -11,7 +11,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -23,43 +22,29 @@ const deleteKeysConcurrencyLimit int = 100
 // The batch size of 100 aligns with the KV Store pagination default limit.
 const batchLimit int = 100
 
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete a config store item")
-
-	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
-
-	// Optional.
-	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
-	c.CmdClause.Flag("batch-size", "Key batch processing size (ignored when set without the --all flag)").Short('b').Action(c.batchSize.Set).IntVar(&c.batchSize.Value)
-	c.CmdClause.Flag("concurrency", "Control thread pool size (ignored when set without the --all flag)").Short('c').Action(c.concurrency.Set).IntVar(&c.concurrency.Value)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "key",
-		Short:       'k',
-		Description: "Item name",
-		Dst:         &c.input.Key,
-	})
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	c.input.StoreID = c.StoreID
+	c.input.Key = c.Key
+	return nil
 }
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	batchSize   argparser.OptionalInt
-	concurrency argparser.OptionalInt
-	deleteAll   bool
-	input       fastly.DeleteConfigStoreItemInput
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	DeleteAll   bool                  `name:"all" short:"a" help:"Delete all entries within the store"`
+	BatchSize   argparser.OptionalInt `short:"b" help:"Key batch processing size (ignored when set without the --all flag)"`
+	Concurrency argparser.OptionalInt `short:"c" help:"Control thread pool size (ignored when set without the --all flag)"`
+	argparser.JSONOutput
+	input fastly.DeleteConfigStoreItemInput
+
+	Key string `short:"k" help:"Item name"`
 }
 
 // Exec invokes the application logic for the command.
@@ -68,17 +53,17 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	// TODO: Support --json for bulk deletions.
-	if c.deleteAll && c.JSONOutput.Enabled {
+	if c.DeleteAll && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidDeleteAllJSONKeyCombo
 	}
-	if c.deleteAll && c.input.Key != "" {
+	if c.DeleteAll && c.input.Key != "" {
 		return fsterr.ErrInvalidDeleteAllKeyCombo
 	}
-	if !c.deleteAll && c.input.Key == "" {
+	if !c.DeleteAll && c.input.Key == "" {
 		return fsterr.ErrMissingDeleteAllKeyCombo
 	}
 
-	if c.deleteAll {
+	if c.DeleteAll {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 			text.Warning(out, "This will delete ALL entries from your store!\n\n")
 			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
@@ -131,8 +116,8 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 		wg sync.WaitGroup
 	)
 	poolSize := deleteKeysConcurrencyLimit
-	if c.concurrency.WasSet {
-		poolSize = c.concurrency.Value
+	if c.Concurrency.WasSet {
+		poolSize = c.Concurrency.Value
 	}
 	semaphore := make(chan struct{}, poolSize)
 
@@ -140,8 +125,8 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 	failedKeys := []string{}
 
 	batchSize := batchLimit
-	if c.batchSize.WasSet {
-		batchSize = c.batchSize.Value
+	if c.BatchSize.WasSet {
+		batchSize = c.BatchSize.Value
 	}
 
 	// With KV Store we have pagination support and so that natively provides us a

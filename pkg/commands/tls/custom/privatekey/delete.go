@@ -7,27 +7,15 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	var c DeleteCommand
-	c.CmdClause = parent.Command("delete", "Destroy a TLS private key. Only private keys not already matched to any certificates can be deleted").Alias("remove")
-	c.Globals = g
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a private Key").Required().StringVar(&c.id)
-
-	return &c
-}
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
 
-	id string
+	// Required.
+	ID string `required:"" help:"Alphanumeric string identifying a private Key"`
 }
 
 // Exec invokes the application logic for the command.
@@ -37,12 +25,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	err := c.Globals.APIClient.DeletePrivateKey(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Private Key ID": c.id,
+			"TLS Private Key ID": c.ID,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted TLS Private Key '%s'", c.id)
+	text.Success(out, "Deleted TLS Private Key '%s'", c.ID)
 	return nil
 }
 
@@ -50,7 +38,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DeleteCommand) constructInput() *fastly.DeletePrivateKeyInput {
 	var input fastly.DeletePrivateKeyInput
 
-	input.ID = c.id
+	input.ID = c.ID
 
 	return &input
 }

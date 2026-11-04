@@ -5,21 +5,12 @@ import (
 
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand wraps the ListCommand from the servicebackend package.
 type ListCommand struct {
-	*servicebackend.ListCommand
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{servicebackend.NewListCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicebackend.ListCommand
 }
 
 // Exec implements the command interface.

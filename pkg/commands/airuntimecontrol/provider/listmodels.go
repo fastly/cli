@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,28 +17,12 @@ import (
 // specific provider.
 type ListModelsCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	providerID string
-}
-
-// NewListModelsCommand returns a usable command registered under the parent.
-func NewListModelsCommand(parent argparser.Registerer, g *global.Data) *ListModelsCommand {
-	c := ListModelsCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list-models", "List models available for a specific provider")
-
-	// Required.
-	c.CmdClause.Flag("provider-id", "Alphanumeric string identifying the provider (e.g. \"anthropic\", \"openai\")").Required().StringVar(&c.providerID)
+	ProviderID string `required:"" help:"Alphanumeric string identifying the provider (e.g. \"anthropic\", \"openai\")"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -54,7 +37,7 @@ func (c *ListModelsCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := provider.ListModels(context.TODO(), fc, &provider.ListModelsInput{
-		ProviderID: &c.providerID,
+		ProviderID: &c.ProviderID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

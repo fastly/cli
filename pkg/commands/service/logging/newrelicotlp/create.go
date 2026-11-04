@@ -9,9 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -20,67 +18,36 @@ type CreateCommand struct {
 	argparser.Base
 
 	// Required.
-	serviceName    argparser.OptionalServiceNameID
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	autoClone         argparser.OptionalAutoClone
-	format            argparser.OptionalString
-	formatVersion     argparser.OptionalInt
-	key               argparser.OptionalString
-	name              argparser.OptionalString
-	placement         argparser.OptionalString
-	processingregion  argparser.OptionalString
-	region            argparser.OptionalString
-	responseCondition argparser.OptionalString
-	url               argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create an New Relic logging endpoint attached to the specified service version").Alias("add")
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	Key               argparser.OptionalString    `help:"The Insert API key from the Account page of your New Relic account"`
+	NameFlag          argparser.OptionalString    `name:"name" help:"The name for the real-time logging configuration"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed"`
+	Processingregion  argparser.OptionalString    `name:"processing-region" help:"The region where logs will be processed before streaming to New Relic. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	Region            argparser.OptionalString    `help:"The region to which to stream logs"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint"`
+	URL               argparser.OptionalString    `help:"URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing"`
 
 	// Required.
-	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Action(c.name.Set).StringVar(&c.name.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	logflags.Format(c.CmdClause, &c.format)
-	logflags.FormatVersion(c.CmdClause, &c.formatVersion)
-	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
-	logflags.ProcessingRegion(c.CmdClause, &c.processingregion, "New Relic")
-	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
-	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
-	c.CmdClause.Flag("url", "URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing").Action(c.url.Set).StringVar(&c.url.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+}
 
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -88,11 +55,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -129,42 +96,52 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateNewRelicOTLPInput {
 	var input fastly.CreateNewRelicOTLPInput
 
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
-	if c.key.WasSet {
-		input.Token = &c.key.Value
+	if c.Key.WasSet {
+		input.Token = &c.Key.Value
 	}
 
-	if c.format.WasSet {
-		input.Format = new(argparser.Content(c.format.Value))
+	if c.Format.WasSet {
+		input.Format = new(argparser.Content(c.Format.Value))
 	}
 
-	if c.formatVersion.WasSet {
-		input.FormatVersion = &c.formatVersion.Value
+	if c.FormatVersion.WasSet {
+		input.FormatVersion = &c.FormatVersion.Value
 	}
 
-	if c.placement.WasSet {
-		input.Placement = &c.placement.Value
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 
-	if c.processingregion.WasSet {
-		input.ProcessingRegion = &c.processingregion.Value
+	if c.Processingregion.WasSet {
+		input.ProcessingRegion = &c.Processingregion.Value
 	}
 
-	if c.region.WasSet {
-		input.Region = &c.region.Value
+	if c.Region.WasSet {
+		input.Region = &c.Region.Value
 	}
 
-	if c.responseCondition.WasSet {
-		input.ResponseCondition = &c.responseCondition.Value
+	if c.ResponseCondition.WasSet {
+		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
-	if c.url.WasSet {
-		input.URL = &c.url.Value
+	if c.URL.WasSet {
+		input.URL = &c.URL.Value
 	}
 
 	return &input
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *CreateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "autoclone", "format", "format-version", "key",
+		"placement", "processing-region", "region", "response-condition",
+		"url", "service-id", "service-name",
+	}
 }

@@ -10,53 +10,32 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update an operation tag.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	tagID       string
-	name        string
-	description string
-	serviceName argparser.OptionalServiceNameID
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("update", "Update an operation tag")
-
-	// Required.
-	c.CmdClause.Flag("tag-id", "Tag ID").Required().StringVar(&c.tagID)
-	c.CmdClause.Flag("name", "Updated name of the operation tag").Required().StringVar(&c.name)
-	c.CmdClause.Flag("description", "Updated description of the operation tag").Required().StringVar(&c.description)
+	TagID       string `required:"" help:"Tag ID"`
+	NameFlag    string `name:"name" required:"" help:"Updated name of the operation tag"`
+	Description string `required:"" help:"Updated description of the operation tag"`
 
 	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	ServiceID   *string                         `help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 
-	c.RegisterFlagBool(c.JSONFlag())
+	argparser.JSONOutput
+}
 
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -65,7 +44,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -77,11 +56,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("service-id is required")
 	}
 
-	if c.name == "" {
+	if c.NameFlag == "" {
 		return errors.New("--name is required")
 	}
 
-	if c.description == "" {
+	if c.Description == "" {
 		return errors.New("--description is required")
 	}
 
@@ -91,10 +70,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &operations.UpdateTagInput{
-		Description: &c.description,
-		Name:        &c.name,
+		Description: &c.Description,
+		Name:        &c.NameFlag,
 		ServiceID:   &serviceID,
-		TagID:       &c.tagID,
+		TagID:       &c.TagID,
 	}
 
 	tag, err := operations.UpdateTag(context.TODO(), fc, input)

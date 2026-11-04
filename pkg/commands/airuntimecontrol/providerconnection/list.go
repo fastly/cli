@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -20,23 +19,7 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	// Optional.
-	sort argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List provider connections")
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("sort", "Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")").Default("created_at").Action(c.sort.Set).StringVar(&c.sort.Value)
-
-	return &c
+	Sort argparser.OptionalString `default:"created_at" placeholder:"\"created_at\"" help:"Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")"`
 }
 
 // Exec invokes the application logic for the command.
@@ -51,8 +34,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &providerconnection.ListInput{}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	// The API returns all provider connections in a single response; there is

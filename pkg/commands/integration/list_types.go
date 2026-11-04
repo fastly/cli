@@ -8,7 +8,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -16,22 +15,9 @@ import (
 // integration types and the configuration each one requires.
 type ListTypesCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-}
-
-// NewListTypesCommand returns a usable command registered under the parent.
-func NewListTypesCommand(parent argparser.Registerer, g *global.Data) *ListTypesCommand {
-	c := ListTypesCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list-types", "List supported notification integration types")
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"4d63.com/optional"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,93 +22,54 @@ import (
 // CreateCommand calls the Fastly API to create a Kafka logging endpoint.
 type CreateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	AuthMethod        argparser.OptionalString
-	AutoClone         argparser.OptionalAutoClone
-	Brokers           argparser.OptionalString
-	CompressionCodec  argparser.OptionalString
-	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	ParseLogKeyvals   argparser.OptionalBool
-	Password          argparser.OptionalString
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	RequestMaxBytes   argparser.OptionalInt
-	RequiredACKs      argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	TLSCACert         argparser.OptionalString
-	TLSClientCert     argparser.OptionalString
-	TLSClientKey      argparser.OptionalString
-	TLSHostname       argparser.OptionalString
-	Topic             argparser.OptionalString
-	User              argparser.OptionalString
-	UseSASL           argparser.OptionalBool
-	UseTLS            argparser.OptionalBool
+	AuthMethod        argparser.OptionalString    `hints:"plain,scram-sha-256,scram-sha-512" help:"SASL authentication method. Valid values are: plain, scram-sha-256, scram-sha-512"`
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Brokers           argparser.OptionalString    `help:"A comma-separated list of IP addresses or hostnames of Kafka brokers"`
+	CompressionCodec  argparser.OptionalString    `help:"The codec used for compression of your logs. One of: gzip, snappy, lz4"`
+	EndpointName      argparser.OptionalString    `name:"name" short:"n" help:"The name of the Kafka logging object. Used as a primary key for API access"` // Can't shadow argparser.Base method Name().
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	ParseLogKeyvals   argparser.OptionalBool      `help:"Parse key-value pairs within the log format"`
+	Password          argparser.OptionalString    `help:"SASL authentication password. Required if --auth-method is specified"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to Kafka. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	RequestMaxBytes   argparser.OptionalInt       `name:"max-batch-size" help:"The maximum size of the log batch in bytes"`
+	RequiredACKs      argparser.OptionalString    `name:"required-acks" help:"The Number of acknowledgements a leader must receive before a write is considered successful. One of: 1 (default) One server needs to respond. 0\tNo servers need to respond. -1\tWait for all in-sync replicas to respond"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	TLSCACert         argparser.OptionalString    `name:"tls-ca-cert" help:"A secure certificate to authenticate the server with. Must be in PEM format"`
+	TLSClientCert     argparser.OptionalString    `help:"The client certificate used to make authenticated requests. Must be in PEM format"`
+	TLSClientKey      argparser.OptionalString    `help:"The client private key used to make authenticated requests. Must be in PEM format"`
+	TLSHostname       argparser.OptionalString    `help:"Used during the TLS handshake to validate the certificate"`
+	Topic             argparser.OptionalString    `help:"The Kafka topic to send logs to"`
+	User              argparser.OptionalString    `name:"username" help:"SASL authentication username. Required if --auth-method is specified"`
+	UseSASL           argparser.OptionalBool      `help:"Enable SASL authentication. Requires --auth-method, --username, and --password to be specified"`
+	UseTLS            argparser.OptionalBool      `help:"Whether to use TLS for secure logging. Can be either true or false"`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply checks the values kong cannot check by itself, then hands the
+// parsed flags over to the fields the command reads them from.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.AuthMethod.Value != "" || kongcompat.Given(ctx, "auth-method")) && !slices.Contains([]string{"plain", "scram-sha-256", "scram-sha-512"}, c.AuthMethod.Value) {
+		return fmt.Errorf("enum value must be one of plain,scram-sha-256,scram-sha-512, got '%s'", c.AuthMethod.Value)
 	}
-	c.CmdClause = parent.Command("create", "Create a Kafka logging endpoint on a Fastly service version").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the Kafka logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are: plain, scram-sha-256, scram-sha-512").Action(c.AuthMethod.Set).HintOptions("plain", "scram-sha-256", "scram-sha-512").EnumVar(&c.AuthMethod.Value, "plain", "scram-sha-256", "scram-sha-512")
-	c.CmdClause.Flag("brokers", "A comma-separated list of IP addresses or hostnames of Kafka brokers").Action(c.Brokers.Set).StringVar(&c.Brokers.Value)
-	c.CmdClause.Flag("compression-codec", "The codec used for compression of your logs. One of: gzip, snappy, lz4").Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	c.CmdClause.Flag("max-batch-size", "The maximum size of the log batch in bytes").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
-	c.CmdClause.Flag("parse-log-keyvals", "Parse key-value pairs within the log format").Action(c.ParseLogKeyvals.Set).BoolVar(&c.ParseLogKeyvals.Value)
-	c.CmdClause.Flag("password", "SASL authentication password. Required if --auth-method is specified").Action(c.Password.Set).StringVar(&c.Password.Value)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kafka")
-	c.CmdClause.Flag("required-acks", "The Number of acknowledgements a leader must receive before a write is considered successful. One of: 1 (default) One server needs to respond. 0	No servers need to respond. -1	Wait for all in-sync replicas to respond").Action(c.RequiredACKs.Set).StringVar(&c.RequiredACKs.Value)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
-	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
-	c.CmdClause.Flag("topic", "The Kafka topic to send logs to").Action(c.Topic.Set).StringVar(&c.Topic.Value)
-	c.CmdClause.Flag("use-sasl", "Enable SASL authentication. Requires --auth-method, --username, and --password to be specified").Action(c.UseSASL.Set).BoolVar(&c.UseSASL.Value)
-	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
-	c.CmdClause.Flag("username", "SASL authentication username. Required if --auth-method is specified").Action(c.User.Set).StringVar(&c.User.Value)
-	return &c
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -245,4 +208,17 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(d.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *CreateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "autoclone", "auth-method", "brokers",
+		"compression-codec", "format", "format-version", "max-batch-size",
+		"parse-log-keyvals", "password", "placement", "processing-region",
+		"required-acks", "response-condition", "service-id", "service-name",
+		"tls-ca-cert", "tls-client-cert", "tls-client-key", "tls-hostname",
+		"topic", "use-sasl", "use-tls", "username",
+	}
 }

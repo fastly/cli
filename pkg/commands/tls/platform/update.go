@@ -7,49 +7,21 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command(
-		"update", "Replace a certificate with a newly reissued certificate",
-	)
-	c.Globals = g
-
-	// Required.
-
-	c.CmdClause.Flag(
-		"id", "Alphanumeric string identifying a TLS bulk certificate",
-	).Required().StringVar(&c.id)
-
-	c.CmdClause.Flag(
-		"cert-blob", "The PEM-formatted certificate blob",
-	).Required().StringVar(&c.certBlob)
-
-	c.CmdClause.Flag(
-		"intermediates-blob", "The PEM-formatted chain of intermediate blobs",
-	).Required().StringVar(&c.intermediatesBlob)
-
-	// Optional.
-
-	c.CmdClause.Flag(
-		"allow-untrusted", "Allow certificates that chain to untrusted roots",
-	).Action(c.allowUntrusted.Set).BoolVar(&c.allowUntrusted.Value)
-
-	return &c
-}
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
 
-	allowUntrusted    argparser.OptionalBool
-	certBlob          string
-	id                string
-	intermediatesBlob string
+	// Required.
+	ID string `required:"" help:"Alphanumeric string identifying a TLS bulk certificate"`
+
+	CertBlob          string `required:"" help:"The PEM-formatted certificate blob"`
+	IntermediatesBlob string `required:"" help:"The PEM-formatted chain of intermediate blobs"`
+
+	// Optional.
+	AllowUntrusted argparser.OptionalBool `help:"Allow certificates that chain to untrusted roots"`
 }
 
 // Exec invokes the application logic for the command.
@@ -59,8 +31,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.UpdateBulkCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Bulk Certificate ID": c.id,
-			"Allow Untrusted":         c.allowUntrusted.Value,
+			"TLS Bulk Certificate ID": c.ID,
+			"Allow Untrusted":         c.AllowUntrusted.Value,
 		})
 		return err
 	}
@@ -74,12 +46,12 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput() *fastly.UpdateBulkCertificateInput {
 	var input fastly.UpdateBulkCertificateInput
 
-	input.ID = c.id
-	input.CertBlob = c.certBlob
-	input.IntermediatesBlob = c.intermediatesBlob
+	input.ID = c.ID
+	input.CertBlob = c.CertBlob
+	input.IntermediatesBlob = c.IntermediatesBlob
 
-	if c.allowUntrusted.WasSet {
-		input.AllowUntrusted = c.allowUntrusted.Value
+	if c.AllowUntrusted.WasSet {
+		input.AllowUntrusted = c.AllowUntrusted.Value
 	}
 
 	return &input

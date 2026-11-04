@@ -9,27 +9,15 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
-	c.Globals = g
-	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
-}
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	current bool
-	id      string
+	Current bool   `help:"Get the logged in user"`
+	ID      string `help:"Alphanumeric string identifying the user"`
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -38,7 +26,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if c.current {
+	if c.Current {
 		o, err := c.Globals.APIClient.GetCurrentUser(context.TODO())
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
@@ -76,13 +64,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DescribeCommand) constructInput() (*fastly.GetUserInput, error) {
 	var input fastly.GetUserInput
 
-	if c.id == "" {
+	if c.ID == "" {
 		return nil, fsterr.RemediationError{
 			Inner:       fmt.Errorf("error parsing arguments: must provide --id flag"),
 			Remediation: "Alternatively pass --current to validate the logged in user.",
 		}
 	}
-	input.UserID = c.id
+	input.UserID = c.ID
 
 	return &input, nil
 }

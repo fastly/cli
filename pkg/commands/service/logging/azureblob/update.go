@@ -10,9 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,89 +18,48 @@ import (
 // UpdateCommand calls the Fastly API to update an Azure Blob Storage logging endpoint.
 type UpdateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	EndpointName   string
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	EndpointName   string                           `name:"name" short:"n" required:"" help:"The name of the Azure Blob Storage logging object"`
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	AccountName       argparser.OptionalString
-	Container         argparser.OptionalString
-	SASToken          argparser.OptionalString
-	Path              argparser.OptionalString
-	Period            argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
-	MessageType       argparser.OptionalString
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	PublicKey         argparser.OptionalString
-	FileMaxBytes      argparser.OptionalInt
-	CompressionCodec  argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	NewName           argparser.OptionalString    `help:"New name of the Azure Blob Storage logging object"`
+	AccountName       argparser.OptionalString    `help:"The unique Azure Blob Storage namespace in which your data objects are stored"`
+	Container         argparser.OptionalString    `help:"The name of the Azure Blob Storage container in which to store logs"`
+	SASToken          argparser.OptionalString    `help:"The Azure shared access signature providing write access to the blob service objects. Be sure to update your token before it expires or the logging functionality will not work"`
+	Path              argparser.OptionalString    `help:"The path to upload logs to"`
+	Period            argparser.OptionalInt       `help:"How frequently log files are finalized so they can be available for reading (in seconds, default 3600)"`
+	GzipLevel         argparser.OptionalInt       `help:"What level of GZIP encoding to have when dumping logs (default 0, no compression)"`
+	MessageType       argparser.OptionalString    `help:"How the message should be formatted. One of: classic (default), loggly, logplex or blank"`
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	TimestampFormat   argparser.OptionalString    `help:"strftime specified timestamp formatting (default \"%Y-%m-%dT%H:%M:%S.000\")"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to Azure Blob Storage. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	PublicKey         argparser.OptionalString    `help:"A PGP public key that Fastly will use to encrypt your log files before writing them to disk"`
+	FileMaxBytes      argparser.OptionalInt       `help:"The maximum size of a log file in bytes"`
+	CompressionCodec  argparser.OptionalString    `help:"The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is \"gzip\", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error."`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update an Azure Blob Storage logging endpoint on a Fastly service version")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object").Short('n').Required().StringVar(&c.EndpointName)
-
-	// Optional.
-	c.CmdClause.Flag("account-name", "The unique Azure Blob Storage namespace in which your data objects are stored").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
-	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	c.CmdClause.Flag("container", "The name of the Azure Blob Storage container in which to store logs").Action(c.Container.Set).StringVar(&c.Container.Value)
-	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(&c.FileMaxBytes.Value)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
-	logflags.MessageType(c.CmdClause, &c.MessageType)
-	c.CmdClause.Flag("new-name", "New name of the Azure Blob Storage logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	logflags.Path(c.CmdClause, &c.Path)
-	logflags.Period(c.CmdClause, &c.Period)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Azure Blob Storage")
-	logflags.PublicKey(c.CmdClause, &c.PublicKey)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("sas-token", "The Azure shared access signature providing write access to the blob service objects. Be sure to update your token before it expires or the logging functionality will not work").Action(c.SASToken.Set).StringVar(&c.SASToken.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	return &c
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -220,4 +177,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(azureblob.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *UpdateCommand) FlagOrder() []string {
+	return []string{
+		"version", "autoclone", "name", "account-name", "compression-codec",
+		"container", "file-max-bytes", "format", "format-version",
+		"gzip-level", "message-type", "new-name", "path", "period",
+		"placement", "processing-region", "public-key", "response-condition",
+		"sas-token", "service-id", "service-name", "timestamp-format",
+	}
 }

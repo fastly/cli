@@ -8,41 +8,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("describe", "Retrieve a single config store item").Alias("get")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "key",
-		Short:       'k',
-		Description: "Item name",
-		Dst:         &c.input.Key,
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.input.Key = c.Key
+	c.input.StoreID = c.StoreID
+	return nil
 }
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 	input fastly.GetConfigStoreItemInput
+
+	// Required.
+	Key     string `short:"k" required:"" help:"Item name"`
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

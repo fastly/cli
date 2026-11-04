@@ -10,48 +10,22 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a workspace wildcard list.
 type UpdateCommand struct {
 	argparser.Base
+
+	// Required.
+	ListID      string                        `required:"" help:"List ID"`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+
+	// Optional.
+	Description argparser.OptionalString `help:"User submitted description of the list."`
+	Entries     argparser.OptionalString `help:"Entries for the list. Can either be a comma separated list or a path to a file."`
+
 	argparser.JSONOutput
-
-	// Required.
-	listID      string
-	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-	description argparser.OptionalString
-	entries     argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a workspace-level wildcard list")
-
-	// Required.
-	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
-
-	// Optional.
-	c.CmdClause.Flag("description", "User submitted description of the list.").Action(c.description.Set).StringVar(&c.description.Value)
-	c.CmdClause.Flag("entries", "Entries for the list. Can either be a comma separated list or a path to a file.").Action(c.entries.Set).StringVar(&c.entries.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -61,10 +35,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	input := ngwaflist.ListUpdateInput{
 		CommandScope: scope.ScopeTypeWorkspace,
-		Description:  c.description,
-		Entries:      c.entries,
-		ListID:       c.listID,
-		WorkspaceID:  &c.workspaceID,
+		Description:  c.Description,
+		Entries:      c.Entries,
+		ListID:       c.ListID,
+		WorkspaceID:  &c.WorkspaceID,
 	}
 
 	var ok bool

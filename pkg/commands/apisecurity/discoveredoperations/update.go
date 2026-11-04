@@ -15,53 +15,34 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a discovered API operation's status.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	// Required .
-	serviceName argparser.OptionalServiceNameID
-	file        string
-	operationID argparser.OptionalString
-	status      argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update the status of discovered operation(s)")
 
 	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("operation-id", "The ID of the discovered operation (comma-separated for multiple)").Action(c.operationID.Set).StringVar(&c.operationID.Value)
-	c.CmdClause.Flag("file", "Update operations in bulk from a JSON file").StringVar(&c.file)
+	ServiceID *string `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+
+	// Required .
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	OperationID argparser.OptionalString        `help:"The ID of the discovered operation (comma-separated for multiple)"`
+	File        string                          `help:"Update operations in bulk from a JSON file"`
 
 	// Optional.
-	c.CmdClause.Flag("status", "The new status to apply. Valid values are: 'discovered', 'ignored'").Action(c.status.Set).StringVar(&c.status.Value)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	Status argparser.OptionalString `help:"The new status to apply. Valid values are: 'discovered', 'ignored'"`
 
-	return &c
+	argparser.JSONOutput
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -70,25 +51,25 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if !c.operationID.WasSet && c.file == "" {
+	if !c.OperationID.WasSet && c.File == "" {
 		return fmt.Errorf("error parsing arguments: must provide either --operation-id or --file")
 	}
 
-	if c.operationID.WasSet && c.file != "" {
+	if c.OperationID.WasSet && c.File != "" {
 		return fmt.Errorf("error parsing arguments: cannot use both --operation-id and --file")
 	}
 
 	// When using --file, status should not be provided via flag.
-	if c.file != "" && c.status.WasSet {
+	if c.File != "" && c.Status.WasSet {
 		return fmt.Errorf("error parsing arguments: cannot use both --file and --status (status should be specified in the JSON file)")
 	}
 
 	// When using --operation-id, status is required.
-	if c.operationID.WasSet && !c.status.WasSet {
+	if c.OperationID.WasSet && !c.Status.WasSet {
 		return fmt.Errorf("error parsing arguments: --status is required when using --operation-id")
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -97,7 +78,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	// Handle bulk mode from file.
-	if c.file != "" {
+	if c.File != "" {
 		fileInput, err := c.readFromFile()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
@@ -115,14 +96,14 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	// Convert status to uppercase for API.
-	status, err := c.validateStatus(c.status.Value)
+	status, err := c.validateStatus(c.Status.Value)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	// Handle comma-separated operation IDs.
-	operationIDs := strings.Split(c.operationID.Value, ",")
+	operationIDs := strings.Split(c.OperationID.Value, ",")
 	// Trim whitespace from each ID
 	for i, id := range operationIDs {
 		operationIDs[i] = strings.TrimSpace(id)
@@ -136,7 +117,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Handle single operation mode.
 	input := operations.UpdateDiscoveredStatusInput{
 		ServiceID:   &serviceID,
-		OperationID: &c.operationID.Value,
+		OperationID: &c.OperationID.Value,
 		Status:      &status,
 	}
 
@@ -149,8 +130,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":   serviceID,
-			"Operation ID": c.operationID.Value,
-			"Status":       c.status.Value,
+			"Operation ID": c.OperationID.Value,
+			"Status":       c.Status.Value,
 		})
 		return err
 	}
@@ -200,7 +181,7 @@ func (c *UpdateCommand) executeBulkUpdate(out io.Writer, serviceID string, statu
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
-			"Status":     c.status.Value,
+			"Status":     c.Status.Value,
 			"Count":      len(operationIDs),
 		})
 		return err
@@ -221,7 +202,7 @@ type UpdateFileInput struct {
 
 // readFromFile reads operation IDs and status from a JSON file.
 func (c *UpdateCommand) readFromFile() (*UpdateFileInput, error) {
-	path, err := filepath.Abs(c.file)
+	path, err := filepath.Abs(c.File)
 	if err != nil {
 		return nil, err
 	}
@@ -247,11 +228,11 @@ func (c *UpdateCommand) readFromFile() (*UpdateFileInput, error) {
 	}
 
 	if len(input.OperationIDs) == 0 {
-		return nil, fmt.Errorf("no operation IDs found in file: %s", c.file)
+		return nil, fmt.Errorf("no operation IDs found in file: %s", c.File)
 	}
 
 	if input.Status == "" {
-		return nil, fmt.Errorf("status not specified in file: %s", c.file)
+		return nil, fmt.Errorf("status not specified in file: %s", c.File)
 	}
 
 	return &input, nil

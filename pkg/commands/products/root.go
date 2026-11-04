@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly/products/apidiscovery"
 	"github.com/fastly/go-fastly/v19/fastly/products/botmanagement"
@@ -27,11 +26,13 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	disableProduct string
-	enableProduct  string
-	serviceName    argparser.OptionalServiceNameID
+	// Optional.
+	DisableProduct string `name:"disable" default:"" enum:"api_discovery,bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets," hints:"api_discovery,bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets" help:"Disable product"`
+	EnableProduct  string `name:"enable" default:"" enum:"api_discovery,bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets," hints:"api_discovery,bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets" help:"Enable product"`
+	argparser.JSONOutput
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 }
 
 // ProductEnablementOptions is a list of products that can be enabled/disabled.
@@ -63,34 +64,18 @@ type ProductStatus struct {
 // CommandName is the string to be used to invoke this command.
 const CommandName = "products"
 
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Enable, disable, and check the enablement status of products")
-
-	// Optional.
-	c.CmdClause.Flag("disable", "Disable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.disableProduct, ProductEnablementOptions...)
-	c.CmdClause.Flag("enable", "Enable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.enableProduct, ProductEnablementOptions...)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *RootCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.enableProduct != "" && c.disableProduct != "" {
+	if c.EnableProduct != "" && c.DisableProduct != "" {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 
@@ -98,7 +83,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, _, _, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, _, _, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return fmt.Errorf("failed to identify Service ID: %w", err)
 	}
@@ -108,8 +93,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	if c.enableProduct != "" {
-		switch c.enableProduct {
+	if c.EnableProduct != "" {
+		switch c.EnableProduct {
 		case "api_discovery":
 			_, err = apidiscovery.Enable(context.TODO(), ac, serviceID)
 		case "bot_management":
@@ -132,14 +117,14 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 			return errors.New("unrecognised product")
 		}
 		if err != nil {
-			return fmt.Errorf("failed to enable product '%s': %w", c.enableProduct, err)
+			return fmt.Errorf("failed to enable product '%s': %w", c.EnableProduct, err)
 		}
-		text.Success(out, "Successfully enabled product '%s'", c.enableProduct)
+		text.Success(out, "Successfully enabled product '%s'", c.EnableProduct)
 		return nil
 	}
 
-	if c.disableProduct != "" {
-		switch c.disableProduct {
+	if c.DisableProduct != "" {
+		switch c.DisableProduct {
 		case "api_discovery":
 			err = apidiscovery.Disable(context.TODO(), ac, serviceID)
 		case "bot_management":
@@ -162,9 +147,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 			return errors.New("unrecognised product")
 		}
 		if err != nil {
-			return fmt.Errorf("failed to disable product '%s': %w", c.disableProduct, err)
+			return fmt.Errorf("failed to disable product '%s': %w", c.DisableProduct, err)
 		}
-		text.Success(out, "Successfully disabled product '%s'", c.disableProduct)
+		text.Success(out, "Successfully disabled product '%s'", c.DisableProduct)
 		return nil
 	}
 

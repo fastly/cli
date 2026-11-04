@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/versions"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,23 +16,9 @@ import (
 // inactive versions of a routing config.
 type DeleteInactiveCommand struct {
 	argparser.Base
-	routingConfigID string
-}
-
-// NewDeleteInactiveCommand returns a usable command registered under the
-// parent.
-func NewDeleteInactiveCommand(parent argparser.Registerer, g *global.Data) *DeleteInactiveCommand {
-	c := DeleteInactiveCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete-inactive", "Permanently delete all inactive versions of a routing config. This destroys rollback history and cannot be undone")
 
 	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	return &c
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 }
 
 // Exec invokes the application logic for the command.
@@ -44,17 +29,17 @@ func (c *DeleteInactiveCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &versions.DeleteInactiveInput{
-		RoutingConfigID: &c.routingConfigID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
 	err := versions.DeleteInactive(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted inactive versions for routing config (routing-config-id: %s)", c.routingConfigID)
+	text.Success(out, "Deleted inactive versions for routing config (routing-config-id: %s)", c.RoutingConfigID)
 	return nil
 }

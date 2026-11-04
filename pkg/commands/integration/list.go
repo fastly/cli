@@ -19,7 +19,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/integration/splunkoncall"
 	"github.com/fastly/cli/pkg/commands/integration/webhook"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -43,31 +42,14 @@ var knownIntegrationTypes = []string{
 // ListCommand calls the Fastly API to list notification integrations.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Cursor argparser.OptionalString
-	Limit  argparser.OptionalInt
-	Sort   argparser.OptionalString
-	Type   argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List notification integrations")
 
 	// Optional.
-	c.CmdClause.Flag("cursor", "Pagination cursor from a previous response's meta").Action(c.Cursor.Set).StringVar(&c.Cursor.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-	c.CmdClause.Flag("limit", "Maximum number of items to return").Action(c.Limit.Set).IntVar(&c.Limit.Value)
-	c.CmdClause.Flag("sort", "Field to sort results by").Action(c.Sort.Set).StringVar(&c.Sort.Value)
-	c.CmdClause.Flag("type", "Filter integrations by type").HintOptions(knownIntegrationTypes...).Action(c.Type.Set).StringVar(&c.Type.Value)
+	Cursor argparser.OptionalString `help:"Pagination cursor from a previous response's meta"`
+	argparser.JSONOutput
 
-	return &c
+	Limit argparser.OptionalInt    `help:"Maximum number of items to return"`
+	Sort  argparser.OptionalString `help:"Field to sort results by"`
+	Type  argparser.OptionalString `hints:"datadog,jiraissue,jsm,mail,msteams,newrelic,opsgenie,pagerduty,slack,splunkoncall,webhook" help:"Filter integrations by type"`
 }
 
 // Exec invokes the application logic for the command.

@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/alerts/webhook"
@@ -18,42 +17,14 @@ import (
 // UpdateCommand calls the Fastly API to update Webhook alerts.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	AlertID     string
-	WorkspaceID argparser.OptionalWorkspaceID
-	Webhook     string
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a Webhook alert")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFAlertID,
-		Description: argparser.FlagNGWAFAlertIDDesc,
-		Dst:         &c.AlertID,
-		Required:    true,
-	})
-	c.CmdClause.Flag("webhook", "Webhook webhook.").Required().StringVar(&c.Webhook)
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	AlertID     string                        `required:"" help:"Alphanumeric string identifying the alert"`
+	Webhook     string                        `required:"" help:"Webhook webhook."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

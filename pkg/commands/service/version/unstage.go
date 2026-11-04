@@ -10,42 +10,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UnstageCommand calls the Fastly API to unstage a service version.
 type UnstageCommand struct {
 	argparser.Base
-	Input          fastly.DeactivateVersionInput
-	serviceName    argparser.OptionalServiceNameID
+	Input          fastly.DeactivateVersionInput   `kong:"-"`
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceVersion argparser.OptionalServiceVersion
+
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 }
 
-// NewUnstageCommand returns a usable command registered under the parent.
-func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageCommand {
-	var c UnstageCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("unstage", "Unstage a Fastly service version")
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UnstageCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	c.serviceVersion.Value = c.Version
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +41,7 @@ func (c *UnstageCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})

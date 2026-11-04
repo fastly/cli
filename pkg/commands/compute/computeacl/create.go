@@ -11,36 +11,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a compute ACL.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	name string
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("create", "Create a compute ACL")
-
-	// Required.
-	c.CmdClause.Flag("name", "Name of the compute ACL").Required().StringVar(&c.name)
+	NameFlag string `name:"name" required:"" help:"Name of the compute ACL"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +37,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	acl, err := computeacls.Create(context.TODO(), fc, &computeacls.CreateInput{
-		Name: &c.name,
+		Name: &c.NameFlag,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

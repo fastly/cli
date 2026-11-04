@@ -2,15 +2,19 @@ package condition
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"4d63.com/optional"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -25,55 +29,33 @@ type CreateCommand struct {
 	// Required.
 	serviceVersion argparser.OptionalServiceVersion
 
-	// Optional.
-	autoClone     argparser.OptionalAutoClone
-	conditionType argparser.OptionalString
-	name          argparser.OptionalString
-	priority      argparser.OptionalInt
-	serviceName   argparser.OptionalServiceNameID
-	statement     argparser.OptionalString
-}
+	// Optional flags
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a condition on a Fastly service version").Alias("add")
+	// Optional.
+	AutoClone     argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	ConditionType argparser.OptionalString        `name:"type" hints:"REQUEST,CACHE,RESPONSE,PREFETCH" help:"Condition type"`
+	NameFlag      argparser.OptionalString        `name:"name" short:"n" help:"Condition name"`
+	Priority      argparser.OptionalInt           `help:"Condition priority"`
+	ServiceName   argparser.OptionalServiceNameID `help:"The name of the service"`
+	Statement     argparser.OptionalString        `help:"Condition statement"`
 
 	// Required flags
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
-	// Optional flags
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("name", "Condition name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("priority", "Condition priority").Action(c.priority.Set).IntVar(&c.priority.Value)
-	c.CmdClause.Flag("statement", "Condition statement").Action(c.statement.Set).StringVar(&c.statement.Value)
-	c.CmdClause.Flag("type", "Condition type").HintOptions(ConditionTypes...).Action(c.conditionType.Set).EnumVar(&c.conditionType.Value, ConditionTypes...)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+}
 
-	return &c
+// AfterApply checks the values kong cannot check by itself, then hands the
+// parsed flags over to the fields the command reads them from.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.ConditionType.Value != "" || kongcompat.Given(ctx, "type")) && !slices.Contains([]string{"REQUEST", "CACHE", "RESPONSE", "PREFETCH"}, c.ConditionType.Value) {
+		return fmt.Errorf("enum value must be one of REQUEST,CACHE,RESPONSE,PREFETCH, got '%s'", c.ConditionType.Value)
+	}
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -81,11 +63,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -102,17 +84,17 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.statement.WasSet {
-		input.Statement = &c.statement.Value
+	if c.Statement.WasSet {
+		input.Statement = &c.Statement.Value
 	}
-	if c.conditionType.WasSet {
-		input.Type = &c.conditionType.Value
+	if c.ConditionType.WasSet {
+		input.Type = &c.ConditionType.Value
 	}
-	if c.priority.WasSet {
-		input.Priority = &c.priority.Value
+	if c.Priority.WasSet {
+		input.Priority = &c.Priority.Value
 	}
 	r, err := c.Globals.APIClient.CreateCondition(context.TODO(), &input)
 	if err != nil {
@@ -130,4 +112,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(r.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *CreateCommand) FlagOrder() []string {
+	return []string{
+		"version", "autoclone", "name", "priority", "statement", "type",
+		"service-id", "service-name",
+	}
 }

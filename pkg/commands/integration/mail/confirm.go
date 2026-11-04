@@ -8,35 +8,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ConfirmCommand calls the Fastly API to send a mailing list confirmation email.
 type ConfirmCommand struct {
 	argparser.Base
+
+	// Optional.
 	argparser.JSONOutput
 
 	// Required.
-	Address string
-}
-
-// NewConfirmCommand returns a usable command registered under the parent.
-func NewConfirmCommand(parent argparser.Registerer, g *global.Data) *ConfirmCommand {
-	c := ConfirmCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("confirm", "Send a mailing list confirmation email")
-
-	// Required.
-	c.CmdClause.Arg("address", "The mailing list address to send the confirmation email to").Required().StringVar(&c.Address)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	Address string `arg:"" required:"" help:"The mailing list address to send the confirmation email to"`
 }
 
 // Exec invokes the application logic for the command.

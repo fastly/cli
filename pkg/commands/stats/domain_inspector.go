@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -19,65 +18,39 @@ import (
 type DomainInspectorCommand struct {
 	argparser.Base
 
-	cursor      string
-	datacenters []string
-	domains     []string
-	downsample  string
-	formatFlag  string
-	from        string
-	groupBy     []string
-	jsonFlag    bool
-	limit       int
-	metrics     []string
-	regions     []string
-	serviceName argparser.OptionalServiceNameID
-	to          string
+	// Optional.
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	From        string                          `help:"Start time (RFC3339 or Unix timestamp)"`
+	To          string                          `help:"End time (RFC3339 or Unix timestamp)"`
+	Downsample  string                          `default:"" enum:"minute,hour,day," help:"Sample window (minute/hour/day)"`
+	Metrics     []string                        `name:"metric" sep:"none" help:"Metrics to retrieve (repeatable, up to 10)"`
+	Domains     []string                        `name:"domain" sep:"none" help:"Filter by domain (repeatable)"`
+	Datacenters []string                        `name:"datacenter" sep:"none" help:"Filter by POP (repeatable)"`
+	Regions     []string                        `name:"region" sep:"none" help:"Filter by region (repeatable)"`
+	GroupBy     []string                        `sep:"none" help:"Dimensions to group by (repeatable)"`
+	Limit       int                             `help:"Max entries to return"`
+	Cursor      string                          `help:"Pagination cursor from a previous response"`
+	FormatFlag  string                          `name:"format" default:"" enum:"json," hidden:"" help:"Output format (json)"`
+	JSONFlag    bool                            `name:"json" short:"j" help:"Render output as JSON"`
 }
 
-// NewDomainInspectorCommand is the "stats domain-inspector" subcommand.
-func NewDomainInspectorCommand(parent argparser.Registerer, g *global.Data) *DomainInspectorCommand {
-	var c DomainInspectorCommand
-	c.Globals = g
-
-	c.CmdClause = parent.Command("domain-inspector", "View domain metrics for a Fastly service")
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	c.CmdClause.Flag("from", "Start time (RFC3339 or Unix timestamp)").StringVar(&c.from)
-	c.CmdClause.Flag("to", "End time (RFC3339 or Unix timestamp)").StringVar(&c.to)
-	c.CmdClause.Flag("downsample", "Sample window (minute/hour/day)").EnumVar(&c.downsample, "minute", "hour", "day")
-	c.CmdClause.Flag("metric", "Metrics to retrieve (repeatable, up to 10)").StringsVar(&c.metrics)
-	c.CmdClause.Flag("domain", "Filter by domain (repeatable)").StringsVar(&c.domains)
-	c.CmdClause.Flag("datacenter", "Filter by POP (repeatable)").StringsVar(&c.datacenters)
-	c.CmdClause.Flag("region", "Filter by region (repeatable)").StringsVar(&c.regions)
-	c.CmdClause.Flag("group-by", "Dimensions to group by (repeatable)").StringsVar(&c.groupBy)
-	c.CmdClause.Flag("limit", "Max entries to return").IntVar(&c.limit)
-	c.CmdClause.Flag("cursor", "Pagination cursor from a previous response").StringVar(&c.cursor)
-	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
-	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DomainInspectorCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *DomainInspectorCommand) Exec(_ io.Reader, out io.Writer) error {
-	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+	if err := resolveJSONFormat(&c.FormatFlag, c.JSONFlag, c.Globals); err != nil {
 		return err
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -87,37 +60,37 @@ func (c *DomainInspectorCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := fastly.GetDomainMetricsInput{
 		ServiceID:   serviceID,
-		Datacenters: c.datacenters,
-		Domains:     c.domains,
-		GroupBy:     c.groupBy,
-		Metrics:     c.metrics,
-		Regions:     c.regions,
+		Datacenters: c.Datacenters,
+		Domains:     c.Domains,
+		GroupBy:     c.GroupBy,
+		Metrics:     c.Metrics,
+		Regions:     c.Regions,
 	}
-	if c.cursor != "" {
-		input.Cursor = &c.cursor
+	if c.Cursor != "" {
+		input.Cursor = &c.Cursor
 	}
-	if c.downsample != "" {
-		input.Downsample = &c.downsample
+	if c.Downsample != "" {
+		input.Downsample = &c.Downsample
 	}
-	if c.from != "" {
-		t, err := parseTime(c.from)
+	if c.From != "" {
+		t, err := parseTime(c.From)
 		if err != nil {
 			return fmt.Errorf("invalid --from value: %w", err)
 		}
 		input.Start = &t
 	}
-	if c.to != "" {
-		t, err := parseTime(c.to)
+	if c.To != "" {
+		t, err := parseTime(c.To)
 		if err != nil {
 			return fmt.Errorf("invalid --to value: %w", err)
 		}
 		input.End = &t
 	}
-	if c.limit > 0 {
-		input.Limit = &c.limit
+	if c.Limit > 0 {
+		input.Limit = &c.Limit
 	}
 
-	switch c.formatFlag {
+	switch c.FormatFlag {
 	case "json":
 		var envelope struct {
 			Status *string `json:"status"`

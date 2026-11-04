@@ -8,41 +8,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("describe", "Retrieve a single config store").Alias("get")
-
-	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
-		Name:        "metadata",
-		Short:       'm',
-		Description: "Include config store metadata",
-		Dst:         &c.metadata,
-	})
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.input.StoreID = c.StoreID
+	return nil
 }
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
+
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
 	argparser.JSONOutput
 	input    fastly.GetConfigStoreInput
-	metadata bool
+	Metadata bool `short:"m" help:"Include config store metadata"`
 }
 
 // Exec invokes the application logic for the command.
@@ -58,7 +44,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	var csm *fastly.ConfigStoreMetadata
-	if c.metadata {
+	if c.Metadata {
 		csm, err = c.Globals.APIClient.GetConfigStoreMetadata(context.TODO(), &fastly.GetConfigStoreMetadataInput{
 			StoreID: c.input.StoreID,
 		})

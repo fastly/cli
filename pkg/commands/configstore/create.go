@@ -8,38 +8,24 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("create", "Create a new config store")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "name",
-		Short:       'n',
-		Description: "Store name",
-		Dst:         &c.input.Name,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.input.Name = c.NameFlag
+	return nil
 }
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	NameFlag string `name:"name" short:"n" required:"" help:"Store name"`
+
+	// Optional.
 	argparser.JSONOutput
 	input fastly.CreateConfigStoreInput
 }

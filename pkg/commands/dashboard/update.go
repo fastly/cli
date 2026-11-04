@@ -8,35 +8,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, globals *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Update a custom dashboard")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("id", "ID of the Dashboard to update").Required().StringVar(&c.dashboardID)
-
-	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag())                                                                                                  // --json
-	c.CmdClause.Flag("name", "A human-readable name for the dashboard").Short('n').Action(c.name.Set).StringVar(&c.name.Value)        // --name
-	c.CmdClause.Flag("description", "A short description of the dashboard").Action(c.description.Set).StringVar(&c.description.Value) // --description
-
-	return &c
-}
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
+
+	// Required flags
+	DashboardID string `name:"id" required:"" help:"ID of the Dashboard to update"`
+
+	// Optional flags
 	argparser.JSONOutput
 
-	dashboardID string
-	name        argparser.OptionalString
-	description argparser.OptionalString
+	NameFlag    argparser.OptionalString `name:"name" short:"n" help:"A human-readable name for the dashboard"`
+	Description argparser.OptionalString `help:"A short description of the dashboard"`
 }
 
 // Exec invokes the application logic for the command.
@@ -63,13 +49,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput() *fastly.UpdateObservabilityCustomDashboardInput {
 	var input fastly.UpdateObservabilityCustomDashboardInput
 
-	input.ID = &c.dashboardID
+	input.ID = &c.DashboardID
 
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
 	}
 
 	return &input

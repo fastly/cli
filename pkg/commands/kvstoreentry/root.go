@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -12,18 +11,16 @@ import (
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Create   CreateCommand   `cmd:"" aliases:"insert" help:"Insert a key-value pair"`
+	Delete   DeleteCommand   `cmd:"" help:"Delete one, multiple, or all keys"`
+	Get      GetCommand      `cmd:"" help:"Get the value associated with a key"`
+	Describe DescribeCommand `cmd:"" help:"Get the associated attributes of a key"`
+	List     ListCommand     `cmd:"" help:"List keys"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "kv-store-entry"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly KV Store keys")
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {

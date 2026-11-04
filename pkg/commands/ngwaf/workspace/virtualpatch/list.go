@@ -10,36 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list virtual patches in a workspace.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	workspaceID string
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List virtual patches in a workspace")
-
-	// Required.
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	WorkspaceID string `required:"" help:"Workspace ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -54,7 +36,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := virtualpatches.List(context.TODO(), fc, &virtualpatches.ListInput{
-		WorkspaceID: &c.workspaceID,
+		WorkspaceID: &c.WorkspaceID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

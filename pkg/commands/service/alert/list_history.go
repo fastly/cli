@@ -9,48 +9,25 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
-
-// NewListHistoryCommand returns a usable command registered under the parent.
-func NewListHistoryCommand(parent argparser.Registerer, g *global.Data) *ListHistoryCommand {
-	c := ListHistoryCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("history", "List history")
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("after", "After filter history record that either started or ended after a specific date").Action(c.after.Set).StringVar(&c.after.Value)
-	c.CmdClause.Flag("before", "Before filter history record that either started or ended before a specific date").Action(c.before.Set).StringVar(&c.before.Value)
-	c.CmdClause.Flag("cursor", "Pagination cursor (Use 'next_cursor' value from list output)").Action(c.cursor.Set).StringVar(&c.cursor.Value)
-	c.CmdClause.Flag("definition-id", "Unique identifier of the definition").Action(c.definitionID.Set).StringVar(&c.definitionID.Value)
-	c.CmdClause.Flag("limit", "Maximum number of items to list").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("order", "Sort by one of the following [asc, desc]").Action(c.order.Set).StringVar(&c.order.Value)
-	c.CmdClause.Flag("sort", "Sort by one of the following [start]").Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value) // --service-id
-	c.CmdClause.Flag("status", "Status of the history record [active, resolved]").Action(c.status.Set).StringVar(&c.status.Value)
-
-	return &c
-}
 
 // ListHistoryCommand calls the Fastly API to list appropriate resources.
 type ListHistoryCommand struct {
 	argparser.Base
+
+	// Optional.
 	argparser.JSONOutput
+	After  argparser.OptionalString `help:"After filter history record that either started or ended after a specific date"`
+	Before argparser.OptionalString `help:"Before filter history record that either started or ended before a specific date"`
 
-	cursor argparser.OptionalString
-	limit  argparser.OptionalInt
-	sort   argparser.OptionalString
-	order  argparser.OptionalString
+	Cursor       argparser.OptionalString `help:"Pagination cursor (Use 'next_cursor' value from list output)"`
+	DefinitionID argparser.OptionalString `help:"Unique identifier of the definition"`
+	Limit        argparser.OptionalInt    `help:"Maximum number of items to list"`
+	Order        argparser.OptionalString `help:"Sort by one of the following [asc, desc]"`
+	Sort         argparser.OptionalString `help:"Sort by one of the following [start]"`
+	ServiceID    argparser.OptionalString `help:"ServiceID of the definition"`
 
-	status       argparser.OptionalString
-	before       argparser.OptionalString
-	after        argparser.OptionalString
-	definitionID argparser.OptionalString
-	serviceID    argparser.OptionalString
+	Status argparser.OptionalString `help:"Status of the history record [active, resolved]"`
 }
 
 // Exec invokes the application logic for the command.
@@ -106,45 +83,45 @@ func (c *ListHistoryCommand) Exec(in io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *ListHistoryCommand) constructInput() (*fastly.ListAlertHistoryInput, error) {
 	input := fastly.ListAlertHistoryInput{}
-	if c.cursor.WasSet {
-		input.Cursor = &c.cursor.Value
+	if c.Cursor.WasSet {
+		input.Cursor = &c.Cursor.Value
 	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
+	if c.Limit.WasSet {
+		input.Limit = &c.Limit.Value
 	}
 	var sign string
 	var err error
-	if c.order.WasSet {
-		sign, err = argparser.ConvertOrderFromStringFlag(c.order.Value, "order")
+	if c.Order.WasSet {
+		sign, err = argparser.ConvertOrderFromStringFlag(c.Order.Value, "order")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return nil, err
 		}
 	}
 
-	if c.sort.WasSet {
-		str := sign + c.sort.Value
+	if c.Sort.WasSet {
+		str := sign + c.Sort.Value
 		input.Sort = &str
 	}
 
-	if c.serviceID.WasSet {
-		input.ServiceID = &c.serviceID.Value
+	if c.ServiceID.WasSet {
+		input.ServiceID = &c.ServiceID.Value
 	}
 
-	if c.definitionID.WasSet {
-		input.DefinitionID = &c.definitionID.Value
+	if c.DefinitionID.WasSet {
+		input.DefinitionID = &c.DefinitionID.Value
 	}
 
-	if c.status.WasSet {
-		input.Status = &c.status.Value
+	if c.Status.WasSet {
+		input.Status = &c.Status.Value
 	}
 
-	if c.before.WasSet {
-		input.Before = &c.before.Value
+	if c.Before.WasSet {
+		input.Before = &c.Before.Value
 	}
 
-	if c.after.WasSet {
-		input.After = &c.after.Value
+	if c.After.WasSet {
+		input.After = &c.After.Value
 	}
 
 	return &input, nil

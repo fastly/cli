@@ -10,9 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,95 +18,53 @@ import (
 // UpdateCommand calls the Fastly API to update an HTTPS logging endpoint.
 type UpdateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	EndpointName   string // Can't shadow argparser.Base method Name().
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	EndpointName   string                           `name:"name" short:"n" required:"" help:"The name of the HTTPS logging object"` // Can't shadow argparser.Base method Name().
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	CompressionCodec  argparser.OptionalString
-	ContentType       argparser.OptionalString
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
-	HeaderName        argparser.OptionalString
-	HeaderValue       argparser.OptionalString
-	JSONFormat        argparser.OptionalString
-	MessageType       argparser.OptionalString
-	Method            argparser.OptionalString
-	NewName           argparser.OptionalString
-	Period            argparser.OptionalInt
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	RequestMaxBytes   argparser.OptionalInt
-	RequestMaxEntries argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
-	TLSCACert         argparser.OptionalString
-	TLSClientCert     argparser.OptionalString
-	TLSClientKey      argparser.OptionalString
-	TLSHostname       argparser.OptionalString
-	URL               argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	CompressionCodec  argparser.OptionalString    `kong:"-"`
+	ContentType       argparser.OptionalString    `help:"Content type of the header sent with the request"`
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	GzipLevel         argparser.OptionalInt       `kong:"-"`
+	HeaderName        argparser.OptionalString    `help:"Name of the custom header sent with the request"`
+	HeaderValue       argparser.OptionalString    `help:"Value of the custom header sent with the request"`
+	JSONFormat        argparser.OptionalString    `help:"Enforces valid JSON formatting for log entries. Can be disabled 0, array of json (wraps JSON log batches in an array) 1, or newline delimited json (places each JSON log entry onto a new line in a batch) 2"`
+	MessageType       argparser.OptionalString    `help:"How the message should be formatted. One of: classic (default), loggly, logplex or blank"`
+	Method            argparser.OptionalString    `help:"HTTP method used for request. Can be POST or PUT. Defaults to POST if not specified"`
+	NewName           argparser.OptionalString    `help:"New name of the HTTPS logging object"`
+	Period            argparser.OptionalInt       `help:"How frequently log files are finalized so they can be available for reading (in seconds, default 3600)"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to HTTPS. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	RequestMaxBytes   argparser.OptionalInt       `help:"Maximum size of log batch, if non-zero. Defaults to 100MB"`
+	RequestMaxEntries argparser.OptionalInt       `help:"Maximum number of logs to append to a batch, if non-zero. Defaults to 10k"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	TLSCACert         argparser.OptionalString    `name:"tls-ca-cert" help:"A secure certificate to authenticate the server with. Must be in PEM format"`
+	TLSClientCert     argparser.OptionalString    `help:"The client certificate used to make authenticated requests. Must be in PEM format"`
+	TLSClientKey      argparser.OptionalString    `help:"The client private key used to make authenticated requests. Must be in PEM format"`
+	TLSHostname       argparser.OptionalString    `help:"Used during the TLS handshake to validate the certificate"`
+	URL               argparser.OptionalString    `help:"URL that log data will be sent to. Must use the https protocol"`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update an HTTPS logging endpoint on a Fastly service version")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the HTTPS logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
-	c.CmdClause.Flag("header-value", "Value of the custom header sent with the request").Action(c.HeaderValue.Set).StringVar(&c.HeaderValue.Value)
-	c.CmdClause.Flag("json-format", "Enforces valid JSON formatting for log entries. Can be disabled 0, array of json (wraps JSON log batches in an array) 1, or newline delimited json (places each JSON log entry onto a new line in a batch) 2").Action(c.JSONFormat.Set).StringVar(&c.JSONFormat.Value)
-	logflags.MessageType(c.CmdClause, &c.MessageType)
-	c.CmdClause.Flag("method", "HTTP method used for request. Can be POST or PUT. Defaults to POST if not specified").Action(c.Method.Set).StringVar(&c.Method.Value)
-	c.CmdClause.Flag("new-name", "New name of the HTTPS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	logflags.Period(c.CmdClause, &c.Period)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "HTTPS")
-	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
-	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
-	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
-	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Action(c.URL.Set).StringVar(&c.URL.Value)
-	return &c
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -247,4 +203,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(https.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *UpdateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "autoclone", "content-type", "format",
+		"format-version", "header-name", "header-value", "json-format",
+		"message-type", "method", "new-name", "period", "placement",
+		"processing-region", "request-max-bytes", "request-max-entries",
+		"response-condition", "service-id", "service-name", "tls-ca-cert",
+		"tls-client-cert", "tls-client-key", "tls-hostname", "url",
+	}
 }

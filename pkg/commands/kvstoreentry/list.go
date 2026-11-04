@@ -9,18 +9,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list the keys for a given kv store.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	consistency string
-	prefix      string
-	Input       fastly.ListKVStoreKeysInput
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	Consistency string `default:"strong" enum:"eventual,strong" hints:"eventual,strong" help:"Determines accuracy of results. i.e. 'eventual' uses caching to improve performance"`
+	Prefix      string `help:"Restrict results to items whose keys match this prefix"`
+	argparser.JSONOutput
+	Input fastly.ListKVStoreKeysInput `kong:"-"`
 }
 
 // ConsistencyOptions is a list of allowed consistency values.
@@ -29,24 +32,11 @@ var ConsistencyOptions = []string{
 	"strong",
 }
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List keys")
-
-	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
-
-	// Optional.
-	c.CmdClause.Flag("consistency", "Determines accuracy of results. i.e. 'eventual' uses caching to improve performance").Default("strong").HintOptions(ConsistencyOptions...).EnumVar(&c.consistency, ConsistencyOptions...)
-	c.CmdClause.Flag("prefix", "Restrict results to items whose keys match this prefix").StringVar(&c.prefix)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -78,15 +68,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		spinner.Message(msg + "... (this can take a few minutes depending on the number of entries)")
 	}
 
-	switch c.consistency {
+	switch c.Consistency {
 	case "eventual":
 		c.Input.Consistency = fastly.ConsistencyEventual
 	case "strong":
 		c.Input.Consistency = fastly.ConsistencyStrong
 	}
 
-	if c.prefix != "" {
-		c.Input.Prefix = c.prefix
+	if c.Prefix != "" {
+		c.Input.Prefix = c.Prefix
 	}
 
 	for {

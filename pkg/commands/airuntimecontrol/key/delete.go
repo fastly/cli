@@ -10,35 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a virtual key.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	keyID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a virtual key and any associated security configuration").Alias("remove")
-
-	// Required.
-	c.CmdClause.Flag("key-id", "Alphanumeric string identifying the virtual key").Required().StringVar(&c.keyID)
+	KeyID string `required:"" help:"Alphanumeric string identifying the virtual key"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -53,7 +36,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := key.Delete(context.TODO(), fc, &key.DeleteInput{
-		KeyID: &c.keyID,
+		KeyID: &c.KeyID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -65,13 +48,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.keyID,
+			c.KeyID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted virtual key (key-id: %s)", c.keyID)
+	text.Success(out, "Deleted virtual key (key-id: %s)", c.KeyID)
 	return nil
 }

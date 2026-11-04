@@ -14,7 +14,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -45,50 +44,30 @@ func mustDecode(s string) []byte {
 	return b
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("create", "Create a new secret within specified store")
-
-	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))           // --name
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlag(secretFileFlag(&c.secretFile)) // --file
-	c.RegisterFlagBool(c.JSONFlag())              // --json
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
-		Name:        "recreate",
-		Description: "Recreate secret by name (errors if secret doesn't already exist)",
-		Dst:         &c.recreate,
-		Required:    false,
-	})
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
-		Name:        "recreate-allow",
-		Description: "Create or recreate secret by name",
-		Dst:         &c.recreateAllow,
-		Required:    false,
-	})
-	c.RegisterFlagBool(secretStdinFlag(&c.secretSTDIN)) // --stdin
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.Input.Name = c.NameFlag
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	NameFlag string `name:"name" short:"n" required:"" help:"Secret name"`
+	StoreID  string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	SecretFile string `name:"file" short:"f" help:"Read secret value from file instead of prompt"`
 	argparser.JSONOutput
 
-	Input         fastly.CreateSecretInput
-	recreate      bool
-	recreateAllow bool
-	secretFile    string
-	secretSTDIN   bool
+	Input         fastly.CreateSecretInput `kong:"-"`
+	Recreate      bool                     `help:"Recreate secret by name (errors if secret doesn't already exist)"`
+	RecreateAllow bool                     `help:"Create or recreate secret by name"`
+	SecretSTDIN   bool                     `name:"stdin" help:"Read secret value from STDIN instead of prompt"`
 }
 
 var errMultipleSecretValue = fsterr.RemediationError{
@@ -106,25 +85,25 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if c.secretFile != "" && c.secretSTDIN {
+	if c.SecretFile != "" && c.SecretSTDIN {
 		return errMultipleSecretValue
 	}
 
 	switch {
-	case c.recreate && c.recreateAllow:
+	case c.Recreate && c.RecreateAllow:
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("invalid flag combination, --recreate and --recreate-allow"),
 			Remediation: "Use either --recreate or --recreate-allow, not both.",
 		}
-	case c.recreate:
+	case c.Recreate:
 		c.Input.Method = http.MethodPatch
-	case c.recreateAllow:
+	case c.RecreateAllow:
 		c.Input.Method = http.MethodPut
 	}
 
 	// Read secret's value: either from STDIN, a file, or prompt.
 	switch {
-	case c.secretSTDIN:
+	case c.SecretSTDIN:
 		// Determine if 'in' has data available.
 		if in == nil || text.IsTTY(in) {
 			return fsterr.ErrNoSTDINData
@@ -135,10 +114,10 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		c.Input.Secret = buf.Bytes()
 
-	case c.secretFile != "":
+	case c.SecretFile != "":
 		var err error
 		// nosemgrep: trailofbits.go.questionable-assignment.questionable-assignment
-		if c.Input.Secret, err = os.ReadFile(c.secretFile); err != nil {
+		if c.Input.Secret, err = os.ReadFile(c.SecretFile); err != nil {
 			return err
 		}
 

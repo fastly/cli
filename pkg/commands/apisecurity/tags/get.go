@@ -10,48 +10,30 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to get an operation tag.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	tagID       string
-	serviceName argparser.OptionalServiceNameID
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("get", "Get an operation tag")
-
-	// Required.
-	c.CmdClause.Flag("tag-id", "Tag ID").Required().StringVar(&c.tagID)
+	TagID string `required:"" help:"Tag ID"`
 
 	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlagBool(c.JSONFlag())
+	ServiceID   *string                         `help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 
-	return &c
+	argparser.JSONOutput
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *GetCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -60,7 +42,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -79,7 +61,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	tag, err := operations.DescribeTag(context.TODO(), fc, &operations.DescribeTagInput{
 		ServiceID: &serviceID,
-		TagID:     &c.tagID,
+		TagID:     &c.TagID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

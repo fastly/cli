@@ -8,41 +8,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a Slack notification integration.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	IntegrationName string `name:"name" short:"n" required:"" help:"The name of the integration"`
+	Webhook         string `required:"" help:"The Slack incoming webhook URL"`
+
+	// Optional.
+	Description argparser.OptionalString `help:"A description of the integration"`
+
 	argparser.JSONOutput
-
-	// Required.
-	IntegrationName string
-	Webhook         string
-
-	// Optional.
-	Description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Slack notification integration").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the integration").Short('n').Required().StringVar(&c.IntegrationName)
-	c.CmdClause.Flag("webhook", "The Slack incoming webhook URL").Required().StringVar(&c.Webhook)
-
-	// Optional.
-	c.CmdClause.Flag("description", "A description of the integration").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

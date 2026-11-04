@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -12,18 +11,13 @@ import (
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Get    GetCommand    `cmd:"" help:"Retrieve the current Image Optimizer default settings"`
+	Update UpdateCommand `cmd:"" help:"Update Image Optimizer default settings for a service"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "imageoptimizer"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service Image Optimizer default settings")
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {

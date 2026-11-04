@@ -8,7 +8,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -16,42 +15,26 @@ import (
 type UpdateCommand struct {
 	argparser.Base
 
-	comment     argparser.OptionalString
+	// Optional.
+	Comment     argparser.OptionalString `help:"Human-readable comment"`
 	input       fastly.UpdateServiceInput
-	name        argparser.OptionalString
-	serviceName argparser.OptionalServiceNameID
+	NameFlag    argparser.OptionalString        `name:"name" short:"n" help:"Service name"`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update a Fastly service")
-
-	// Optional.
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -61,23 +44,23 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.input.ServiceID = serviceID
 
-	if !c.name.WasSet && !c.comment.WasSet {
+	if !c.NameFlag.WasSet && !c.Comment.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide either --name or --comment to update service")
 	}
 
-	if c.name.WasSet {
-		c.input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		c.input.Name = &c.NameFlag.Value
 	}
-	if c.comment.WasSet {
-		c.input.Comment = &c.comment.Value
+	if c.Comment.WasSet {
+		c.input.Comment = &c.Comment.Value
 	}
 
 	s, err := c.Globals.APIClient.UpdateService(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":   serviceID,
-			"Service Name": c.name.Value,
-			"Comment":      c.comment.Value,
+			"Service Name": c.NameFlag.Value,
+			"Comment":      c.Comment.Value,
 		})
 		return err
 	}

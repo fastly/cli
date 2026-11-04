@@ -10,60 +10,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a workspace threshold.
 type UpdateCommand struct {
 	argparser.Base
+
+	// Required.
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	ThresholdID string                        `required:"" help:"Threshold ID"`
+
+	// Optional.
+	Action      argparser.OptionalString `help:"The action to take when the threshold is exceeded. [block, log]"`
+	DontNotify  argparser.OptionalString `name:"do-not-notify" help:"Whether to silence notifications when action is taken. [true, false]"`
+	Duration    argparser.OptionalInt    `help:"The duration the action is in place in seconds. Default duration is 86,400 seconds (1 day)."`
+	EnabledFlag argparser.OptionalString `name:"enabled" help:"Whether the threshold is active. [true, false]"`
+	Interval    argparser.OptionalInt    `help:"The threshold interval in seconds. The default interval is 3600 seconds (1 hour)."`
+	Limit       argparser.OptionalInt    `help:"The threshold limit. Input must be between 1 and 10000. Default limit is 10."`
+	NameFlag    argparser.OptionalString `name:"name" help:"User submitted display name of a signal threshold. Input must be between 3 and 50 characters"`
+	Signal      argparser.OptionalString `help:"The name of the signal this threshold is acting on"`
+
 	argparser.JSONOutput
-
-	// Required.
-	thresholdID string
-	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-	action     argparser.OptionalString
-	dontNotify argparser.OptionalString
-	duration   argparser.OptionalInt
-	enabled    argparser.OptionalString
-	interval   argparser.OptionalInt
-	limit      argparser.OptionalInt
-	name       argparser.OptionalString
-	signal     argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a workspace threshold")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
-	c.CmdClause.Flag("threshold-id", "Threshold ID").Required().StringVar(&c.thresholdID)
-
-	// Optional.
-	c.CmdClause.Flag("action", "The action to take when the threshold is exceeded. [block, log]").Action(c.action.Set).StringVar(&c.action.Value)
-	c.CmdClause.Flag("do-not-notify", "Whether to silence notifications when action is taken. [true, false]").Action(c.dontNotify.Set).StringVar(&c.dontNotify.Value)
-	c.CmdClause.Flag("duration", "The duration the action is in place in seconds. Default duration is 86,400 seconds (1 day).").Action(c.duration.Set).IntVar(&c.duration.Value)
-	c.CmdClause.Flag("enabled", "Whether the threshold is active. [true, false]").Action(c.enabled.Set).StringVar(&c.enabled.Value)
-	c.CmdClause.Flag("interval", "The threshold interval in seconds. The default interval is 3600 seconds (1 hour).").Action(c.interval.Set).IntVar(&c.interval.Value)
-	c.CmdClause.Flag("limit", "The threshold limit. Input must be between 1 and 10000. Default limit is 10.").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("name", "User submitted display name of a signal threshold. Input must be between 3 and 50 characters").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("signal", "The name of the signal this threshold is acting on").Action(c.signal.Set).StringVar(&c.signal.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -73,46 +41,46 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 	input := &thresholds.UpdateInput{
-		ThresholdID: &c.thresholdID,
-		WorkspaceID: &c.workspaceID.Value,
+		ThresholdID: &c.ThresholdID,
+		WorkspaceID: &c.WorkspaceID.Value,
 	}
-	if c.action.WasSet {
-		input.Action = &c.action.Value
+	if c.Action.WasSet {
+		input.Action = &c.Action.Value
 	}
-	if c.dontNotify.WasSet {
-		dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value, "do-not-notify")
+	if c.DontNotify.WasSet {
+		dontNotify, err := argparser.ConvertBoolFromStringFlag(c.DontNotify.Value, "do-not-notify")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		input.DontNotify = dontNotify
 	}
-	if c.duration.WasSet {
-		input.Duration = &c.duration.Value
+	if c.Duration.WasSet {
+		input.Duration = &c.Duration.Value
 	}
-	if c.enabled.WasSet {
-		enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value, "enabled")
+	if c.EnabledFlag.WasSet {
+		enabled, err := argparser.ConvertBoolFromStringFlag(c.EnabledFlag.Value, "enabled")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		input.Enabled = enabled
 	}
-	if c.interval.WasSet {
-		input.Interval = &c.interval.Value
+	if c.Interval.WasSet {
+		input.Interval = &c.Interval.Value
 	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
+	if c.Limit.WasSet {
+		input.Limit = &c.Limit.Value
 	}
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.signal.WasSet {
-		input.Signal = &c.signal.Value
+	if c.Signal.WasSet {
+		input.Signal = &c.Signal.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -129,6 +97,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated threshold '%s' for workspace '%s'", data.ThresholdID, c.workspaceID.Value)
+	text.Success(out, "Updated threshold '%s' for workspace '%s'", data.ThresholdID, c.WorkspaceID.Value)
 	return nil
 }

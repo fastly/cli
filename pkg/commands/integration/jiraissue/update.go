@@ -8,51 +8,26 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a Jira Issue notification integration.
 type UpdateCommand struct {
 	argparser.Base
+
+	// Required.
+	ID string `arg:"" required:"" help:"Integration ID"`
+
+	// Optional.
+	BaseURL         argparser.OptionalString `help:"The base URL of the Jira instance"`
+	Username        argparser.OptionalString `help:"The Jira username (email address) used to authenticate"`
+	APIToken        argparser.OptionalString `help:"The Jira API token"`
+	ProjectKey      argparser.OptionalString `help:"The key of the Jira project where issues will be created"`
+	IssueType       argparser.OptionalString `help:"The type of Jira issue to create"`
+	IntegrationName argparser.OptionalString `name:"name" short:"n" help:"The name of the integration"`
+	Description     argparser.OptionalString `help:"A description of the integration"`
+
 	argparser.JSONOutput
-
-	// Required.
-	ID string
-
-	// Optional.
-	BaseURL         argparser.OptionalString
-	Username        argparser.OptionalString
-	APIToken        argparser.OptionalString
-	ProjectKey      argparser.OptionalString
-	IssueType       argparser.OptionalString
-	IntegrationName argparser.OptionalString
-	Description     argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a Jira Issue notification integration")
-
-	// Required.
-	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
-
-	// Optional.
-	c.CmdClause.Flag("base-url", "The base URL of the Jira instance").Action(c.BaseURL.Set).StringVar(&c.BaseURL.Value)
-	c.CmdClause.Flag("username", "The Jira username (email address) used to authenticate").Action(c.Username.Set).StringVar(&c.Username.Value)
-	c.CmdClause.Flag("api-token", "The Jira API token").Action(c.APIToken.Set).StringVar(&c.APIToken.Value)
-	c.CmdClause.Flag("project-key", "The key of the Jira project where issues will be created").Action(c.ProjectKey.Set).StringVar(&c.ProjectKey.Value)
-	c.CmdClause.Flag("issue-type", "The type of Jira issue to create").Action(c.IssueType.Set).StringVar(&c.IssueType.Value)
-	c.CmdClause.Flag("name", "The name of the integration").Short('n').Action(c.IntegrationName.Set).StringVar(&c.IntegrationName.Value)
-	c.CmdClause.Flag("description", "A description of the integration").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

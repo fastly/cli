@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/kingpin"
-
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/commands"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -28,8 +28,8 @@ func isAuthRelated(name string) bool {
 }
 
 func TestDefineDisableAuthCommand(t *testing.T) {
-	newApp := func(stdout *bytes.Buffer) *kingpin.Application {
-		app := kingpin.New("fastly", "test")
+	newApp := func(stdout *bytes.Buffer) *kongcompat.Application {
+		app := kongcompat.New(&commands.CLI{Flags: new(global.Flags)}, "fastly", "test", commands.Conditional(), kongcompat.HelpShortFlag('h'))
 		app.Writers(stdout, io.Discard)
 		app.Terminate(nil)
 		return app
@@ -38,7 +38,9 @@ func TestDefineDisableAuthCommand(t *testing.T) {
 	t.Run("auth-related commands present by default", func(t *testing.T) {
 		var stdout bytes.Buffer
 		data := testutil.MockGlobalData([]string{"fastly"}, &stdout)
-		cmds := commands.Define(newApp(&stdout), data)
+		app := newApp(&stdout)
+		app.Bind(data)
+		cmds := commands.Define(app, data)
 
 		for _, want := range authCommandPrefixes {
 			found := false
@@ -59,7 +61,9 @@ func TestDefineDisableAuthCommand(t *testing.T) {
 
 		var stdout bytes.Buffer
 		data := testutil.MockGlobalData([]string{"fastly"}, &stdout)
-		cmds := commands.Define(newApp(&stdout), data)
+		app := newApp(&stdout)
+		app.Bind(data)
+		cmds := commands.Define(app, data)
 
 		for _, cmd := range cmds {
 			if isAuthRelated(cmd.Name()) {

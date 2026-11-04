@@ -7,51 +7,37 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a dictionary item.
 type CreateCommand struct {
 	argparser.Base
-	Input              fastly.CreateDictionaryItemInput
-	itemKey, itemValue string
-	serviceName        argparser.OptionalServiceNameID
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a new item on a Fastly edge dictionary")
+	Input fastly.CreateDictionaryItemInput `kong:"-"`
 
 	// Required.
-	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
-	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.itemKey)
-	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.itemValue)
+	DictionaryID string `required:"" help:"Dictionary ID"`
+	ItemKey      string `name:"key" required:"" help:"Dictionary item key"`
+	ItemValue    string `name:"value" required:"" help:"Dictionary item value"`
 
 	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.Input.DictionaryID = c.DictionaryID
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -59,8 +45,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.ItemKey = &c.itemKey
-	c.Input.ItemValue = &c.itemValue
+	c.Input.ItemKey = &c.ItemKey
+	c.Input.ItemValue = &c.ItemValue
 	c.Input.ServiceID = serviceID
 	_, err = c.Globals.APIClient.CreateDictionaryItem(context.TODO(), &c.Input)
 	if err != nil {

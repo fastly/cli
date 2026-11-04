@@ -10,35 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to describe an audit log event mapping.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	id string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Retrieve a single audit log event mapping").Alias("get")
-
-	// Required.
-	c.CmdClause.Flag("id", "The unique identifier of the event mapping").Required().StringVar(&c.id)
+	ID string `required:"" help:"The unique identifier of the event mapping"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -53,11 +36,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	em, err := eventmappings.Get(context.TODO(), fc, &eventmappings.GetInput{
-		MappingID: &c.id,
+		MappingID: &c.ID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Mapping ID": c.id,
+			"Mapping ID": c.ID,
 		})
 		return err
 	}

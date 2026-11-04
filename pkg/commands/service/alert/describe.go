@@ -8,34 +8,17 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("describe", "Describe Alert")
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying an Alert definition").Required().StringVar(&c.definitionID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
 
 // DescribeCommand calls the Fastly API to describe appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	definitionID string
+	// Required.
+	DefinitionID string `name:"id" required:"" help:"Alphanumeric string identifying an Alert definition"`
+
+	// Optional.
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -66,7 +49,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *DescribeCommand) constructInput() *fastly.GetAlertDefinitionInput {
 	input := fastly.GetAlertDefinitionInput{
-		ID: &c.definitionID,
+		ID: &c.DefinitionID,
 	}
 	return &input
 }

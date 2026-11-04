@@ -10,41 +10,21 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create account-level wildcard lists.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	Entries  string `required:"" help:"Entries for the list. Can either be a comma separated list or a path to a file."`
+	NameFlag string `name:"name" required:"" help:"User submitted display name of a list."`
+
+	// Optional.
+	Description argparser.OptionalString `help:"User submitted description of the list."`
+
 	argparser.JSONOutput
-
-	// Required.
-	entries string
-	name    string
-
-	// Optional.
-	description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create an account-level wildcard list").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("entries", "Entries for the list. Can either be a comma separated list or a path to a file.").Required().StringVar(&c.entries)
-	c.CmdClause.Flag("name", "User submitted display name of a list.").Required().StringVar(&c.name)
-
-	// Optional.
-	c.CmdClause.Flag("description", "User submitted description of the list.").Action(c.description.Set).StringVar(&c.description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -54,9 +34,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	input := ngwaflist.ListCreateInput{
 		CommandScope: scope.ScopeTypeAccount,
-		Description:  c.description,
-		Entries:      c.entries,
-		Name:         c.name,
+		Description:  c.Description,
+		Entries:      c.Entries,
+		Name:         c.NameFlag,
 		Type:         "wildcard",
 		WorkspaceID:  nil,
 	}

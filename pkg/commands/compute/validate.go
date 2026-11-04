@@ -12,24 +12,13 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCommand {
-	var c ValidateCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("validate", "Validate a Compute package")
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.path)
-	c.CmdClause.Flag("env", "The manifest environment config to validate (e.g. 'stage' will attempt to read 'fastly.stage.toml' inside the package)").StringVar(&c.env)
-	return &c
-}
-
 // Exec implements the command interface.
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
-	packagePath := c.path
+	packagePath := c.Path
 	if packagePath == "" {
 		if err := c.Globals.Manifest.File.ReadError(); err != nil {
 			err = packageFlagManifestError(err)
@@ -46,13 +35,13 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	p, err := filepath.Abs(packagePath)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path": c.path,
+			"Path": c.Path,
 		})
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
-	if c.env != "" {
-		manifestFilename := fmt.Sprintf("fastly.%s.toml", c.env)
+	if c.Env != "" {
+		manifestFilename := fmt.Sprintf("fastly.%s.toml", c.Env)
 		if c.Globals.Verbose() {
 			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
 		}
@@ -60,7 +49,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if err := validatePackageContent(p); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path": c.path,
+			"Path": c.Path,
 		})
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
@@ -75,8 +64,8 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 // ValidateCommand validates a package archive.
 type ValidateCommand struct {
 	argparser.Base
-	env  string
-	path string
+	Path string `name:"package" short:"p" help:"Path to a package tar.gz"`
+	Env  string `help:"The manifest environment config to validate (e.g. 'stage' will attempt to read 'fastly.stage.toml' inside the package)"`
 }
 
 // validatePackageContent is a utility function to determine whether a package

@@ -2,59 +2,54 @@ package item
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, globals *global.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a custom dashboard item").Alias("add")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard to contain the item").Required().StringVar(&c.dashboardID)
-	c.CmdClause.Flag("title", "A human-readable title for the dashboard item").Required().StringVar(&c.title)
-	c.CmdClause.Flag("subtitle", "A human-readable subtitle for the dashboard item. Often a description of the visualization").Required().StringVar(&c.subtitle)
-	c.CmdClause.Flag("source-type", "The source of the data to display").Required().HintOptions(sourceTypes...).EnumVar(&c.sourceType, sourceTypes...)
-	c.CmdClause.Flag("metric", "The metrics to visualize. Valid options depend on the selected data source. Set flag multiple times to include multiple metrics").Required().StringsVar(&c.metrics)
-	c.CmdClause.Flag("plot-type", "The type of chart to display").Required().HintOptions(plotTypes...).EnumVar(&c.plotType, plotTypes...)
-
-	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("visualization-type", `The type of visualization to display. Currently, only "chart" is supported`).Default("chart").HintOptions(visualizationTypes...).EnumVar(&c.vizType, visualizationTypes...)
-	c.CmdClause.Flag("calculation-method", "The aggregation function to apply to the dataset").Action(c.calculationMethod.Set).HintOptions(calculationMethods...).EnumVar(&c.calculationMethod.Value, calculationMethods...) // --calculation-method
-	c.CmdClause.Flag("format", "The units to use to format the data").Action(c.format.Set).HintOptions(formats...).EnumVar(&c.format.Value, formats...)                                                                      // --format
-	c.CmdClause.Flag("span", `The number of columns for the dashboard item to span. Dashboards are rendered on a 12-column grid on "desktop" screen sizes`).Default("4").Uint8Var(&c.span)
-
-	return &c
+// AfterApply checks the values kong cannot check by itself.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.CalculationMethod.Value != "" || kongcompat.Given(ctx, "calculation-method")) && !slices.Contains([]string{"avg", "sum", "min", "max", "latest", "p95"}, c.CalculationMethod.Value) {
+		return fmt.Errorf("enum value must be one of avg,sum,min,max,latest,p95, got '%s'", c.CalculationMethod.Value)
+	}
+	if (c.Format.Value != "" || kongcompat.Given(ctx, "format")) && !slices.Contains([]string{"number", "bytes", "percent", "requests", "responses", "seconds", "milliseconds", "ratio", "bitrate"}, c.Format.Value) {
+		return fmt.Errorf("enum value must be one of number,bytes,percent,requests,responses,seconds,milliseconds,ratio,bitrate, got '%s'", c.Format.Value)
+	}
+	return nil
 }
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
+
+	// Required flags
 
 	// required
-	dashboardID string
-	title       string
-	subtitle    string
-	sourceType  string
-	metrics     []string
-	plotType    string
+	DashboardID string   `required:"" help:"ID of the Dashboard to contain the item"`
+	Title       string   `required:"" help:"A human-readable title for the dashboard item"`
+	Subtitle    string   `required:"" help:"A human-readable subtitle for the dashboard item. Often a description of the visualization"`
+	SourceType  string   `required:"" enum:"stats.domain,stats.edge,stats.origin" hints:"stats.domain,stats.edge,stats.origin" help:"The source of the data to display"`
+	Metrics     []string `name:"metric" required:"" sep:"none" help:"The metrics to visualize. Valid options depend on the selected data source. Set flag multiple times to include multiple metrics"`
+	PlotType    string   `required:"" enum:"bar,donut,line,single-metric" hints:"bar,donut,line,single-metric" help:"The type of chart to display"`
+
+	// Optional flags
+	argparser.JSONOutput
 
 	// optional
-	vizType           string
-	calculationMethod argparser.OptionalString
-	format            argparser.OptionalString
-	span              uint8
+	VizType           string                   `name:"visualization-type" default:"chart" enum:"chart" hints:"chart" help:"The type of visualization to display. Currently, only \"chart\" is supported"`
+	CalculationMethod argparser.OptionalString `hints:"avg,sum,min,max,latest,p95" help:"The aggregation function to apply to the dataset"`
+	Format            argparser.OptionalString `hints:"number,bytes,percent,requests,responses,seconds,milliseconds,ratio,bitrate" help:"The units to use to format the data"`
+	Span              uint8                    `default:"4" help:"The number of columns for the dashboard item to span. Dashboards are rendered on a 12-column grid on \"desktop\" screen sizes"`
 }
 
 // Exec invokes the application logic for the command.
@@ -63,7 +58,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
+	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.DashboardID})
 	if err != nil {
 		return err
 	}
@@ -93,27 +88,27 @@ func (c *CreateCommand) constructInput(d *fastly.ObservabilityCustomDashboard) *
 		Items:       &d.Items,
 	}
 	item := fastly.DashboardItem{
-		Title:    c.title,
-		Subtitle: c.subtitle,
-		Span:     c.span,
+		Title:    c.Title,
+		Subtitle: c.Subtitle,
+		Span:     c.Span,
 		DataSource: fastly.DashboardDataSource{
-			Type: fastly.DashboardSourceType(c.sourceType),
+			Type: fastly.DashboardSourceType(c.SourceType),
 			Config: fastly.DashboardSourceConfig{
-				Metrics: c.metrics,
+				Metrics: c.Metrics,
 			},
 		},
 		Visualization: fastly.DashboardVisualization{
-			Type: fastly.VisualizationType(c.vizType),
+			Type: fastly.VisualizationType(c.VizType),
 			Config: fastly.VisualizationConfig{
-				PlotType: fastly.PlotType(c.plotType),
+				PlotType: fastly.PlotType(c.PlotType),
 			},
 		},
 	}
-	if c.calculationMethod.WasSet {
-		item.Visualization.Config.CalculationMethod = new(fastly.CalculationMethod(c.calculationMethod.Value))
+	if c.CalculationMethod.WasSet {
+		item.Visualization.Config.CalculationMethod = new(fastly.CalculationMethod(c.CalculationMethod.Value))
 	}
-	if c.format.WasSet {
-		item.Visualization.Config.Format = new(fastly.VisualizationFormat(c.format.Value))
+	if c.Format.WasSet {
+		item.Visualization.Config.Format = new(fastly.VisualizationFormat(c.Format.Value))
 	}
 
 	*input.Items = append(*input.Items, item)

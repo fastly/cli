@@ -11,35 +11,17 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // GetDomainStatusCommand calls the Fastly API to check the availability of a domain name.
 type GetDomainStatusCommand struct {
 	argparser.Base
+	// Optional.
 	argparser.JSONOutput
 	// Required.
-	domain string
+	Domain string `arg:"" required:"" help:"Domain name to check"`
 	// Optional.
-	scope argparser.OptionalString
-}
-
-// NewDomainStatusCommand returns a usable DomainStatusCommand registered under the parent.
-func NewDomainStatusCommand(parent argparser.Registerer, g *global.Data) *GetDomainStatusCommand {
-	cmd := GetDomainStatusCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	cmd.CmdClause = parent.Command("status", "Check domain name availability")
-	// Required.
-	cmd.CmdClause.Arg("domain", "Domain name to check").Required().StringVar(&cmd.domain)
-	// Optional.
-	cmd.RegisterFlagBool(cmd.JSONFlag())
-	cmd.CmdClause.Flag("scope", "Specify `--scope=estimate` to perform an “estimated” availability check, which checks the DNS and domain aftermarkets, not domain registries").Action(cmd.scope.Set).StringVar(&cmd.scope.Value)
-
-	return &cmd
+	Scope argparser.OptionalString "help:\"Specify `--scope=estimate` to perform an “estimated” availability check, which checks the DNS and domain aftermarkets, not domain registries\""
 }
 
 // Exec invokes the application logic for the command.
@@ -49,11 +31,11 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &status.GetInput{
-		Domain: g.domain,
+		Domain: g.Domain,
 	}
 
-	if g.scope.WasSet {
-		scope := status.Scope(g.scope.Value)
+	if g.Scope.WasSet {
+		scope := status.Scope(g.Scope.Value)
 		if scope != status.ScopeEstimate {
 			return fsterr.RemediationError{
 				Inner:       errors.New("invalid scope provided"),

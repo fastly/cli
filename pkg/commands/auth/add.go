@@ -7,41 +7,31 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // AddCommand adds a named token entry.
 type AddCommand struct {
 	argparser.Base
-	name  string
-	token string
-}
-
-func NewAddCommand(parent argparser.Registerer, g *global.Data) *AddCommand {
-	var c AddCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("add", "Store a named token")
 	// Optional.
-	c.CmdClause.Arg("name", "Name for this token (pass to --token to use it later); if omitted, uses the API token's name").StringVar(&c.name)
+	NameFlag string `arg:"" name:"name" optional:"" help:"Name for this token (pass to --token to use it later); if omitted, uses the API token's name"`
 	// Required.
-	c.CmdClause.Flag("api-token", "Fastly API token to store").Required().StringVar(&c.token)
-	return &c
+	Token string `name:"api-token" required:"" help:"Fastly API token to store"`
 }
 
 func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Short-circuit: if an explicit name was provided and already exists,
 	// fail before making any network calls.
-	if c.name != "" && c.Globals.Config.GetAuthToken(c.name) != nil {
-		return fmt.Errorf("token %q already exists; use 'fastly auth delete %s' first", c.name, c.name)
+	if c.NameFlag != "" && c.Globals.Config.GetAuthToken(c.NameFlag) != nil {
+		return fmt.Errorf("token %q already exists; use 'fastly auth delete %s' first", c.NameFlag, c.NameFlag)
 	}
 
-	md, err := FetchTokenMetadata(c.Globals, c.token)
+	md, err := FetchTokenMetadata(c.Globals, c.Token)
 	if err != nil {
 		return err
 	}
 
-	name := c.name
+	name := c.NameFlag
 	if name == "" {
 		if md.APITokenName == "" {
 			return fsterr.RemediationError{
@@ -58,7 +48,7 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	entry := &config.AuthToken{
 		Type:              config.AuthTokenTypeStatic,
-		Token:             c.token,
+		Token:             c.Token,
 		Email:             md.Email,
 		AccountID:         md.AccountID,
 		APITokenName:      md.APITokenName,

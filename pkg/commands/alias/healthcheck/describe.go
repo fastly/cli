@@ -5,21 +5,12 @@ import (
 
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand wraps the DescribeCommand from the servicehealthcheck package.
 type DescribeCommand struct {
-	*servicehealthcheck.DescribeCommand
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{servicehealthcheck.NewDescribeCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicehealthcheck.DescribeCommand
 }
 
 // Exec implements the command interface.

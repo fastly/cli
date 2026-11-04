@@ -12,53 +12,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create workspaces.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	Description  string `required:"" help:"User submitted description of a workspace."`
+	BlockingMode string `name:"blockingMode" required:"" help:"User configured mode blocking mode."`
+	NameFlag     string `name:"name" required:"" help:"User submitted display name of a workspace."`
+
+	// Optional.
+	AttackThresholds         argparser.OptionalString `name:"attackThresholds" help:"Attack threshold parameters for system site alerts. Each threshold value is the number of attack signals per IP address that must be detected during the interval before the related IP address is flagged. Input accepted as colon separated string: Immediate:OneMinute:TenMinutes:OneHour"`
+	ClientIPHeaders          argparser.OptionalString `name:"clientIPHeaders" help:"Specify the request header containing the client IP address. Input accepted as colon separated string."`
+	DefaultBlockingCode      argparser.OptionalInt    `name:"defaultBlockingCode" help:"Default status code that is returned when a request to your web application is blocked."`
+	DefaultRedirectURL       argparser.OptionalString `name:"defaultRedirectURL" help:"Redirect url to be used if code 301 or 302 is used."`
+	IPAnonymization          argparser.OptionalString `name:"ipAnonymization" help:"Agents will anonymize IP addresses according to the option selected."`
+	AutoEnableVirtualPatches argparser.OptionalBool   `name:"autoEnableNewVirtualPatches" help:"Automatically enable, in block mode, virtual patches released after this setting is enabled. Virtual patches released before it was enabled are not changed. Use --no-autoEnableNewVirtualPatches to disable."`
+
 	argparser.JSONOutput
-
-	// Required.
-	description  string
-	blockingMode string
-	name         string
-
-	// Optional.
-	attackThresholds         argparser.OptionalString
-	defaultBlockingCode      argparser.OptionalInt
-	defaultRedirectURL       argparser.OptionalString
-	clientIPHeaders          argparser.OptionalString
-	ipAnonymization          argparser.OptionalString
-	autoEnableVirtualPatches argparser.OptionalBool
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a workspace").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("description", "User submitted description of a workspace.").Required().StringVar(&c.description)
-	c.CmdClause.Flag("blockingMode", "User configured mode blocking mode.").Required().StringVar(&c.blockingMode)
-	c.CmdClause.Flag("name", "User submitted display name of a workspace.").Required().StringVar(&c.name)
-
-	// Optional.
-	c.CmdClause.Flag("attackThresholds", "Attack threshold parameters for system site alerts. Each threshold value is the number of attack signals per IP address that must be detected during the interval before the related IP address is flagged. Input accepted as colon separated string: Immediate:OneMinute:TenMinutes:OneHour").Action(c.attackThresholds.Set).StringVar(&c.attackThresholds.Value)
-	c.CmdClause.Flag("clientIPHeaders", "Specify the request header containing the client IP address. Input accepted as colon separated string.").Action(c.clientIPHeaders.Set).StringVar(&c.clientIPHeaders.Value)
-	c.CmdClause.Flag("defaultBlockingCode", "Default status code that is returned when a request to your web application is blocked.").Action(c.defaultBlockingCode.Set).IntVar(&c.defaultBlockingCode.Value)
-	c.CmdClause.Flag("defaultRedirectURL", "Redirect url to be used if code 301 or 302 is used.").Action(c.defaultRedirectURL.Set).StringVar(&c.defaultRedirectURL.Value)
-	c.CmdClause.Flag("ipAnonymization", "Agents will anonymize IP addresses according to the option selected.").Action(c.ipAnonymization.Set).StringVar(&c.ipAnonymization.Value)
-	c.CmdClause.Flag("autoEnableNewVirtualPatches", "Automatically enable, in block mode, virtual patches released after this setting is enabled. Virtual patches released before it was enabled are not changed. Use --no-autoEnableNewVirtualPatches to disable.").Action(c.autoEnableVirtualPatches.Set).BoolVar(&c.autoEnableVirtualPatches.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -68,30 +42,30 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	var err error
 	input := &workspaces.CreateInput{
-		Description: &c.description,
-		Mode:        &c.blockingMode,
-		Name:        &c.name,
+		Description: &c.Description,
+		Mode:        &c.BlockingMode,
+		Name:        &c.NameFlag,
 	}
-	if c.attackThresholds.WasSet {
-		input.AttackSignalThresholds, err = parseCreateAttackSignalThresholds(c.attackThresholds.Value)
+	if c.AttackThresholds.WasSet {
+		input.AttackSignalThresholds, err = parseCreateAttackSignalThresholds(c.AttackThresholds.Value)
 		if err != nil {
 			return err
 		}
 	}
-	if c.clientIPHeaders.WasSet {
-		input.ClientIPHeaders = strings.Split(c.clientIPHeaders.Value, ":")
+	if c.ClientIPHeaders.WasSet {
+		input.ClientIPHeaders = strings.Split(c.ClientIPHeaders.Value, ":")
 	}
-	if c.defaultBlockingCode.WasSet {
-		input.DefaultBlockingResponseCode = &c.defaultBlockingCode.Value
+	if c.DefaultBlockingCode.WasSet {
+		input.DefaultBlockingResponseCode = &c.DefaultBlockingCode.Value
 	}
-	if c.defaultRedirectURL.WasSet {
-		input.DefaultRedirectURL = &c.defaultRedirectURL.Value
+	if c.DefaultRedirectURL.WasSet {
+		input.DefaultRedirectURL = &c.DefaultRedirectURL.Value
 	}
-	if c.ipAnonymization.WasSet {
-		input.IPAnonymization = &c.ipAnonymization.Value
+	if c.IPAnonymization.WasSet {
+		input.IPAnonymization = &c.IPAnonymization.Value
 	}
-	if c.autoEnableVirtualPatches.WasSet {
-		input.AutoEnableNewVirtualPatches = &c.autoEnableVirtualPatches.Value
+	if c.AutoEnableVirtualPatches.WasSet {
+		input.AutoEnableNewVirtualPatches = &c.AutoEnableVirtualPatches.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

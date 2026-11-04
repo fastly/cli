@@ -5,21 +5,12 @@ import (
 
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand wraps the DeleteCommand from the servicehealthcheck package.
 type DeleteCommand struct {
-	*servicehealthcheck.DeleteCommand
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{servicehealthcheck.NewDeleteCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicehealthcheck.DeleteCommand
 }
 
 // Exec implements the command interface.

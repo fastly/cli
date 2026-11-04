@@ -9,33 +9,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/time"
 )
 
 // DescribeCommand calls the Fastly API to describe a service authorization for a service.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input fastly.GetServiceAuthorizationInput
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Show service authorization").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("id", "ID of the service authorization to retrieve").Required().StringVar(&c.Input.ID)
+	ID string `required:"" help:"ID of the service authorization to retrieve"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
+	argparser.JSONOutput
+
+	Input fastly.GetServiceAuthorizationInput `kong:"-"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.Input.ID = c.ID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

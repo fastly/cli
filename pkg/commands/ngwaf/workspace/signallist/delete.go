@@ -10,43 +10,19 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a workspace-level signal list.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	listID      string
-	workspaceID argparser.OptionalWorkspaceID
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete a workspace signal list")
-
-	// Required.
-	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	ListID      string                        `required:"" help:"List ID"`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -57,8 +33,8 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := ngwaflist.ListDeleteInput{
 		CommandScope: scope.ScopeTypeWorkspace,
-		ListID:       c.listID,
-		WorkspaceID:  &c.workspaceID,
+		ListID:       c.ListID,
+		WorkspaceID:  &c.WorkspaceID,
 	}
 
 	var ok bool
@@ -77,13 +53,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.listID,
+			c.ListID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted Workspace Signal List (list id: %s)", c.listID)
+	text.Success(out, "Deleted Workspace Signal List (list id: %s)", c.ListID)
 	return nil
 }

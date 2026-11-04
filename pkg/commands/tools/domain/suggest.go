@@ -12,42 +12,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetDomainSuggestionsCommand calls the Fastly API and results domain search results for a given query.
 type GetDomainSuggestionsCommand struct {
 	argparser.Base
+	// Optional.
+	Defaults argparser.OptionalString "help:\"Comma-separated list of default zones to include in the search results response, e.g. `--defaults=uk,co.uk`\""
 	argparser.JSONOutput
 	// Required.
-	query []string
-	// Optional.
-	defaults argparser.OptionalString
-	keywords argparser.OptionalString
-	location argparser.OptionalString
-	vendor   argparser.OptionalString
-}
-
-// NewDomainSuggestionsCommand returns a usable DomainSuggestionCommand registered under the parent.
-func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *GetDomainSuggestionsCommand {
-	cmd := GetDomainSuggestionsCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	cmd.CmdClause = parent.Command("suggest", "Request domain search results for a given query")
-	// Required.
-	cmd.CmdClause.Arg("query", "Search query, e.g. “acme coffee shop”").Required().StringsVar(&cmd.query)
-	// Optional.
-	cmd.CmdClause.Flag("defaults", "Comma-separated list of default zones to include in the search results response, e.g. `--defaults=uk,co.uk`").Action(cmd.defaults.Set).StringVar(&cmd.defaults.Value)
-	cmd.RegisterFlagBool(cmd.JSONFlag())
-	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the search results, e.g. `--keywords=dance,party`").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
-	cmd.CmdClause.Flag("location", "Override IP geolocation with a two-character country code, e.g. `--location=in` to include Indian zones in the search results").Action(cmd.location.Set).StringVar(&cmd.location.Value)
-	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor, to filter the search results to the list of zones they support").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
-
-	return &cmd
+	Query    []string                 `arg:"" required:"" sep:"none" help:"Search query, e.g. “acme coffee shop”"`
+	Keywords argparser.OptionalString "help:\"Comma-separated list of keywords for seeding the search results, e.g. `--keywords=dance,party`\""
+	Location argparser.OptionalString "help:\"Override IP geolocation with a two-character country code, e.g. `--location=in` to include Indian zones in the search results\""
+	Vendor   argparser.OptionalString `help:"The domain name of a specific registrar or vendor, to filter the search results to the list of zones they support"`
 }
 
 // Exec invokes the application logic for the command.
@@ -57,23 +35,23 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &suggest.GetInput{
-		Query: strings.Join(g.query, " "),
+		Query: strings.Join(g.Query, " "),
 	}
 
-	if g.defaults.WasSet {
-		input.Defaults = new(g.defaults.Value)
+	if g.Defaults.WasSet {
+		input.Defaults = new(g.Defaults.Value)
 	}
 
-	if g.keywords.WasSet {
-		input.Keywords = new(g.keywords.Value)
+	if g.Keywords.WasSet {
+		input.Keywords = new(g.Keywords.Value)
 	}
 
-	if g.location.WasSet {
-		input.Location = new(g.location.Value)
+	if g.Location.WasSet {
+		input.Location = new(g.Location.Value)
 	}
 
-	if g.vendor.WasSet {
-		input.Vendor = new(g.vendor.Value)
+	if g.Vendor.WasSet {
+		input.Vendor = new(g.Vendor.Value)
 	}
 
 	fc, ok := g.Globals.APIClient.(*fastly.Client)

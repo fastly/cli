@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -38,15 +37,17 @@ var logExplorerFilterOperatorOptions = func() (operators []string) {
 // Command exposes the Log Explorer API.
 type Command struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	start string
-	end   string
+	Start string `required:"" help:"Inclusive start time in RFC3339 format"`
+	End   string `required:"" help:"Exclusive end time in RFC3339 format"`
 
 	// Optional.
-	serviceName argparser.OptionalServiceNameID
-	filters     []string
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Filters     []string                        `name:"filter" sep:"none" help:"Filter in FIELD,OPERATOR,VALUE format (repeatable)"`
+
+	argparser.JSONOutput
 }
 
 // maxLogExplorerPageSize is the largest page size the Log Explorer API
@@ -54,37 +55,13 @@ type Command struct {
 // absorb all pages of a result.
 const maxLogExplorerPageSize = 100
 
-// NewLogExplorerCommand returns a usable Log Explorer command registered under the parent.
-func NewLogExplorerCommand(parent argparser.Registerer, g *global.Data) *Command {
-	c := Command{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *Command) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-
-	c.CmdClause = parent.Command(CommandName, "Retrieve sampled log records")
-
-	// Required.
-	c.CmdClause.Flag("start", "Inclusive start time in RFC3339 format").Required().StringVar(&c.start)
-	c.CmdClause.Flag("end", "Exclusive end time in RFC3339 format").Required().StringVar(&c.end)
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("filter", "Filter in FIELD,OPERATOR,VALUE format (repeatable)").StringsVar(&c.filters)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	return nil
 }
 
 // Exec invokes the Log Explorer API.
@@ -93,7 +70,7 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -101,15 +78,15 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	filters, err := parseLogExplorerFilters(c.filters)
+	filters, err := parseLogExplorerFilters(c.Filters)
 	if err != nil {
 		return err
 	}
 
 	input := &fastly.GetLogRecordsInput{
 		ServiceID: serviceID,
-		Start:     c.start,
-		End:       c.end,
+		Start:     c.Start,
+		End:       c.End,
 		Filters:   filters,
 		Limit:     new(maxLogExplorerPageSize),
 	}

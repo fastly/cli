@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 )
 
@@ -22,17 +21,6 @@ type RootCommand struct {
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "version"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	c := RootCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command(CommandName, "Display version information for the Fastly CLI")
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {

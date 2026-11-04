@@ -11,36 +11,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to get a workspace.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	workspaceID string
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("get", "Get a workspace")
-
-	// Required.
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	WorkspaceID string `required:"" help:"Workspace ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +37,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := workspaces.Get(context.TODO(), fc, &workspaces.GetInput{
-		WorkspaceID: &c.workspaceID,
+		WorkspaceID: &c.WorkspaceID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

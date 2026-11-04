@@ -15,42 +15,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create workspace-level rules.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	path        string
-	workspaceID argparser.OptionalWorkspaceID
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a workspace-level rule").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("path", "Path to a json file that contains the rule schema.").Required().StringVar(&c.path)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	Path        string                        `required:"" help:"Path to a json file that contains the rule schema."`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -58,19 +35,19 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 	rule := &rules.Rule{}
-	if c.path != "" {
-		path, err := filepath.Abs(c.path)
+	if c.Path != "" {
+		path, err := filepath.Abs(c.Path)
 		if err != nil {
-			return fmt.Errorf("error parsing path '%s': %q", c.path, err)
+			return fmt.Errorf("error parsing path '%s': %q", c.Path, err)
 		}
 
 		jsonFile, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("error reading path '%s': %q", c.path, err)
+			return fmt.Errorf("error reading path '%s': %q", c.Path, err)
 		}
 		defer jsonFile.Close()
 
@@ -96,7 +73,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		RequestLogging:     &rule.RequestLogging,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeWorkspace,
-			AppliesTo: []string{c.workspaceID.Value},
+			AppliesTo: []string{c.WorkspaceID.Value},
 		},
 	}
 

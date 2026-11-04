@@ -8,34 +8,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from a kv store.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input fastly.GetKVStoreInput
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Describe a KV Store").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
+	StoreID string `short:"s" required:"" help:"Store ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	argparser.JSONOutput
 
-	return &c
+	Input fastly.GetKVStoreInput `kong:"-"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

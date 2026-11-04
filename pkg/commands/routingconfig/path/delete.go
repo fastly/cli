@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/paths"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,24 +17,8 @@ type DeleteCommand struct {
 	argparser.Base
 
 	// Required.
-	pathID          string
-	routingConfigID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a path").Alias("remove")
-
-	// Required.
-	c.CmdClause.Flag("path-id", "The Path Identifier").Required().StringVar(&c.pathID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	return &c
+	PathID          string `required:"" help:"The Path Identifier"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 }
 
 // Exec invokes the application logic for the command.
@@ -46,19 +29,19 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &paths.DeleteInput{
-		PathID:          &c.pathID,
-		RoutingConfigID: &c.routingConfigID,
+		PathID:          &c.PathID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
 	err := paths.Delete(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path ID":           c.pathID,
-			"Routing Config ID": c.routingConfigID,
+			"Path ID":           c.PathID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted path (path-id: %s)", c.pathID)
+	text.Success(out, "Deleted path (path-id: %s)", c.PathID)
 	return nil
 }

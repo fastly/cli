@@ -9,50 +9,32 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-	name           string
-	serviceName    argparser.OptionalServiceNameID
-	serviceVersion argparser.OptionalServiceVersion
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "Show detailed information about a condition on a Fastly service version").Alias("get")
-	c.Globals = g
 
 	// Required flags
-	c.CmdClause.Flag("name", "Name of condition").Short('n').Required().StringVar(&c.name)
+	NameFlag       string `name:"name" short:"n" required:"" help:"Name of condition"`
+	serviceVersion argparser.OptionalServiceVersion
 
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag())
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	argparser.JSONOutput
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
 
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -65,7 +47,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -80,7 +62,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	var input fastly.GetConditionInput
 	input.ServiceID = serviceID
 	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
-	input.Name = c.name
+	input.Name = c.NameFlag
 
 	r, err := c.Globals.APIClient.GetCondition(context.TODO(), &input)
 	if err != nil {

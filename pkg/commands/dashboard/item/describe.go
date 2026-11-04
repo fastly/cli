@@ -10,33 +10,20 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, globals *global.Data) *DescribeCommand {
-	var c DescribeCommand
-	c.CmdClause = parent.Command("describe", "Describe a custom dashboard item").Alias("add")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard containing the item").Required().StringVar(&c.dashboardID) // --dashboard-id
-	c.CmdClause.Flag("item-id", "ID of the Item to be described").Required().StringVar(&c.itemID)                    // --item-id
-
-	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
-}
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
+
+	// Required flags
 
 	// required
-	dashboardID string
-	itemID      string
+	DashboardID string `required:"" help:"ID of the Dashboard containing the item"`
+	ItemID      string `required:"" help:"ID of the Item to be described"`
+
+	// Optional flags
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -52,7 +39,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	di, err := getItemFromDashboard(context.TODO(), d, c.itemID)
+	di, err := getItemFromDashboard(context.TODO(), d, c.ItemID)
 	if err != nil {
 		return err
 	}
@@ -71,7 +58,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *DescribeCommand) constructInput() *fastly.GetObservabilityCustomDashboardInput {
-	return &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID}
+	return &fastly.GetObservabilityCustomDashboardInput{ID: &c.DashboardID}
 }
 
 func getItemFromDashboard(_ context.Context, d *fastly.ObservabilityCustomDashboard, itemID string) (*fastly.DashboardItem, error) {

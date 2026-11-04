@@ -5,21 +5,12 @@ import (
 
 	newcmd "github.com/fastly/cli/pkg/commands/service/vcl/condition"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand wraps the ListCommand from the newcmd package.
 type ListCommand struct {
-	*newcmd.ListCommand
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{newcmd.NewListCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	newcmd.ListCommand
 }
 
 // Exec implements the command interface.

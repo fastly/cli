@@ -9,8 +9,8 @@ import (
 
 	"github.com/mholt/archives"
 
-	"github.com/fastly/kingpin"
-
+	"github.com/fastly/cli/internal/kongcompat"
+	"github.com/fastly/cli/pkg/commands"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -23,16 +23,15 @@ import (
 func TestFlagDivergencePublish(t *testing.T) {
 	var g global.Data
 	g.Manifest = &manifest.Data{}
-	acmd := kingpin.New("foo", "bar")
+	acmd := kongcompat.New(&commands.CLI{Flags: new(global.Flags)}, "foo", "bar", commands.Conditional(), kongcompat.HelpShortFlag('h'))
 
-	rcmd := compute.NewRootCommand(acmd, &g)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g)
-	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g)
-	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd)
+	bcmd := compute.NewBuildCommand(&g)
+	dcmd := compute.NewDeployCommand(&g)
+	pcmd := compute.NewPublishCommand(&g, bcmd, dcmd)
 
-	buildFlags := getFlags(bcmd.CmdClause)
-	deployFlags := getFlags(dcmd.CmdClause)
-	publishFlags := getFlags(pcmd.CmdClause)
+	buildFlags := getFlags(acmd.CommandOf(bcmd))
+	deployFlags := getFlags(acmd.CommandOf(dcmd))
+	publishFlags := getFlags(acmd.CommandOf(pcmd))
 
 	var (
 		expect = make(map[string]int)
@@ -71,14 +70,13 @@ func TestFlagDivergencePublish(t *testing.T) {
 // `compute build` command as `compute serve` delegates to build.
 func TestFlagDivergenceServe(t *testing.T) {
 	var cfg global.Data
-	acmd := kingpin.New("foo", "bar")
+	acmd := kongcompat.New(&commands.CLI{Flags: new(global.Flags)}, "foo", "bar", commands.Conditional(), kongcompat.HelpShortFlag('h'))
 
-	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
-	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd)
+	bcmd := compute.NewBuildCommand(&cfg)
+	scmd := compute.NewServeCommand(&cfg, bcmd)
 
-	buildFlags := getFlags(bcmd.CmdClause)
-	serveFlags := getFlags(scmd.CmdClause)
+	buildFlags := getFlags(acmd.CommandOf(bcmd))
+	serveFlags := getFlags(acmd.CommandOf(scmd))
 
 	var (
 		expect = make(map[string]int)
@@ -136,14 +134,13 @@ func TestFlagDivergenceServe(t *testing.T) {
 // `compute build` command as `compute hash-files` delegates to build.
 func TestFlagDivergenceHashFiles(t *testing.T) {
 	var cfg global.Data
-	acmd := kingpin.New("foo", "bar")
+	acmd := kongcompat.New(&commands.CLI{Flags: new(global.Flags)}, "foo", "bar", commands.Conditional(), kongcompat.HelpShortFlag('h'))
 
-	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
-	hcmd := compute.NewHashFilesCommand(rcmd.CmdClause, &cfg, bcmd)
+	bcmd := compute.NewBuildCommand(&cfg)
+	hcmd := compute.NewHashFilesCommand(&cfg, bcmd)
 
-	buildFlags := getFlags(bcmd.CmdClause)
-	hashfilesFlags := getFlags(hcmd.CmdClause)
+	buildFlags := getFlags(acmd.CommandOf(bcmd))
+	hashfilesFlags := getFlags(acmd.CommandOf(hcmd))
 
 	var (
 		expect = make(map[string]int)
@@ -192,7 +189,7 @@ func ignoreFlag(ignore []string, flag string) bool {
 	return false
 }
 
-func getFlags(cmd *kingpin.CmdClause) reflect.Value {
+func getFlags(cmd *kongcompat.CmdClause) reflect.Value {
 	return reflect.ValueOf(cmd).Elem().FieldByName("cmdMixin").FieldByName("flagGroup").Elem().FieldByName("long")
 }
 

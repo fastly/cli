@@ -9,31 +9,14 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.CmdClause = parent.Command("list", "List all users from a specified customer id")
-	c.Globals = g
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagCustomerIDName,
-		Description: argparser.FlagCustomerIDDesc,
-		Dst:         &c.customerID.Value,
-		Action:      c.customerID.Set,
-	})
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
+	CustomerID argparser.OptionalCustomerID `help:"Alphanumeric string identifying the customer (falls back to FASTLY_CUSTOMER_ID)"`
 	argparser.JSONOutput
-
-	customerID argparser.OptionalCustomerID
 }
 
 // Exec invokes the application logic for the command.
@@ -41,7 +24,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if err := c.customerID.Parse(); err != nil {
+	if err := c.CustomerID.Parse(); err != nil {
 		return err
 	}
 
@@ -50,7 +33,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.ListCustomerUsers(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Customer ID": c.customerID.Value,
+			"Customer ID": c.CustomerID.Value,
 		})
 		return err
 	}
@@ -74,7 +57,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListCustomerUsersInput {
 	var input fastly.ListCustomerUsersInput
 
-	input.CustomerID = c.customerID.Value
+	input.CustomerID = c.CustomerID.Value
 
 	return &input
 }

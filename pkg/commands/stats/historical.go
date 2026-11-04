@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 const statusSuccess = "success"
@@ -18,56 +17,34 @@ const statusSuccess = "success"
 type HistoricalCommand struct {
 	argparser.Base
 
-	by          string
-	field       string
-	formatFlag  string
-	from        string
-	jsonFlag    bool
-	region      string
-	serviceName argparser.OptionalServiceNameID
-	to          string
+	// Optional.
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Field       string                          `help:"Filter to a single stats field (e.g. bandwidth, requests)"`
+	From        string                          `help:"From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats"`
+	To          string                          `help:"To time"`
+	By          string                          `default:"" enum:"minute,hour,day," help:"Aggregation period (minute/hour/day)"`
+	Region      string                          `help:"Filter by region ('stats regions' to list)"`
+	FormatFlag  string                          `name:"format" default:"" enum:"json," hidden:"" help:"Output format (json)"`
+	JSONFlag    bool                            `name:"json" short:"j" help:"Render output as JSON"`
 }
 
-// NewHistoricalCommand is the "stats historical" subcommand.
-func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *HistoricalCommand {
-	var c HistoricalCommand
-	c.Globals = g
-
-	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	c.CmdClause.Flag("field", "Filter to a single stats field (e.g. bandwidth, requests)").StringVar(&c.field)
-	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.from)
-	c.CmdClause.Flag("to", "To time").StringVar(&c.to)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
-
-	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
-	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *HistoricalCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
-	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+	if err := resolveJSONFormat(&c.FormatFlag, c.JSONFlag, c.Globals); err != nil {
 		return err
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -78,20 +55,20 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := fastly.GetStatsInput{
 		Service: new(serviceID),
 	}
-	if c.by != "" {
-		input.By = &c.by
+	if c.By != "" {
+		input.By = &c.By
 	}
-	if c.field != "" {
-		input.Field = &c.field
+	if c.Field != "" {
+		input.Field = &c.Field
 	}
-	if c.from != "" {
-		input.From = &c.from
+	if c.From != "" {
+		input.From = &c.From
 	}
-	if c.region != "" {
-		input.Region = &c.region
+	if c.Region != "" {
+		input.Region = &c.Region
 	}
-	if c.to != "" {
-		input.To = &c.to
+	if c.To != "" {
+		input.To = &c.To
 	}
 
 	var envelope statsResponse
@@ -107,7 +84,7 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("non-success response: %s", envelope.Msg)
 	}
 
-	switch c.formatFlag {
+	switch c.FormatFlag {
 	case "json":
 		if err := writeBlocksJSON(out, envelope.Data); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -118,9 +95,9 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	default:
 		writeHeader(out, envelope.Meta)
-		if c.field != "" {
+		if c.Field != "" {
 			for _, block := range envelope.Data {
-				if err := fmtFieldLine(out, c.field, block); err != nil {
+				if err := fmtFieldLine(out, c.Field, block); err != nil {
 					c.Globals.ErrLog.AddWithContext(err, map[string]any{
 						"Service ID": serviceID,
 					})

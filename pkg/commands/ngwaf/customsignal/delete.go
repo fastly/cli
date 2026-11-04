@@ -12,36 +12,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete an account-level custom signal.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	signalID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete an account-level custom signal")
-
-	// Required.
-	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)
+	SignalID string `required:"" help:"Custom Signal ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,7 +38,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := signals.Delete(context.TODO(), fc, &signals.DeleteInput{
-		SignalID: &c.signalID,
+		SignalID: &c.SignalID,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeAccount,
 			AppliesTo: []string{"*"},
@@ -72,13 +54,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.signalID,
+			c.SignalID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted account-level custom signal (id: %s)", c.signalID)
+	text.Success(out, "Deleted account-level custom signal (id: %s)", c.SignalID)
 	return nil
 }

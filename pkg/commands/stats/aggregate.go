@@ -9,57 +9,39 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // AggregateCommand exposes the Aggregate Stats API.
 type AggregateCommand struct {
 	argparser.Base
 
-	by         string
-	formatFlag string
-	from       string
-	jsonFlag   bool
-	region     string
-	to         string
-}
-
-// NewAggregateCommand is the "stats aggregate" subcommand.
-func NewAggregateCommand(parent argparser.Registerer, g *global.Data) *AggregateCommand {
-	var c AggregateCommand
-	c.Globals = g
-
-	c.CmdClause = parent.Command("aggregate", "View aggregated stats across all services")
-
 	// Optional.
-	c.CmdClause.Flag("from", "Start time").StringVar(&c.from)
-	c.CmdClause.Flag("to", "End time").StringVar(&c.to)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
-	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
-	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
-
-	return &c
+	From       string `help:"Start time"`
+	To         string `help:"End time"`
+	By         string `default:"" enum:"minute,hour,day," help:"Aggregation period (minute/hour/day)"`
+	Region     string `help:"Filter by region ('stats regions' to list)"`
+	FormatFlag string `name:"format" default:"" enum:"json," hidden:"" help:"Output format (json)"`
+	JSONFlag   bool   `name:"json" short:"j" help:"Render output as JSON"`
 }
 
 // Exec implements the command interface.
 func (c *AggregateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+	if err := resolveJSONFormat(&c.FormatFlag, c.JSONFlag, c.Globals); err != nil {
 		return err
 	}
 
 	input := fastly.GetAggregateInput{}
-	if c.by != "" {
-		input.By = &c.by
+	if c.By != "" {
+		input.By = &c.By
 	}
-	if c.from != "" {
-		input.From = &c.from
+	if c.From != "" {
+		input.From = &c.From
 	}
-	if c.region != "" {
-		input.Region = &c.region
+	if c.Region != "" {
+		input.Region = &c.Region
 	}
-	if c.to != "" {
-		input.To = &c.to
+	if c.To != "" {
+		input.To = &c.To
 	}
 
 	var envelope statsResponse
@@ -73,7 +55,7 @@ func (c *AggregateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("non-success response: %s", envelope.Msg)
 	}
 
-	switch c.formatFlag {
+	switch c.FormatFlag {
 	case "json":
 		for _, block := range envelope.Data {
 			if err := json.NewEncoder(out).Encode(block); err != nil {

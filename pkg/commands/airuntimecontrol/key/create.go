@@ -11,43 +11,22 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a virtual key.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	NameFlag string `name:"name" required:"" help:"Human-readable name for the virtual key"`
+	Model    string `required:"" help:"AI model identifier (e.g. \"claude-sonnet-4-20250514\")"`
+	Provider string `required:"" help:"AI model provider name (e.g. \"Anthropic\")"`
+
+	// Optional.
+	ExpiresAt time.Time `hints:"2026-07-28T19:24:50+00:00" format:"2006-01-02T15:04:05Z07:00" help:"Expiration timestamp (RFC 3339 format)"`
+
 	argparser.JSONOutput
-
-	// Required.
-	name     string
-	model    string
-	provider string
-
-	// Optional.
-	expiresAt time.Time
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a virtual key").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "Human-readable name for the virtual key").Required().StringVar(&c.name)
-	c.CmdClause.Flag("model", "AI model identifier (e.g. \"claude-sonnet-4-20250514\")").Required().StringVar(&c.model)
-	c.CmdClause.Flag("provider", "AI model provider name (e.g. \"Anthropic\")").Required().StringVar(&c.provider)
-
-	// Optional.
-	c.CmdClause.Flag("expires-at", "Expiration timestamp (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expiresAt)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -57,12 +36,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &key.CreateInput{
-		Name:     &c.name,
-		Model:    &c.model,
-		Provider: &c.provider,
+		Name:     &c.NameFlag,
+		Model:    &c.Model,
+		Provider: &c.Provider,
 	}
-	if !c.expiresAt.IsZero() {
-		input.ExpiresAt = &c.expiresAt
+	if !c.ExpiresAt.IsZero() {
+		input.ExpiresAt = &c.ExpiresAt
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

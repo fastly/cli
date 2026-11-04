@@ -8,34 +8,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // SearchCommand calls the Fastly API to describe a service.
 type SearchCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input fastly.SearchServiceInput
-}
-
-// NewSearchCommand returns a usable command registered under the parent.
-func NewSearchCommand(parent argparser.Registerer, g *global.Data) *SearchCommand {
-	c := SearchCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("search", "Search for a Fastly service by name")
 
 	// Required.
-	c.CmdClause.Flag("name", "Service name").Short('n').Required().StringVar(&c.Input.Name)
+	NameFlag string `name:"name" short:"n" required:"" help:"Service name"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	argparser.JSONOutput
 
-	return &c
+	Input fastly.SearchServiceInput `kong:"-"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *SearchCommand) AfterApply() error {
+	c.Input.Name = c.NameFlag
+	return nil
 }
 
 // Exec invokes the application logic for the command.

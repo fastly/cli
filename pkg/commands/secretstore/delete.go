@@ -8,35 +8,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete a secret store")
-
-	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
+
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
 	argparser.JSONOutput
 
-	Input fastly.DeleteSecretStoreInput
+	Input fastly.DeleteSecretStoreInput `kong:"-"`
 }
 
 // Exec invokes the application logic for the command.

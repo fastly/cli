@@ -9,7 +9,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -17,40 +16,26 @@ import (
 // DeleteCommand calls the Fastly API to delete services.
 type DeleteCommand struct {
 	argparser.Base
-	Input       fastly.DeleteServiceInput
-	force       bool
-	serviceName argparser.OptionalServiceNameID
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
+	Input fastly.DeleteServiceInput `kong:"-"`
 
 	// Optional.
-	c.CmdClause.Flag("force", "Force deletion of an active service").Short('f').BoolVar(&c.force)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+	Force       bool                            `short:"f" help:"Force deletion of an active service"`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -60,7 +45,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.ServiceID = serviceID
 
-	if c.force {
+	if c.Force {
 		s, err := c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
 			ServiceID: serviceID,
 		})

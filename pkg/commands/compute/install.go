@@ -7,7 +7,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,14 +19,6 @@ import (
 // network access at runtime.
 type InstallCommand struct {
 	argparser.Base
-}
-
-// NewInstallCommand returns a usable command registered under the parent.
-func NewInstallCommand(parent argparser.Registerer, g *global.Data) *InstallCommand {
-	var c InstallCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("install-tools", "Download and install the tools used by `compute` subcommands (currently the Viceroy binary used by `compute serve`)")
-	return &c
 }
 
 // Exec implements the command interface.

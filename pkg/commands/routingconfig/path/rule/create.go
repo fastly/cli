@@ -13,7 +13,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/paths/rules"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -22,40 +21,23 @@ type CreateCommand struct {
 	argparser.Base
 
 	// Required.
-	file            string
-	pathID          string
-	routingConfigID string
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a rule within a path").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("file", "Path to a JSON file describing the rule, e.g. {\"action\": {\"type\": \"service\", \"value\": \"...\"}, \"conditions\": [...]}. Omit \"conditions\" to create the default (catch-all) rule for the path").Required().StringVar(&c.file)
-	c.CmdClause.Flag("path-id", "The Path Identifier").Required().StringVar(&c.pathID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	return &c
+	File            string `required:"" help:"Path to a JSON file describing the rule, e.g. {\"action\": {\"type\": \"service\", \"value\": \"...\"}, \"conditions\": [...]}. Omit \"conditions\" to create the default (catch-all) rule for the path"`
+	PathID          string `required:"" help:"The Path Identifier"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &rules.CreateInput{
-		PathID:          &c.pathID,
-		RoutingConfigID: &c.routingConfigID,
+		PathID:          &c.PathID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
-	if err := readRuleFile(c.file, input); err != nil {
+	if err := readRuleFile(c.File, input); err != nil {
 		return err
 	}
 	if input.Action == nil {
-		return fmt.Errorf("the --file JSON at '%s' is missing the required 'action' field", c.file)
+		return fmt.Errorf("the --file JSON at '%s' is missing the required 'action' field", c.File)
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -66,13 +48,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	d, err := rules.Create(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path ID":           c.pathID,
-			"Routing Config ID": c.routingConfigID,
+			"Path ID":           c.PathID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}
 
-	text.Success(out, "Created rule (rule-id: %s) in path (path-id: %s)", d.RuleID, c.pathID)
+	text.Success(out, "Created rule (rule-id: %s) in path (path-id: %s)", d.RuleID, c.PathID)
 	return nil
 }
 

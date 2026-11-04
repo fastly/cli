@@ -18,60 +18,44 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
-
-	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
-
-	// Optional.
-	c.CmdClause.Flag("add", "Limit the operation to adding a new item. If an existing item with the specified key exists, the operation will fail (default: false)").BoolVar(&c.add)
-	c.CmdClause.Flag("append", "If an item with the specified key exists, the value provided in the operation is appended to the existing value instead of replacing it (default: false)").BoolVar(&c.append)
-	c.CmdClause.Flag("background-fetch", "If set to true, the new value for the item will not be immediately visible to other users of the KV store; they will receive the existing (stale) value while the platform updates cached copies. Setting this to true ensures that other users of the KV store will receive responses to 'get' operations for this item quickly, although they will be slightly out of date (default: false)").BoolVar(&c.backFetch)
-	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
-	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
-	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
-	c.CmdClause.Flag("file", `Path to a file containing individual JSON objects (e.g., {"key":"...","value":"base64_encoded_value"}) separated by new-line delimiter`).StringVar(&c.filePath)
-	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").StringVar(&c.ifGenMatch)
-	c.CmdClause.Flag("metadata", "An arbitrary data field which can contain up to 2000 bytes of data").StringVar(&c.metadata)
-	c.CmdClause.Flag("prepend", "If an item with the specified key exists, the value provided in the operation is prepended to the existing value instead of replacing it (Default: false)").BoolVar(&c.prepend)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("key", "Key name").Short('k').StringVar(&c.Input.Key)
-	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
-	c.CmdClause.Flag("value", "Value").StringVar(&c.Input.Value)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.Input.StoreID = c.StoreID
+	c.Input.Key = c.Key
+	c.Input.Value = c.Value
+	return nil
 }
 
 // CreateCommand calls the Fastly API to insert a key into a kv store.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	Add            bool   `help:"Limit the operation to adding a new item. If an existing item with the specified key exists, the operation will fail (default: false)"`
+	Append         bool   `help:"If an item with the specified key exists, the value provided in the operation is appended to the existing value instead of replacing it (default: false)"`
+	BackFetch      bool   `name:"background-fetch" help:"If set to true, the new value for the item will not be immediately visible to other users of the KV store; they will receive the existing (stale) value while the platform updates cached copies. Setting this to true ensures that other users of the KV store will receive responses to 'get' operations for this item quickly, although they will be slightly out of date (default: false)"`
+	DirPath        string `name:"dir" help:"Path to a directory containing individual files where the filename is the key and the file contents is the value"`
+	DirAllowHidden bool   `help:"Allow hidden files (e.g. dot files) to be included (skipped by default)"`
+	DirConcurrency int    `default:"50" help:"Limit the number of concurrent network resources allocated"`
+	FilePath       string `name:"file" help:"Path to a file containing individual JSON objects (e.g., {\"key\":\"...\",\"value\":\"base64_encoded_value\"}) separated by new-line delimiter"`
+	IfGenMatch     string `name:"if-generation-match" help:"Value which must match the current generation marker in an item for an update operation to proceed"`
+	Metadata       string `help:"An arbitrary data field which can contain up to 2000 bytes of data"`
+	Prepend        bool   `help:"If an item with the specified key exists, the value provided in the operation is prepended to the existing value instead of replacing it (Default: false)"`
 	argparser.JSONOutput
+	Key   string `short:"k" help:"Key name"`
+	STDIN bool   `help:"Read new-line separated JSON stream via STDIN"`
 
-	add            bool
-	append         bool
-	backFetch      bool
-	dirAllowHidden bool
-	dirConcurrency int
-	dirPath        string
-	filePath       string
-	ifGenMatch     string
-	metadata       string
-	prepend        bool
-	stdin          bool
+	Input fastly.InsertKVStoreKeyInput `kong:"-"`
 
-	Input fastly.InsertKVStoreKeyInput
+	Value string `help:"Value"`
 }
 
 // Exec invokes the application logic for the command.
@@ -84,15 +68,15 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.stdin {
+	if c.STDIN {
 		return c.ProcessStdin(in, out)
 	}
 
-	if c.filePath != "" {
+	if c.FilePath != "" {
 		return c.ProcessFile(out)
 	}
 
-	if c.dirPath != "" {
+	if c.DirPath != "" {
 		return c.ProcessDir(in, out)
 	}
 
@@ -101,22 +85,22 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// Append optional params.
-	c.Input.Add = c.add
-	c.Input.Append = c.append
-	c.Input.BackgroundFetch = c.backFetch
+	c.Input.Add = c.Add
+	c.Input.Append = c.Append
+	c.Input.BackgroundFetch = c.BackFetch
 	// Parse generation match if provided.
-	if c.ifGenMatch != "" {
-		inputGeneration, err := strconv.ParseUint(c.ifGenMatch, 10, 64)
+	if c.IfGenMatch != "" {
+		inputGeneration, err := strconv.ParseUint(c.IfGenMatch, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid generation value: %s", c.ifGenMatch)
+			return fmt.Errorf("invalid generation value: %s", c.IfGenMatch)
 		}
 		c.Input.IfGenerationMatch = inputGeneration
 	}
 
-	if c.metadata != "" {
-		c.Input.Metadata = &c.metadata
+	if c.Metadata != "" {
+		c.Input.Metadata = &c.Metadata
 	}
-	c.Input.Prepend = c.prepend
+	c.Input.Prepend = c.Prepend
 
 	err := c.Globals.APIClient.InsertKVStoreKey(context.TODO(), &c.Input)
 	if err != nil {
@@ -143,13 +127,13 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 // CheckFlags ensures only one of the three specified flags are provided.
 func (c *CreateCommand) CheckFlags() error {
 	flagCount := 0
-	if c.stdin {
+	if c.STDIN {
 		flagCount++
 	}
-	if c.filePath != "" {
+	if c.FilePath != "" {
 		flagCount++
 	}
-	if c.dirPath != "" {
+	if c.DirPath != "" {
 		flagCount++
 	}
 	if flagCount > 1 {
@@ -172,7 +156,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 
 // ProcessFile streams a JSON file content to the batch API endpoint.
 func (c *CreateCommand) ProcessFile(out io.Writer) error {
-	f, err := os.Open(c.filePath)
+	f, err := os.Open(c.FilePath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -206,7 +190,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 		text.Break(out)
 	}
 
-	path, err := filepath.Abs(c.dirPath)
+	path, err := filepath.Abs(c.DirPath)
 	if err != nil {
 		return err
 	}
@@ -219,7 +203,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	filteredFiles := make([]fs.DirEntry, 0)
 	for _, file := range allFiles {
 		// Skip directories/symlinks OR any hidden files unless the user allows them.
-		if !file.Type().IsRegular() || (file.Type().IsRegular() && isHiddenFile(file.Name()) && !c.dirAllowHidden) {
+		if !file.Type().IsRegular() || (file.Type().IsRegular() && isHiddenFile(file.Name()) && !c.DirAllowHidden) {
 			continue
 		}
 		filteredFiles = append(filteredFiles, file)
@@ -238,8 +222,8 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	msg := "%s %d of %d files"
 	spinner.Message(fmt.Sprintf(msg, "Processing", 0, filesTotal) + "...")
 
-	processed := make(chan struct{}, c.dirConcurrency)
-	sem := make(chan struct{}, c.dirConcurrency)
+	processed := make(chan struct{}, c.DirConcurrency)
+	sem := make(chan struct{}, c.DirConcurrency)
 	filesVerboseOutput := make(chan string, filesTotal)
 
 	var (

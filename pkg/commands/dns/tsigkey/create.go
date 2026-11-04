@@ -12,43 +12,22 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a TSIG key.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	NameFlag  string `name:"name" required:"" help:"The name of the TSIG key."`
+	Algorithm string `required:"" enum:"hmac-sha224,hmac-sha256,hmac-sha384,hmac-sha512" hints:"hmac-sha224,hmac-sha256,hmac-sha384,hmac-sha512" help:"The algorithm of the TSIG key. Valid values are: hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512."`
+	Secret    string `required:"" help:"The Base64 encoded secret key."`
+
+	// Optional.
+	Description argparser.OptionalString `help:"A freeform descriptive note."`
+
 	argparser.JSONOutput
-
-	// Required.
-	name      string
-	algorithm string
-	secret    string
-
-	// Optional.
-	description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a TSIG key").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the TSIG key.").Required().StringVar(&c.name)
-	c.CmdClause.Flag("algorithm", "The algorithm of the TSIG key. Valid values are: hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512.").Required().HintOptions(AlgorithmOptions...).EnumVar(&c.algorithm, AlgorithmOptions...)
-	c.CmdClause.Flag("secret", "The Base64 encoded secret key.").Required().StringVar(&c.secret)
-
-	// Optional.
-	c.CmdClause.Flag("description", "A freeform descriptive note.").Action(c.description.Set).StringVar(&c.description.Value)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -57,11 +36,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if strings.Contains(c.name, " ") {
-		return fmt.Errorf("invalid --name value %q: TSIG key names cannot contain spaces", c.name)
+	if strings.Contains(c.NameFlag, " ") {
+		return fmt.Errorf("invalid --name value %q: TSIG key names cannot contain spaces", c.NameFlag)
 	}
-	if len(c.name) > 255 {
-		return fmt.Errorf("invalid --name value %q: TSIG key names cannot exceed 255 characters", c.name)
+	if len(c.NameFlag) > 255 {
+		return fmt.Errorf("invalid --name value %q: TSIG key names cannot exceed 255 characters", c.NameFlag)
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -70,18 +49,18 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &tsigkeys.CreateInput{
-		Name:      &c.name,
-		Algorithm: &c.algorithm,
-		Secret:    &c.secret,
+		Name:      &c.NameFlag,
+		Algorithm: &c.Algorithm,
+		Secret:    &c.Secret,
 	}
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
 	}
 
 	k, err := tsigkeys.Create(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Name": c.name,
+			"Name": c.NameFlag,
 		})
 		return err
 	}

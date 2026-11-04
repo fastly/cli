@@ -10,36 +10,21 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a TLS certificate").Alias("add")
-	c.Globals = g
-
-	// Required
-	// cert-blob and cert-path are mutually exclusive. One is required.
-	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob, mutually exclusive with --cert-path").StringVar(&c.certBlob)
-	c.CmdClause.Flag("cert-path", "Filepath to a PEM-formatted certificate, mutually exclusive with --cert-blob").StringVar(&c.certPath)
-
-	// Optional.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").StringVar(&c.id)
-	c.CmdClause.Flag("name", "A customizable name for your certificate. Defaults to the certificate's Common Name or first Subject Alternative Names (SAN) entry").StringVar(&c.name)
-
-	return &c
-}
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
 
-	certBlob string
-	certPath string
-	id       string
-	name     string
+	// Required
+	// cert-blob and cert-path are mutually exclusive. One is required.
+	CertBlob string `help:"The PEM-formatted certificate blob, mutually exclusive with --cert-path"`
+	CertPath string `help:"Filepath to a PEM-formatted certificate, mutually exclusive with --cert-blob"`
+
+	// Optional.
+	ID       string `help:"Alphanumeric string identifying a TLS certificate"`
+	NameFlag string `name:"name" help:"A customizable name for your certificate. Defaults to the certificate's Common Name or first Subject Alternative Names (SAN) entry"`
 }
 
 // Exec invokes the application logic for the command.
@@ -52,8 +37,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.CreateCustomTLSCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Certificate ID":   c.id,
-			"TLS Certificate Name": c.name,
+			"TLS Certificate ID":   c.ID,
+			"TLS Certificate Name": c.NameFlag,
 		})
 		return err
 	}
@@ -66,38 +51,38 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() (*fastly.CreateCustomTLSCertificateInput, error) {
 	var input fastly.CreateCustomTLSCertificateInput
 
-	if c.certPath == "" && c.certBlob == "" {
+	if c.CertPath == "" && c.CertBlob == "" {
 		return nil, fmt.Errorf("neither --cert-path or --cert-blob provided, one must be provided")
 	}
 
-	if c.certPath != "" && c.certBlob != "" {
+	if c.CertPath != "" && c.CertBlob != "" {
 		return nil, fmt.Errorf("cert-path and cert-blob provided, only one can be specified")
 	}
 
-	if c.id != "" {
-		input.ID = c.id
+	if c.ID != "" {
+		input.ID = c.ID
 	}
 
-	if c.certBlob != "" {
-		input.CertBlob = c.certBlob
+	if c.CertBlob != "" {
+		input.CertBlob = c.CertBlob
 	}
 
-	if c.certPath != "" {
-		path, err := filepath.Abs(c.certPath)
+	if c.CertPath != "" {
+		path, err := filepath.Abs(c.CertPath)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing cert-path '%s': %q", c.certPath, err)
+			return nil, fmt.Errorf("error parsing cert-path '%s': %q", c.CertPath, err)
 		}
 
 		data, err := os.ReadFile(path) // #nosec
 		if err != nil {
-			return nil, fmt.Errorf("error reading cert-path '%s': %q", c.certPath, err)
+			return nil, fmt.Errorf("error reading cert-path '%s': %q", c.CertPath, err)
 		}
 
 		input.CertBlob = string(data)
 	}
 
-	if c.name != "" {
-		input.Name = c.name
+	if c.NameFlag != "" {
+		input.Name = c.NameFlag
 	}
 
 	return &input, nil

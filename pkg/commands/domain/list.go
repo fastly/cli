@@ -10,45 +10,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list domains.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	cursor    argparser.OptionalString
-	fqdn      argparser.OptionalString
-	limit     argparser.OptionalInt
-	serviceID argparser.OptionalString
-	sort      argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List domains")
 
 	// Optional.
-	c.CmdClause.Flag("cursor", "Cursor value from the next_cursor field of a previous response, used to retrieve the next page").Action(c.cursor.Set).StringVar(&c.cursor.Value)
-	c.CmdClause.Flag("fqdn", "Filters results by the FQDN using a fuzzy/partial match").Action(c.fqdn.Set).StringVar(&c.fqdn.Value)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("limit", "Limit how many results are returned").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceID.Set,
-		Name:        argparser.FlagServiceIDName,
-		Description: "Filter results based on a service_id",
-		Dst:         &c.serviceID.Value,
-		Short:       's',
-	})
-	c.CmdClause.Flag("sort", "The order in which to list the results").Action(c.sort.Set).StringVar(&c.sort.Value)
-	return &c
+	Cursor argparser.OptionalString `help:"Cursor value from the next_cursor field of a previous response, used to retrieve the next page"`
+	Fqdn   argparser.OptionalString `help:"Filters results by the FQDN using a fuzzy/partial match"`
+	argparser.JSONOutput
+	Limit     argparser.OptionalInt    `help:"Limit how many results are returned"`
+	ServiceID argparser.OptionalString `short:"s" help:"Filter results based on a service_id"`
+	Sort      argparser.OptionalString `help:"The order in which to list the results"`
 }
 
 // Exec invokes the application logic for the command.
@@ -59,20 +34,20 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := &domains.ListInput{}
 
-	if c.serviceID.WasSet {
-		input.ServiceID = &c.serviceID.Value
+	if c.ServiceID.WasSet {
+		input.ServiceID = &c.ServiceID.Value
 	}
-	if c.cursor.WasSet {
-		input.Cursor = &c.cursor.Value
+	if c.Cursor.WasSet {
+		input.Cursor = &c.Cursor.Value
 	}
-	if c.fqdn.WasSet {
-		input.FQDN = &c.fqdn.Value
+	if c.Fqdn.WasSet {
+		input.FQDN = &c.Fqdn.Value
 	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
+	if c.Limit.WasSet {
+		input.Limit = &c.Limit.Value
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -84,11 +59,11 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		cl, err := domains.List(context.TODO(), fc, input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Cursor":     c.cursor.Value,
-				"FQDN":       c.fqdn.Value,
-				"Limit":      c.limit.Value,
-				"Service ID": c.serviceID.Value,
-				"Sort":       c.sort.Value,
+				"Cursor":     c.Cursor.Value,
+				"FQDN":       c.Fqdn.Value,
+				"Limit":      c.Limit.Value,
+				"Service ID": c.ServiceID.Value,
+				"Sort":       c.Sort.Value,
 			})
 			return err
 		}

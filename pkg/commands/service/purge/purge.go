@@ -13,7 +13,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -25,46 +24,28 @@ const CommandName = "purge"
 type PurgeCommand struct { //revive:disable:exported
 	argparser.Base
 
-	all         bool
-	file        string
-	key         string
-	serviceName argparser.OptionalServiceNameID
-	soft        bool
-	url         string
+	// Optional.
+	All         bool                            `help:"Purge everything from a service"`
+	File        string                          `help:"Purge a service of a newline delimited list of Surrogate Keys"`
+	Key         string                          `help:"Purge a service of objects tagged with a Surrogate Key"`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Soft        bool                            `help:"A 'soft' purge marks affected objects as stale rather than making them inaccessible"`
+	URL         string                          `help:"Purge an individual URL"`
 }
 
-// NewPurgeCommand returns a usable command registered under the parent.
-func NewPurgeCommand(parent argparser.Registerer, g *global.Data) *PurgeCommand {
-	var c PurgeCommand
-
-	c.CmdClause = parent.Command(CommandName, "Invalidate objects in the Fastly cache")
-	c.Globals = g
-
-	// Optional.
-	c.CmdClause.Flag("all", "Purge everything from a service").BoolVar(&c.all)
-	c.CmdClause.Flag("file", "Purge a service of a newline delimited list of Surrogate Keys").StringVar(&c.file)
-	c.CmdClause.Flag("key", "Purge a service of objects tagged with a Surrogate Key").StringVar(&c.key)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("soft", "A 'soft' purge marks affected objects as stale rather than making them inaccessible").BoolVar(&c.soft)
-	c.CmdClause.Flag("url", "Purge an individual URL").StringVar(&c.url)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *PurgeCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *PurgeCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -73,14 +54,14 @@ func (c *PurgeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	// The URL purge API call doesn't require a Service ID.
-	if c.url == "" {
+	if c.URL == "" {
 		if source == manifest.SourceUndefined {
 			return fsterr.ErrNoServiceID
 		}
 	}
 
-	if c.all {
-		if c.soft {
+	if c.All {
+		if c.Soft {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("purge-all requests cannot be done in soft mode (--soft) and will always immediately invalidate all cached content associated with the service"),
 				Remediation: "The --soft flag should not be used with --all so retry command without it.",
@@ -90,42 +71,42 @@ func (c *PurgeCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
-				"All":        c.all,
+				"All":        c.All,
 			})
 			return err
 		}
 		return nil
 	}
 
-	if c.file != "" {
+	if c.File != "" {
 		err := c.purgeKeys(serviceID, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
-				"File":       c.file,
+				"File":       c.File,
 			})
 			return err
 		}
 		return nil
 	}
 
-	if c.key != "" {
+	if c.Key != "" {
 		err := c.purgeKey(serviceID, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
-				"Key":        c.key,
+				"Key":        c.Key,
 			})
 			return err
 		}
 		return nil
 	}
 
-	if c.url != "" {
+	if c.URL != "" {
 		err := c.purgeURL(out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"URL": c.url,
+				"URL": c.URL,
 			})
 			return err
 		}
@@ -155,30 +136,30 @@ func (c *PurgeCommand) purgeAll(serviceID string, out io.Writer) error {
 func (c *PurgeCommand) purgeKey(serviceID string, out io.Writer) error {
 	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
 		ServiceID: serviceID,
-		Keys:      []string{c.key},
-		Soft:      c.soft,
+		Keys:      []string{c.Key},
+		Soft:      c.Soft,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
-			"Key":        c.key,
-			"Soft":       c.soft,
+			"Key":        c.Key,
+			"Soft":       c.Soft,
 		})
 		return err
 	}
-	purgeID, ok := m[c.key]
+	purgeID, ok := m[c.Key]
 	if !ok {
-		return fmt.Errorf("no purge ID returned for key: %s", c.key)
+		return fmt.Errorf("no purge ID returned for key: %s", c.Key)
 	}
 	// The bulk purge endpoint doesn't return a 'Status' field like the single-key
 	// endpoint did. To avoid a breaking change in the CLI output, we hardcode
 	// 'Status: ok' in the success message to maintain consistent behavior.
-	text.Success(out, "Purged key: %s (soft: %t). Status: ok, ID: %s", c.key, c.soft, purgeID)
+	text.Success(out, "Purged key: %s (soft: %t). Status: ok, ID: %s", c.Key, c.Soft, purgeID)
 	return nil
 }
 
 func (c *PurgeCommand) purgeKeys(serviceID string, out io.Writer) error {
-	keys, err := populateKeys(c.file, c.Globals.ErrLog)
+	keys, err := populateKeys(c.File, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
@@ -193,13 +174,13 @@ func (c *PurgeCommand) purgeBulkKeys(serviceID string, keys []string, out io.Wri
 	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
 		ServiceID: serviceID,
 		Keys:      keys,
-		Soft:      c.soft,
+		Soft:      c.Soft,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 			"Keys":       keys,
-			"Soft":       c.soft,
+			"Soft":       c.Soft,
 		})
 		return err
 	}
@@ -222,17 +203,17 @@ func (c *PurgeCommand) purgeBulkKeys(serviceID string, keys []string, out io.Wri
 
 func (c *PurgeCommand) purgeURL(out io.Writer) error {
 	p, err := c.Globals.APIClient.Purge(context.TODO(), &fastly.PurgeInput{
-		URL:  c.url,
-		Soft: c.soft,
+		URL:  c.URL,
+		Soft: c.Soft,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"URL":  c.url,
-			"Soft": c.soft,
+			"URL":  c.URL,
+			"Soft": c.Soft,
 		})
 		return err
 	}
-	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
+	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.URL, c.Soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 

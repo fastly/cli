@@ -11,42 +11,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListEntriesCommand calls the Fastly API to list all entries of a compute ACLs.
 type ListEntriesCommand struct {
 	argparser.Base
+
+	// Required.
+	ID string `name:"acl-id" required:"" help:"Compute ACL ID"`
+
+	// Optional.
+	Cursor string `short:"c" help:"Pagination cursor (Use 'next_cursor' value from list output)"`
+	Limit  int    `short:"l" default:"50" help:"Maximum number of items to list"`
+
 	argparser.JSONOutput
-
-	// Required.
-	id string
-
-	// Optional.
-	cursor string
-	limit  int
-}
-
-// NewListEntriesCommand returns a usable command registered under the parent.
-func NewListEntriesCommand(parent argparser.Registerer, g *global.Data) *ListEntriesCommand {
-	c := ListEntriesCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list-entries", "List all entries of a compute ACL")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Compute ACL ID").Required().StringVar(&c.id)
-
-	// Optional.
-	c.RegisterFlag(argparser.CursorFlag(&c.cursor))
-	c.RegisterFlagInt(argparser.LimitFlag(&c.limit))
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -65,9 +44,9 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 
 	for {
 		o, err := computeacls.ListEntries(context.TODO(), fc, &computeacls.ListEntriesInput{
-			ComputeACLID: &c.id,
-			Cursor:       &c.cursor,
-			Limit:        &c.limit,
+			ComputeACLID: &c.ID,
+			Cursor:       &c.Cursor,
+			Limit:        &c.Limit,
 		})
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
@@ -79,7 +58,7 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 
 			if loadAllPages {
 				if next := o.Meta.NextCursor; next != "" {
-					c.cursor = next
+					c.Cursor = next
 					continue
 				}
 				break
@@ -94,7 +73,7 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 					return err
 				}
 				if printNextPage {
-					c.cursor = next
+					c.Cursor = next
 					continue
 				}
 			}

@@ -11,50 +11,26 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a redaction.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	workspaceID argparser.OptionalWorkspaceID
-	redactionID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete a redaction")
-
-	// Required.
-	c.CmdClause.Flag("redaction-id", "Redaction ID").Required().StringVar(&c.redactionID)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	RedactionID string                        `required:"" help:"Redaction ID"`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 
@@ -68,8 +44,8 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := redactions.Delete(context.TODO(), fc, &redactions.DeleteInput{
-		RedactionID: &c.redactionID,
-		WorkspaceID: &c.workspaceID.Value,
+		RedactionID: &c.RedactionID,
+		WorkspaceID: &c.WorkspaceID.Value,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -81,13 +57,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.redactionID,
+			c.RedactionID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted redaction (id: %s)", c.redactionID)
+	text.Success(out, "Deleted redaction (id: %s)", c.RedactionID)
 	return nil
 }

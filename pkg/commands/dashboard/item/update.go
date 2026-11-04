@@ -6,57 +6,58 @@ import (
 	"io"
 	"slices"
 
+	"github.com/alecthomas/kong"
+
 	"github.com/fastly/go-fastly/v19/fastly"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, globals *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Update a custom dashboard item").Alias("add")
-	c.Globals = globals
-
-	// Required flags
-	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard containing the item").Required().StringVar(&c.dashboardID) // --dashboard-id
-	c.CmdClause.Flag("item-id", "ID of the Item to be updated").Required().StringVar(&c.itemID)                      // --item-id
-
-	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag())                                                                                                                                                                                               // --json
-	c.CmdClause.Flag("title", "A human-readable title for the dashboard item").Action(c.title.Set).StringVar(&c.title.Value)                                                                                                       // --title
-	c.CmdClause.Flag("subtitle", "A human-readable subtitle for the dashboard item. Often a description of the visualization").Action(c.subtitle.Set).StringVar(&c.subtitle.Value)                                                 // --subtitle
-	c.CmdClause.Flag("span", `The number of columns for the dashboard item to span. Dashboards are rendered on a 12-column grid on "desktop" screen sizes`).Action(c.span.Set).IntVar(&c.span.Value)                               // --span
-	c.CmdClause.Flag("source-type", "The source of the data to display").Action(c.sourceType.Set).HintOptions(sourceTypes...).EnumVar(&c.sourceType.Value, sourceTypes...)                                                         // --source-type
-	c.CmdClause.Flag("metric", "The metrics to visualize. Valid options depend on the selected data source. Set flag multiple times to include multiple metrics").Action(c.metrics.Set).StringsVar(&c.metrics.Value)               // --metrics
-	c.CmdClause.Flag("visualization-type", `The type of visualization to display. Currently, only "chart" is supported`).Action(c.vizType.Set).HintOptions(visualizationTypes...).EnumVar(&c.vizType.Value, visualizationTypes...) // --visualization-type
-	c.CmdClause.Flag("calculation-method", "The aggregation function to apply to the dataset").Action(c.calculationMethod.Set).HintOptions(calculationMethods...).EnumVar(&c.calculationMethod.Value, calculationMethods...)       // --calculation-method
-	c.CmdClause.Flag("format", "The units to use to format the data").Action(c.format.Set).HintOptions(formats...).EnumVar(&c.format.Value, formats...)                                                                            // --format
-	c.CmdClause.Flag("plot-type", "The type of chart to display").Action(c.plotType.Set).HintOptions(plotTypes...).EnumVar(&c.plotType.Value, plotTypes...)                                                                        // --plot-type
-
-	return &c
+// AfterApply checks the values kong cannot check by itself.
+func (c *UpdateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.SourceType.Value != "" || kongcompat.Given(ctx, "source-type")) && !slices.Contains([]string{"stats.domain", "stats.edge", "stats.origin"}, c.SourceType.Value) {
+		return fmt.Errorf("enum value must be one of stats.domain,stats.edge,stats.origin, got '%s'", c.SourceType.Value)
+	}
+	if (c.VizType.Value != "" || kongcompat.Given(ctx, "visualization-type")) && !slices.Contains([]string{"chart"}, c.VizType.Value) {
+		return fmt.Errorf("enum value must be one of chart, got '%s'", c.VizType.Value)
+	}
+	if (c.CalculationMethod.Value != "" || kongcompat.Given(ctx, "calculation-method")) && !slices.Contains([]string{"avg", "sum", "min", "max", "latest", "p95"}, c.CalculationMethod.Value) {
+		return fmt.Errorf("enum value must be one of avg,sum,min,max,latest,p95, got '%s'", c.CalculationMethod.Value)
+	}
+	if (c.Format.Value != "" || kongcompat.Given(ctx, "format")) && !slices.Contains([]string{"number", "bytes", "percent", "requests", "responses", "seconds", "milliseconds", "ratio", "bitrate"}, c.Format.Value) {
+		return fmt.Errorf("enum value must be one of number,bytes,percent,requests,responses,seconds,milliseconds,ratio,bitrate, got '%s'", c.Format.Value)
+	}
+	if (c.PlotType.Value != "" || kongcompat.Given(ctx, "plot-type")) && !slices.Contains([]string{"bar", "donut", "line", "single-metric"}, c.PlotType.Value) {
+		return fmt.Errorf("enum value must be one of bar,donut,line,single-metric, got '%s'", c.PlotType.Value)
+	}
+	return nil
 }
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
+
+	// Required flags
 
 	// required
-	dashboardID string
-	itemID      string
+	DashboardID string `required:"" help:"ID of the Dashboard containing the item"`
+	ItemID      string `required:"" help:"ID of the Item to be updated"`
+
+	// Optional flags
+	argparser.JSONOutput
 
 	// optional
-	title             argparser.OptionalString
-	subtitle          argparser.OptionalString
-	span              argparser.OptionalInt
-	sourceType        argparser.OptionalString
-	metrics           argparser.OptionalStringSlice
-	plotType          argparser.OptionalString
-	vizType           argparser.OptionalString
-	calculationMethod argparser.OptionalString
-	format            argparser.OptionalString
+	Title             argparser.OptionalString      `help:"A human-readable title for the dashboard item"`
+	Subtitle          argparser.OptionalString      `help:"A human-readable subtitle for the dashboard item. Often a description of the visualization"`
+	Span              argparser.OptionalInt         `help:"The number of columns for the dashboard item to span. Dashboards are rendered on a 12-column grid on \"desktop\" screen sizes"`
+	SourceType        argparser.OptionalString      `hints:"stats.domain,stats.edge,stats.origin" help:"The source of the data to display"`
+	Metrics           argparser.OptionalStringSlice `name:"metric" sep:"none" help:"The metrics to visualize. Valid options depend on the selected data source. Set flag multiple times to include multiple metrics"`
+	VizType           argparser.OptionalString      `name:"visualization-type" hints:"chart" help:"The type of visualization to display. Currently, only \"chart\" is supported"`
+	CalculationMethod argparser.OptionalString      `hints:"avg,sum,min,max,latest,p95" help:"The aggregation function to apply to the dataset"`
+	Format            argparser.OptionalString      `hints:"number,bytes,percent,requests,responses,seconds,milliseconds,ratio,bitrate" help:"The units to use to format the data"`
+	PlotType          argparser.OptionalString      `hints:"bar,donut,line,single-metric" help:"The type of chart to display"`
 }
 
 // Exec invokes the application logic for the command.
@@ -65,7 +66,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
+	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.DashboardID})
 	if err != nil {
 		return err
 	}
@@ -94,43 +95,43 @@ func (c *UpdateCommand) constructInput(d *fastly.ObservabilityCustomDashboard) (
 	input.ID = &d.ID
 	input.Items = &d.Items
 	idx := slices.IndexFunc(*input.Items, func(di fastly.DashboardItem) bool {
-		return di.ID == c.itemID
+		return di.ID == c.ItemID
 	})
 	if idx < 0 {
-		return nil, fmt.Errorf("dashboard (%s) does not contain item with ID %s", d.ID, c.itemID)
+		return nil, fmt.Errorf("dashboard (%s) does not contain item with ID %s", d.ID, c.ItemID)
 	}
 	item := &(*input.Items)[idx]
 
-	if c.title.WasSet {
-		item.Title = c.title.Value
+	if c.Title.WasSet {
+		item.Title = c.Title.Value
 	}
-	if c.subtitle.WasSet {
-		item.Subtitle = c.subtitle.Value
+	if c.Subtitle.WasSet {
+		item.Subtitle = c.Subtitle.Value
 	}
-	if c.span.WasSet {
-		if span := c.span.Value; span <= 255 && span >= 0 {
+	if c.Span.WasSet {
+		if span := c.Span.Value; span <= 255 && span >= 0 {
 			item.Span = uint8(span)
 		} else {
 			return nil, fmt.Errorf("invalid span value %d", span)
 		}
 	}
-	if c.sourceType.WasSet {
-		item.DataSource.Type = fastly.DashboardSourceType(c.sourceType.Value)
+	if c.SourceType.WasSet {
+		item.DataSource.Type = fastly.DashboardSourceType(c.SourceType.Value)
 	}
-	if c.metrics.WasSet {
-		item.DataSource.Config.Metrics = c.metrics.Value
+	if c.Metrics.WasSet {
+		item.DataSource.Config.Metrics = c.Metrics.Value
 	}
-	if c.vizType.WasSet {
-		item.Visualization.Type = fastly.VisualizationType(c.vizType.Value)
+	if c.VizType.WasSet {
+		item.Visualization.Type = fastly.VisualizationType(c.VizType.Value)
 	}
-	if c.plotType.WasSet {
-		item.Visualization.Config.PlotType = fastly.PlotType(c.plotType.Value)
+	if c.PlotType.WasSet {
+		item.Visualization.Config.PlotType = fastly.PlotType(c.PlotType.Value)
 	}
-	if c.calculationMethod.WasSet {
-		item.Visualization.Config.CalculationMethod = new(fastly.CalculationMethod(c.calculationMethod.Value))
+	if c.CalculationMethod.WasSet {
+		item.Visualization.Config.CalculationMethod = new(fastly.CalculationMethod(c.CalculationMethod.Value))
 	}
-	if c.format.WasSet {
-		item.Visualization.Config.Format = new(fastly.VisualizationFormat(c.format.Value))
+	if c.Format.WasSet {
+		item.Visualization.Config.Format = new(fastly.VisualizationFormat(c.Format.Value))
 	}
 
 	return &input, nil

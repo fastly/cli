@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/alerts/microsoftteams"
@@ -18,39 +17,15 @@ import (
 // CreateCommand calls the Fastly API to create Microsoft Teams alerts.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	Webhook     string                        `required:"" help:"Microsoft Teams webhook."`
+
+	// Optional.
+	Description argparser.OptionalString `help:"An optional description for the alert."`
+
 	argparser.JSONOutput
-
-	// Required.
-	WorkspaceID argparser.OptionalWorkspaceID
-	Webhook     string
-
-	// Optional.
-	Description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Microsoft Teams alert").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
-	})
-	c.CmdClause.Flag("webhook", "Microsoft Teams webhook.").Required().StringVar(&c.Webhook)
-
-	// Optional.
-	c.CmdClause.Flag("description", "An optional description for the alert.").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

@@ -10,35 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a provider connection.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	id string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a provider connection. This is rejected if the connection is still referenced by a virtual key's failover policy").Alias("remove")
-
-	// Required.
-	c.CmdClause.Flag("id", "Alphanumeric string identifying the provider connection").Required().StringVar(&c.id)
+	ID string `required:"" help:"Alphanumeric string identifying the provider connection"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -53,7 +36,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := providerconnection.Delete(context.TODO(), fc, &providerconnection.DeleteInput{
-		ID: &c.id,
+		ID: &c.ID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -65,13 +48,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.id,
+			c.ID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted provider connection (id: %s)", c.id)
+	text.Success(out, "Deleted provider connection (id: %s)", c.ID)
 	return nil
 }

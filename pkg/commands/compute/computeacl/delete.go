@@ -11,36 +11,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a compute ACL.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	id string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete a compute ACL")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Compute ACL ID").Required().StringVar(&c.id)
+	ID string `name:"acl-id" required:"" help:"Compute ACL ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +37,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := computeacls.Delete(context.TODO(), fc, &computeacls.DeleteInput{
-		ComputeACLID: &c.id,
+		ComputeACLID: &c.ID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -67,13 +49,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.id,
+			c.ID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted compute ACL (id: %s)", c.id)
+	text.Success(out, "Deleted compute ACL (id: %s)", c.ID)
 	return nil
 }

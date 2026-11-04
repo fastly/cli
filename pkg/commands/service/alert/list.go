@@ -9,41 +9,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List Alerts")
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("cursor", "Pagination cursor (Use 'next_cursor' value from list output)").Action(c.cursor.Set).StringVar(&c.cursor.Value)
-	c.CmdClause.Flag("limit", "Maximum number of items to list").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("name", "Name of the definition").Action(c.definitionName.Set).StringVar(&c.definitionName.Value)
-	c.CmdClause.Flag("order", "Sort by one of the following [asc, desc]").Action(c.order.Set).StringVar(&c.order.Value)
-	c.CmdClause.Flag("sort", "Sort by one of the following [name, created_at, updated_at]").Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value) // --service-id
-
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
 	argparser.JSONOutput
 
-	cursor         argparser.OptionalString
-	limit          argparser.OptionalInt
-	definitionName argparser.OptionalString
-	serviceID      argparser.OptionalString
-	sort           argparser.OptionalString
-	order          argparser.OptionalString
+	Cursor         argparser.OptionalString `help:"Pagination cursor (Use 'next_cursor' value from list output)"`
+	Limit          argparser.OptionalInt    `help:"Maximum number of items to list"`
+	DefinitionName argparser.OptionalString `name:"name" help:"Name of the definition"`
+	Order          argparser.OptionalString `help:"Sort by one of the following [asc, desc]"`
+	Sort           argparser.OptionalString `help:"Sort by one of the following [name, created_at, updated_at]"`
+	ServiceID      argparser.OptionalString `help:"ServiceID of the definition"`
 }
 
 // Exec invokes the application logic for the command.
@@ -100,30 +80,30 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *ListCommand) constructInput() (*fastly.ListAlertDefinitionsInput, error) {
 	input := fastly.ListAlertDefinitionsInput{}
-	if c.cursor.WasSet {
-		input.Cursor = &c.cursor.Value
+	if c.Cursor.WasSet {
+		input.Cursor = &c.Cursor.Value
 	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
+	if c.Limit.WasSet {
+		input.Limit = &c.Limit.Value
 	}
-	if c.definitionName.WasSet {
-		input.Name = &c.definitionName.Value
+	if c.DefinitionName.WasSet {
+		input.Name = &c.DefinitionName.Value
 	}
-	if c.serviceID.WasSet {
-		input.ServiceID = &c.serviceID.Value
+	if c.ServiceID.WasSet {
+		input.ServiceID = &c.ServiceID.Value
 	}
 	var sign string
 	var err error
-	if c.order.WasSet {
-		sign, err = argparser.ConvertOrderFromStringFlag(c.order.Value, "order")
+	if c.Order.WasSet {
+		sign, err = argparser.ConvertOrderFromStringFlag(c.Order.Value, "order")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return nil, err
 		}
 	}
 
-	if c.sort.WasSet {
-		str := sign + c.sort.Value
+	if c.Sort.WasSet {
+		str := sign + c.Sort.Value
 		input.Sort = &str
 	}
 

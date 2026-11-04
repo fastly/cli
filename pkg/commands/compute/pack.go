@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -19,17 +18,7 @@ import (
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.
 type PackCommand struct {
 	argparser.Base
-	wasmBinary string
-}
-
-// NewPackCommand returns a usable command registered under the parent.
-func NewPackCommand(parent argparser.Registerer, g *global.Data) *PackCommand {
-	var c PackCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute service")
-	c.CmdClause.Flag("wasm-binary", "Path to a pre-compiled Wasm binary").Short('w').Required().StringVar(&c.wasmBinary)
-
-	return &c
+	WasmBinary string `short:"w" required:"" help:"Path to a pre-compiled Wasm binary"`
 }
 
 // Exec implements the command interface.
@@ -68,7 +57,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	src, err := filepath.Abs(c.wasmBinary)
+	src, err := filepath.Abs(c.WasmBinary)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path (absolute)": src,

@@ -11,7 +11,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -21,115 +20,55 @@ type CreateCommand struct {
 
 	// Required.
 	serviceVersion argparser.OptionalServiceVersion
+	Version        string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional.
-	address             argparser.OptionalString
-	autoClone           argparser.OptionalAutoClone
-	autoLoadBalance     argparser.OptionalBool
-	betweenBytesTimeout argparser.OptionalInt
-	comment             argparser.OptionalString
-	connectTimeout      argparser.OptionalInt
-	firstByteTimeout    argparser.OptionalInt
-	healthCheck         argparser.OptionalString
-	maxConn             argparser.OptionalInt
-	maxUse              argparser.OptionalInt
-	maxLifetime         argparser.OptionalInt
-	maxTLSVersion       argparser.OptionalString
-	minTLSVersion       argparser.OptionalString
-	name                argparser.OptionalString
-	noSSLCheckCert      argparser.OptionalBool
-	overrideHost        argparser.OptionalString
-	port                argparser.OptionalInt
-	preferIPv6          argparser.OptionalString
-	requestCondition    argparser.OptionalString
-	serviceName         argparser.OptionalServiceNameID
-	shield              argparser.OptionalString
-	sslCACert           argparser.OptionalString
-	sslCertHostname     argparser.OptionalString
-	sslCheckCert        argparser.OptionalBool
-	sslCiphers          argparser.OptionalString
-	sslClientCert       argparser.OptionalString
-	sslClientKey        argparser.OptionalString
-	sslSNIHostname      argparser.OptionalString
-	tcpKaEnable         argparser.OptionalString
-	tcpKaInterval       argparser.OptionalInt
-	tcpKaProbes         argparser.OptionalInt
-	tcpKaTime           argparser.OptionalInt
-	httpKaTime          argparser.OptionalInt
-	useSSL              argparser.OptionalBool
-	weight              argparser.OptionalInt
+	Address             argparser.OptionalString        `help:"A hostname, IPv4, or IPv6 address for the backend"`
+	AutoClone           argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	AutoLoadBalance     argparser.OptionalBool          `name:"auto-loadbalance" help:"Whether or not this backend should be automatically load balanced"`
+	BetweenBytesTimeout argparser.OptionalInt           `help:"How long to wait between bytes in milliseconds"`
+	Comment             argparser.OptionalString        `help:"A descriptive note"`
+	ConnectTimeout      argparser.OptionalInt           `help:"How long to wait for a timeout in milliseconds"`
+	FirstByteTimeout    argparser.OptionalInt           `help:"How long to wait for the first bytes in milliseconds"`
+	HealthCheck         argparser.OptionalString        `name:"healthcheck" help:"The name of the healthcheck to use with this backend"`
+	MaxConn             argparser.OptionalInt           `help:"Maximum number of connections"`
+	MaxUse              argparser.OptionalInt           `help:"Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited."`
+	MaxLifetime         argparser.OptionalInt           `help:"Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited."`
+	MaxTLSVersion       argparser.OptionalString        `help:"Maximum allowed TLS version on SSL connections to this backend"`
+	MinTLSVersion       argparser.OptionalString        `help:"Minimum allowed TLS version on SSL connections to this backend"`
+	NameFlag            argparser.OptionalString        `name:"name" short:"n" help:"Backend name"`
+	NoSSLCheckCert      argparser.OptionalBool          `help:"Skip checking SSL certs"`
+	OverrideHost        argparser.OptionalString        `help:"The hostname to override the Host header"`
+	Port                argparser.OptionalInt           `help:"Port number of the address"`
+	PreferIPv6          argparser.OptionalString        `name:"prefer-ipv6" help:"Prefer IPv6 connections [true, false]"`
+	RequestCondition    argparser.OptionalString        `help:"Condition, which if met, will select this backend during a request"`
+	ServiceID           *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName         argparser.OptionalServiceNameID `help:"The name of the service"`
+	Shield              argparser.OptionalString        `help:"The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network"`
+	SSLCACert           argparser.OptionalString        `name:"ssl-ca-cert" help:"CA certificate attached to origin"`
+	SSLCertHostname     argparser.OptionalString        `help:"Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all."`
+	SSLCheckCert        argparser.OptionalBool          `help:"Be strict on checking SSL certs"`
+	SSLCiphers          argparser.OptionalString        `help:"List of OpenSSL ciphers (https://www.openssl.org/docs/man1.0.2/man1/ciphers)"`
+	SSLClientCert       argparser.OptionalString        `help:"Client certificate attached to origin"`
+	SSLClientKey        argparser.OptionalString        `help:"Client key attached to origin"`
+	SSLSNIHostname      argparser.OptionalString        `name:"ssl-sni-hostname" help:"Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all."`
+	TCPKaEnable         argparser.OptionalString        `name:"tcp-ka-enabled" help:"Enable TCP keepalive probes [true, false]"`
+	TCPKaInterval       argparser.OptionalInt           `help:"Configure how long to wait between sending each TCP keepalive probe."`
+	TCPKaProbes         argparser.OptionalInt           `help:"Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead."`
+	TCPKaTime           argparser.OptionalInt           `help:"Configure how long to wait after the last sent data before sending TCP keepalive probes."`
+	HTTPKaTime          argparser.OptionalInt           `help:"Configure how long to keep idle HTTP keepalive connections in the connection pool."`
+	UseSSL              argparser.OptionalBool          `help:"Whether or not to use SSL to reach the backend"`
+	Weight              argparser.OptionalInt           `help:"Weight used to load balance this backend against others"`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("create", "Create a backend on a Fastly service version").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-
-	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.address.Set).StringVar(&c.address.Value)
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("auto-loadbalance", "Whether or not this backend should be automatically load balanced").Action(c.autoLoadBalance.Set).BoolVar(&c.autoLoadBalance.Value)
-	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.betweenBytesTimeout.Set).IntVar(&c.betweenBytesTimeout.Value)
-	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.connectTimeout.Set).IntVar(&c.connectTimeout.Value)
-	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.firstByteTimeout.Set).IntVar(&c.firstByteTimeout.Value)
-	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.healthCheck.Set).StringVar(&c.healthCheck.Value)
-	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.maxConn.Set).IntVar(&c.maxConn.Value)
-	c.CmdClause.Flag("max-use", "Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited.").Action(c.maxUse.Set).IntVar(&c.maxUse.Value)
-	c.CmdClause.Flag("max-lifetime", "Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited.").Action(c.maxLifetime.Set).IntVar(&c.maxLifetime.Value)
-	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.maxTLSVersion.Set).StringVar(&c.maxTLSVersion.Value)
-	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.minTLSVersion.Set).StringVar(&c.minTLSVersion.Value)
-	c.CmdClause.Flag("name", "Backend name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.noSSLCheckCert.Set).BoolVar(&c.noSSLCheckCert.Value)
-	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
-	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
-	c.CmdClause.Flag("prefer-ipv6", "Prefer IPv6 connections [true, false]").Action(c.preferIPv6.Set).StringVar(&c.preferIPv6.Value)
-	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").Action(c.requestCondition.Set).StringVar(&c.requestCondition.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").Action(c.shield.Set).StringVar(&c.shield.Value)
-	c.CmdClause.Flag("ssl-ca-cert", "CA certificate attached to origin").Action(c.sslCACert.Set).StringVar(&c.sslCACert.Value)
-	c.CmdClause.Flag("ssl-cert-hostname", "Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all.").Action(c.sslCertHostname.Set).StringVar(&c.sslCertHostname.Value)
-	c.CmdClause.Flag("ssl-check-cert", "Be strict on checking SSL certs").Action(c.sslCheckCert.Set).BoolVar(&c.sslCheckCert.Value)
-	c.CmdClause.Flag("ssl-ciphers", "List of OpenSSL ciphers (https://www.openssl.org/docs/man1.0.2/man1/ciphers)").Action(c.sslCiphers.Set).StringVar(&c.sslCiphers.Value)
-	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").Action(c.sslClientCert.Set).StringVar(&c.sslClientCert.Value)
-	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").Action(c.sslClientKey.Set).StringVar(&c.sslClientKey.Value)
-	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
-	c.CmdClause.Flag("tcp-ka-enabled", "Enable TCP keepalive probes [true, false]").Action(c.tcpKaEnable.Set).StringVar(&c.tcpKaEnable.Value)
-	c.CmdClause.Flag("tcp-ka-interval", "Configure how long to wait between sending each TCP keepalive probe.").Action(c.tcpKaInterval.Set).IntVar(&c.tcpKaInterval.Value)
-	c.CmdClause.Flag("tcp-ka-probes", "Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead.").Action(c.tcpKaProbes.Set).IntVar(&c.tcpKaProbes.Value)
-	c.CmdClause.Flag("tcp-ka-time", "Configure how long to wait after the last sent data before sending TCP keepalive probes.").Action(c.tcpKaTime.Set).IntVar(&c.tcpKaTime.Value)
-	c.CmdClause.Flag("http-ka-time", "Configure how long to keep idle HTTP keepalive connections in the connection pool.").Action(c.httpKaTime.Set).IntVar(&c.httpKaTime.Value)
-	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").Action(c.useSSL.Set).BoolVar(&c.useSSL.Value)
-	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.weight.Set).IntVar(&c.weight.Value)
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -137,11 +76,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -157,53 +96,53 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.address.WasSet {
-		input.Address = &c.address.Value
+	if c.Address.WasSet {
+		input.Address = &c.Address.Value
 	}
-	if c.autoLoadBalance.WasSet {
-		input.AutoLoadbalance = new(fastly.Compatibool(c.autoLoadBalance.Value))
+	if c.AutoLoadBalance.WasSet {
+		input.AutoLoadbalance = new(fastly.Compatibool(c.AutoLoadBalance.Value))
 	}
-	if c.betweenBytesTimeout.WasSet {
-		input.BetweenBytesTimeout = &c.betweenBytesTimeout.Value
+	if c.BetweenBytesTimeout.WasSet {
+		input.BetweenBytesTimeout = &c.BetweenBytesTimeout.Value
 	}
-	if c.comment.WasSet {
-		input.Comment = &c.comment.Value
+	if c.Comment.WasSet {
+		input.Comment = &c.Comment.Value
 	}
-	if c.connectTimeout.WasSet {
-		input.ConnectTimeout = &c.connectTimeout.Value
+	if c.ConnectTimeout.WasSet {
+		input.ConnectTimeout = &c.ConnectTimeout.Value
 	}
-	if c.firstByteTimeout.WasSet {
-		input.FirstByteTimeout = &c.firstByteTimeout.Value
+	if c.FirstByteTimeout.WasSet {
+		input.FirstByteTimeout = &c.FirstByteTimeout.Value
 	}
-	if c.healthCheck.WasSet {
-		input.HealthCheck = &c.healthCheck.Value
+	if c.HealthCheck.WasSet {
+		input.HealthCheck = &c.HealthCheck.Value
 	}
-	if c.maxConn.WasSet {
-		input.MaxConn = &c.maxConn.Value
+	if c.MaxConn.WasSet {
+		input.MaxConn = &c.MaxConn.Value
 	}
-	if c.maxUse.WasSet {
-		input.MaxUse = &c.maxUse.Value
+	if c.MaxUse.WasSet {
+		input.MaxUse = &c.MaxUse.Value
 	}
-	if c.maxLifetime.WasSet {
-		input.MaxLifetime = &c.maxLifetime.Value
+	if c.MaxLifetime.WasSet {
+		input.MaxLifetime = &c.MaxLifetime.Value
 	}
-	if c.maxTLSVersion.WasSet {
-		input.MaxTLSVersion = &c.maxTLSVersion.Value
+	if c.MaxTLSVersion.WasSet {
+		input.MaxTLSVersion = &c.MaxTLSVersion.Value
 	}
-	if c.minTLSVersion.WasSet {
-		input.MinTLSVersion = &c.minTLSVersion.Value
+	if c.MinTLSVersion.WasSet {
+		input.MinTLSVersion = &c.MinTLSVersion.Value
 	}
-	if c.noSSLCheckCert.WasSet {
+	if c.NoSSLCheckCert.WasSet {
 		input.SSLCheckCert = new(fastly.Compatibool(false))
 	}
-	if c.overrideHost.WasSet {
-		input.OverrideHost = &c.overrideHost.Value
+	if c.OverrideHost.WasSet {
+		input.OverrideHost = &c.OverrideHost.Value
 	}
-	if c.preferIPv6.WasSet {
-		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value, "prefer-ipv6")
+	if c.PreferIPv6.WasSet {
+		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.PreferIPv6.Value, "prefer-ipv6")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -211,36 +150,36 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		input.PreferIPv6 = new(fastly.Compatibool(*preferIPv6))
 	}
-	if c.requestCondition.WasSet {
-		input.RequestCondition = &c.requestCondition.Value
+	if c.RequestCondition.WasSet {
+		input.RequestCondition = &c.RequestCondition.Value
 	}
-	if c.shield.WasSet {
-		input.Shield = &c.shield.Value
+	if c.Shield.WasSet {
+		input.Shield = &c.Shield.Value
 	}
-	if c.sslCACert.WasSet {
-		input.SSLCACert = &c.sslCACert.Value
+	if c.SSLCACert.WasSet {
+		input.SSLCACert = &c.SSLCACert.Value
 	}
-	if c.sslCertHostname.WasSet {
-		input.SSLCertHostname = &c.sslCertHostname.Value
+	if c.SSLCertHostname.WasSet {
+		input.SSLCertHostname = &c.SSLCertHostname.Value
 	}
-	if c.sslCheckCert.WasSet {
+	if c.SSLCheckCert.WasSet {
 		text.Deprecated("The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
-		input.SSLCheckCert = new(fastly.Compatibool(c.sslCheckCert.Value))
+		input.SSLCheckCert = new(fastly.Compatibool(c.SSLCheckCert.Value))
 	}
-	if c.sslCiphers.WasSet {
-		input.SSLCiphers = &c.sslCiphers.Value
+	if c.SSLCiphers.WasSet {
+		input.SSLCiphers = &c.SSLCiphers.Value
 	}
-	if c.sslClientCert.WasSet {
-		input.SSLClientCert = &c.sslClientCert.Value
+	if c.SSLClientCert.WasSet {
+		input.SSLClientCert = &c.SSLClientCert.Value
 	}
-	if c.sslClientKey.WasSet {
-		input.SSLClientKey = &c.sslClientKey.Value
+	if c.SSLClientKey.WasSet {
+		input.SSLClientKey = &c.SSLClientKey.Value
 	}
-	if c.sslSNIHostname.WasSet {
-		input.SSLSNIHostname = &c.sslSNIHostname.Value
+	if c.SSLSNIHostname.WasSet {
+		input.SSLSNIHostname = &c.SSLSNIHostname.Value
 	}
-	if c.tcpKaEnable.WasSet {
-		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.tcpKaEnable.Value, "tcp-ka-enabled")
+	if c.TCPKaEnable.WasSet {
+		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.TCPKaEnable.Value, "tcp-ka-enabled")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -248,33 +187,33 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		input.TCPKeepAliveEnable = tcpKaEnable
 	}
-	if c.tcpKaInterval.WasSet {
-		input.TCPKeepAliveIntvl = &c.tcpKaInterval.Value
+	if c.TCPKaInterval.WasSet {
+		input.TCPKeepAliveIntvl = &c.TCPKaInterval.Value
 	}
-	if c.tcpKaProbes.WasSet {
-		input.TCPKeepAliveProbes = &c.tcpKaProbes.Value
+	if c.TCPKaProbes.WasSet {
+		input.TCPKeepAliveProbes = &c.TCPKaProbes.Value
 	}
-	if c.tcpKaTime.WasSet {
-		input.TCPKeepAliveTime = &c.tcpKaTime.Value
+	if c.TCPKaTime.WasSet {
+		input.TCPKeepAliveTime = &c.TCPKaTime.Value
 	}
-	if c.httpKaTime.WasSet {
-		input.KeepAliveTime = &c.httpKaTime.Value
+	if c.HTTPKaTime.WasSet {
+		input.KeepAliveTime = &c.HTTPKaTime.Value
 	}
-	if c.weight.WasSet {
-		input.Weight = &c.weight.Value
+	if c.Weight.WasSet {
+		input.Weight = &c.Weight.Value
 	}
 
 	switch {
-	case c.port.WasSet:
-		input.Port = &c.port.Value
-	case c.useSSL.WasSet && c.useSSL.Value:
+	case c.Port.WasSet:
+		input.Port = &c.Port.Value
+	case c.UseSSL.WasSet && c.UseSSL.Value:
 		if c.Globals.Flags.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443\n\n")
 		}
 		input.Port = new(443)
 	}
 
-	if input.Address != nil && !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
+	if input.Address != nil && !c.OverrideHost.WasSet && !c.SSLCertHostname.WasSet && !c.SSLSNIHostname.WasSet {
 		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(*input.Address)
 		if overrideHost != "" {
 			input.OverrideHost = &overrideHost
@@ -282,14 +221,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.SSLSNIHostname = &sslSNIHostname
 		input.SSLCertHostname = &sslCertHostname
 	} else {
-		if c.overrideHost.WasSet {
-			input.OverrideHost = &c.overrideHost.Value
+		if c.OverrideHost.WasSet {
+			input.OverrideHost = &c.OverrideHost.Value
 		}
-		if c.sslCertHostname.WasSet {
-			input.SSLCertHostname = &c.sslCertHostname.Value
+		if c.SSLCertHostname.WasSet {
+			input.SSLCertHostname = &c.SSLCertHostname.Value
 		}
-		if c.sslSNIHostname.WasSet {
-			input.SSLSNIHostname = &c.sslSNIHostname.Value
+		if c.SSLSNIHostname.WasSet {
+			input.SSLSNIHostname = &c.SSLSNIHostname.Value
 		}
 	}
 

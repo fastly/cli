@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,45 +17,29 @@ import (
 type RealtimeCommand struct {
 	argparser.Base
 
-	formatFlag  string
-	jsonFlag    bool
-	serviceName argparser.OptionalServiceNameID
+	// Optional.
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	FormatFlag  string                          `name:"format" default:"" enum:"json," hidden:"" help:"Output format (json)"`
+	JSONFlag    bool                            `name:"json" short:"j" help:"Render output as JSON"`
 }
 
-// NewRealtimeCommand is the "stats realtime" subcommand.
-func NewRealtimeCommand(parent argparser.Registerer, g *global.Data) *RealtimeCommand {
-	var c RealtimeCommand
-	c.Globals = g
-
-	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
-	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *RealtimeCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+	if err := resolveJSONFormat(&c.FormatFlag, c.JSONFlag, c.Globals); err != nil {
 		return err
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -64,7 +47,7 @@ func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	switch c.formatFlag {
+	switch c.FormatFlag {
 	case "json":
 		err := loopJSON(c.Globals.RTSClient, serviceID, out)
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

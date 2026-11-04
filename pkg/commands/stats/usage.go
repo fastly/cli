@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,55 +16,37 @@ import (
 type UsageCommand struct {
 	argparser.Base
 
-	by         string
-	byService  bool
-	formatFlag string
-	from       string
-	jsonFlag   bool
-	region     string
-	to         string
-}
-
-// NewUsageCommand is the "stats usage" subcommand.
-func NewUsageCommand(parent argparser.Registerer, g *global.Data) *UsageCommand {
-	var c UsageCommand
-	c.Globals = g
-
-	c.CmdClause = parent.Command("usage", "View usage stats (bandwidth, requests)")
-
 	// Optional.
-	c.CmdClause.Flag("from", "Start time").StringVar(&c.from)
-	c.CmdClause.Flag("to", "End time").StringVar(&c.to)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
-	c.CmdClause.Flag("by-service", "Break down usage by service").BoolVar(&c.byService)
-	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
-	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
-
-	return &c
+	From       string `help:"Start time"`
+	To         string `help:"End time"`
+	By         string `default:"" enum:"minute,hour,day," help:"Aggregation period (minute/hour/day)"`
+	Region     string `help:"Filter by region ('stats regions' to list)"`
+	ByService  bool   `help:"Break down usage by service"`
+	FormatFlag string `name:"format" default:"" enum:"json," hidden:"" help:"Output format (json)"`
+	JSONFlag   bool   `name:"json" short:"j" help:"Render output as JSON"`
 }
 
 // Exec implements the command interface.
 func (c *UsageCommand) Exec(_ io.Reader, out io.Writer) error {
-	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+	if err := resolveJSONFormat(&c.FormatFlag, c.JSONFlag, c.Globals); err != nil {
 		return err
 	}
 
 	input := fastly.GetUsageInput{}
-	if c.by != "" {
-		input.By = &c.by
+	if c.By != "" {
+		input.By = &c.By
 	}
-	if c.from != "" {
-		input.From = &c.from
+	if c.From != "" {
+		input.From = &c.From
 	}
-	if c.region != "" {
-		input.Region = &c.region
+	if c.Region != "" {
+		input.Region = &c.Region
 	}
-	if c.to != "" {
-		input.To = &c.to
+	if c.To != "" {
+		input.To = &c.To
 	}
 
-	if c.byService {
+	if c.ByService {
 		return c.execByService(out, &input)
 	}
 	return c.execPlain(out, &input)
@@ -82,9 +63,9 @@ func (c *UsageCommand) execPlain(out io.Writer, input *fastly.GetUsageInput) err
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
 
-	filterUsageByRegion(resp.Data, c.region)
+	filterUsageByRegion(resp.Data, c.Region)
 
-	switch c.formatFlag {
+	switch c.FormatFlag {
 	case "json":
 		return writeUsageJSON(out, resp.Data)
 	default:
@@ -104,9 +85,9 @@ func (c *UsageCommand) execByService(out io.Writer, input *fastly.GetUsageInput)
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
 
-	filterUsageByServiceByRegion(resp.Data, c.region)
+	filterUsageByServiceByRegion(resp.Data, c.Region)
 
-	switch c.formatFlag {
+	switch c.FormatFlag {
 	case "json":
 		return writeUsageByServiceJSON(out, resp.Data)
 	default:

@@ -8,7 +8,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/alerts/jira"
@@ -17,52 +16,19 @@ import (
 // UpdateCommand calls the Fastly API to update Jira alerts.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	AlertID     string
-	WorkspaceID argparser.OptionalWorkspaceID
-	Host        string
-	Key         string
-	Project     string
-	Username    string
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	AlertID     string                        `required:"" help:"Alphanumeric string identifying the alert"`
+	Host        string                        `required:"" help:"Host name of the Jira instance."`
+	Key         string                        `required:"" help:"Jira API key."`
+	Project     string                        `required:"" help:"Specifies the Jira project where the issue will be created."`
+	Username    string                        `required:"" help:"Jira username of the user who created the ticket."`
 
 	// Optional
-	IssueType string
-}
+	IssueType string `help:"An optional Jira issue type associated with the ticket. (Default Task)"`
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a Jira alert")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFAlertID,
-		Description: argparser.FlagNGWAFAlertIDDesc,
-		Dst:         &c.AlertID,
-		Required:    true,
-	})
-	c.CmdClause.Flag("host", "Host name of the Jira instance.").Required().StringVar(&c.Host)
-	c.CmdClause.Flag("key", "Jira API key.").Required().StringVar(&c.Key)
-	c.CmdClause.Flag("project", "Specifies the Jira project where the issue will be created.").Required().StringVar(&c.Project)
-	c.CmdClause.Flag("username", "Jira username of the user who created the ticket.").Required().StringVar(&c.Username)
-
-	// Optional.
-	c.CmdClause.Flag("issue-type", "An optional Jira issue type associated with the ticket. (Default Task)").StringVar(&c.IssueType)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

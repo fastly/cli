@@ -10,42 +10,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // LockCommand calls the Fastly API to lock a service version.
 type LockCommand struct {
 	argparser.Base
-	Input          fastly.LockVersionInput
-	serviceName    argparser.OptionalServiceNameID
+	Input          fastly.LockVersionInput         `kong:"-"`
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceVersion argparser.OptionalServiceVersion
+
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 }
 
-// NewLockCommand returns a usable command registered under the parent.
-func NewLockCommand(parent argparser.Registerer, g *global.Data) *LockCommand {
-	var c LockCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *LockCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	c.serviceVersion.Value = c.Version
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +41,7 @@ func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})

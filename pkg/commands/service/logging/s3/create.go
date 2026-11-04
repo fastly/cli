@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"4d63.com/optional"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,98 +22,61 @@ import (
 // CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
 type CreateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// mutual exclusions
 	// AccessKey + SecretKey or IAMRole must be provided
-	AccessKey argparser.OptionalString
-	SecretKey argparser.OptionalString
-	IAMRole   argparser.OptionalString
+	AccessKey argparser.OptionalString `help:"Your S3 account access key"`
+	SecretKey argparser.OptionalString `help:"Your S3 account secret key"`
+	IAMRole   argparser.OptionalString `help:"The IAM role ARN for logging"`
 
 	// Optional.
-	AutoClone                    argparser.OptionalAutoClone
-	BucketName                   argparser.OptionalString
-	CompressionCodec             argparser.OptionalString
-	Domain                       argparser.OptionalString
-	EndpointName                 argparser.OptionalString // Can't shadow argparser.Base method Name().
-	FileMaxBytes                 argparser.OptionalInt
-	Format                       argparser.OptionalString
-	FormatVersion                argparser.OptionalInt
-	GzipLevel                    argparser.OptionalInt
-	MessageType                  argparser.OptionalString
-	Path                         argparser.OptionalString
-	Period                       argparser.OptionalInt
-	Placement                    argparser.OptionalString
-	ProcessingRegion             argparser.OptionalString
-	PublicKey                    argparser.OptionalString
-	Redundancy                   argparser.OptionalString
-	ResponseCondition            argparser.OptionalString
-	ServerSideEncryption         argparser.OptionalString
-	ServerSideEncryptionKMSKeyID argparser.OptionalString
-	TimestampFormat              argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create an Amazon S3 logging endpoint on a Fastly service version").Alias("add")
+	AutoClone                    argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	BucketName                   argparser.OptionalString    `name:"bucket" help:"Your S3 bucket name"`
+	CompressionCodec             argparser.OptionalString    `help:"The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is \"gzip\", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error."`
+	Domain                       argparser.OptionalString    `help:"The domain of the S3 endpoint"`
+	EndpointName                 argparser.OptionalString    `name:"name" short:"n" help:"The name of the S3 logging object. Used as a primary key for API access"` // Can't shadow argparser.Base method Name().
+	FileMaxBytes                 argparser.OptionalInt       `help:"The maximum size of a log file in bytes"`
+	Format                       argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion                argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	GzipLevel                    argparser.OptionalInt       `help:"What level of GZIP encoding to have when dumping logs (default 0, no compression)"`
+	MessageType                  argparser.OptionalString    `help:"How the message should be formatted. One of: classic (default), loggly, logplex or blank"`
+	Path                         argparser.OptionalString    `help:"The path to upload logs to"`
+	Period                       argparser.OptionalInt       `help:"How frequently log files are finalized so they can be available for reading (in seconds, default 3600)"`
+	Placement                    argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion             argparser.OptionalString    `help:"The region where logs will be processed before streaming to S3. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	PublicKey                    argparser.OptionalString    `help:"A PGP public key that Fastly will use to encrypt your log files before writing them to disk"`
+	Redundancy                   argparser.OptionalString    `hints:"standard,intelligent_tiering,standard_ia,onezone_ia,glacier,glacier_ir,deep_archive,reduced_redundancy" help:"The S3 storage class. One of: standard, intelligent_tiering, standard_ia, onezone_ia, glacier, glacier_ir, deep_archive, or reduced_redundancy"`
+	ResponseCondition            argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	ServerSideEncryption         argparser.OptionalString    `hints:"AES256,aws:kms" help:"Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms"`
+	ServerSideEncryptionKMSKeyID argparser.OptionalString    `help:"Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms"`
+	TimestampFormat              argparser.OptionalString    `help:"strftime specified timestamp formatting (default \"%Y-%m-%dT%H:%M:%S.000\")"`
 
 	// Required.
-	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("access-key", "Your S3 account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
-	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
-	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
-	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(&c.FileMaxBytes.Value)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
-	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
-	logflags.MessageType(c.CmdClause, &c.MessageType)
-	logflags.Path(c.CmdClause, &c.Path)
-	logflags.Period(c.CmdClause, &c.Period)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "S3")
-	logflags.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("redundancy", "The S3 storage class. One of: standard, intelligent_tiering, standard_ia, onezone_ia, glacier, glacier_ir, deep_archive, or reduced_redundancy").Action(c.Redundancy.Set).EnumVar(&c.Redundancy.Value, string(fastly.S3RedundancyStandard), string(fastly.S3RedundancyIntelligentTiering), string(fastly.S3RedundancyStandardIA), string(fastly.S3RedundancyOneZoneIA), string(fastly.S3RedundancyGlacierFlexibleRetrieval), string(fastly.S3RedundancyGlacierInstantRetrieval), string(fastly.S3RedundancyGlacierDeepArchive), string(fastly.S3RedundancyReduced))
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
-	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	return &c
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+}
+
+// AfterApply checks the values kong cannot check by itself, then hands the
+// parsed flags over to the fields the command reads them from.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.Redundancy.Value != "" || kongcompat.Given(ctx, "redundancy")) && !slices.Contains([]string{"standard", "intelligent_tiering", "standard_ia", "onezone_ia", "glacier", "glacier_ir", "deep_archive", "reduced_redundancy"}, c.Redundancy.Value) {
+		return fmt.Errorf("enum value must be one of standard,intelligent_tiering,standard_ia,onezone_ia,glacier,glacier_ir,deep_archive,reduced_redundancy, got '%s'", c.Redundancy.Value)
+	}
+	if (c.ServerSideEncryption.Value != "" || kongcompat.Given(ctx, "server-side-encryption")) && !slices.Contains([]string{"AES256", "aws:kms"}, c.ServerSideEncryption.Value) {
+		return fmt.Errorf("enum value must be one of AES256,aws:kms, got '%s'", c.ServerSideEncryption.Value)
+	}
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -310,4 +275,18 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(d.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *CreateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "autoclone", "access-key", "bucket",
+		"compression-codec", "domain", "file-max-bytes", "format",
+		"format-version", "gzip-level", "iam-role", "message-type", "path",
+		"period", "placement", "processing-region", "public-key", "redundancy",
+		"response-condition", "secret-key", "server-side-encryption",
+		"server-side-encryption-kms-key-id", "service-id", "service-name",
+		"timestamp-format",
+	}
 }

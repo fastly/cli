@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -19,20 +18,11 @@ var ForceReAuth = false
 // It should be installed under the primary root command.
 type RootCommand struct {
 	argparser.Base
-	profile string
+	Profile string `arg:"" optional:"" help:"Profile to authenticate (i.e. create/update a token for)"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "sso"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Single Sign-On authentication (deprecated: use 'fastly auth login --sso --token <name>' instead)").Hidden()
-	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
@@ -67,8 +57,8 @@ func (c *RootCommand) resolveTokenName() (string, bool) {
 	if c.Globals.Manifest != nil && c.Globals.Manifest.File.Profile != "" {
 		return c.Globals.Manifest.File.Profile, false
 	}
-	if c.profile != "" {
-		return c.profile, false
+	if c.Profile != "" {
+		return c.Profile, false
 	}
 	if name, _ := c.Globals.Config.GetDefaultAuthToken(); name != "" {
 		return name, false

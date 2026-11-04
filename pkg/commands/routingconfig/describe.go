@@ -10,31 +10,17 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to describe a routing config.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-	routingConfigID string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Show detailed information about a routing config").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -49,13 +35,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &routingconfigs.GetInput{
-		RoutingConfigID: &c.routingConfigID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
 	d, err := routingconfigs.Get(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}

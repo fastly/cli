@@ -10,35 +10,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.CmdClause = parent.Command("list", "List all TLS configurations")
-	c.Globals = g
-
-	// Optional.
-	c.CmdClause.Flag("filter-bulk", "Optionally filter by the bulk attribute").Action(c.filterBulk.Set).BoolVar(&c.filterBulk.Value)
-	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include).EnumVar(&c.include, include)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.pageSize)
-
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	filterBulk argparser.OptionalBool
-	include    string
-	pageNumber int
-	pageSize   int
+	// Optional.
+	FilterBulk argparser.OptionalBool `help:"Optionally filter by the bulk attribute"`
+	Include    string                 `default:"" enum:"dns_records," hints:"dns_records" help:"Include related objects (comma-separated values)"`
+	argparser.JSONOutput
+	PageNumber int `name:"page" help:"Page number of data set to fetch"`
+	PageSize   int `name:"per-page" help:"Number of records per page"`
 }
 
 // Exec invokes the application logic for the command.
@@ -52,10 +36,10 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.ListCustomTLSConfigurations(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Filter Bulk": c.filterBulk,
-			"Include":     c.include,
-			"Page Number": c.pageNumber,
-			"Page Size":   c.pageSize,
+			"Filter Bulk": c.FilterBulk,
+			"Include":     c.Include,
+			"Page Number": c.PageNumber,
+			"Page Size":   c.PageSize,
 		})
 		return err
 	}
@@ -79,17 +63,17 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListCustomTLSConfigurationsInput {
 	var input fastly.ListCustomTLSConfigurationsInput
 
-	if c.filterBulk.WasSet {
-		input.FilterBulk = c.filterBulk.Value
+	if c.FilterBulk.WasSet {
+		input.FilterBulk = c.FilterBulk.Value
 	}
-	if c.include != "" {
-		input.Include = c.include
+	if c.Include != "" {
+		input.Include = c.Include
 	}
-	if c.pageNumber > 0 {
-		input.PageNumber = c.pageNumber
+	if c.PageNumber > 0 {
+		input.PageNumber = c.PageNumber
 	}
-	if c.pageSize > 0 {
-		input.PageSize = c.pageSize
+	if c.PageSize > 0 {
+		input.PageSize = c.PageSize
 	}
 
 	return &input

@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -28,36 +27,16 @@ var knownSortValues = []string{"created_at", "-created_at"}
 // ListCommand calls the Fastly API to list audit log event mappings.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
+	IntegrationID argparser.OptionalString `help:"Filters results to mappings that reference the given integration ID"`
+	MappingStatus argparser.OptionalString `hints:"active,inactive" help:"Filters results by mapping status"`
+	NameFlag      argparser.OptionalString `name:"name" help:"Filters results to mappings whose name contains the given string (case-insensitive)"`
+	ScopeID       argparser.OptionalString `help:"Filters results to mappings that apply to the given service or workspace ID"`
+	ScopeType     argparser.OptionalString `hints:"account,vcl,wasm,ngwaf" help:"Filters results to the given scope type"`
+	Sort          argparser.OptionalString `hints:"created_at,-created_at" help:"The order in which to return results by creation date"`
+
 	argparser.JSONOutput
-
-	// Optional.
-	integrationID argparser.OptionalString
-	mappingStatus argparser.OptionalString
-	name          argparser.OptionalString
-	scopeID       argparser.OptionalString
-	scopeType     argparser.OptionalString
-	sort          argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List audit log event mappings")
-
-	// Optional.
-	c.CmdClause.Flag("integration-id", "Filters results to mappings that reference the given integration ID").Action(c.integrationID.Set).StringVar(&c.integrationID.Value)
-	c.CmdClause.Flag("mapping-status", "Filters results by mapping status").HintOptions(knownMappingStatuses...).Action(c.mappingStatus.Set).StringVar(&c.mappingStatus.Value)
-	c.CmdClause.Flag("name", "Filters results to mappings whose name contains the given string (case-insensitive)").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("scope-id", "Filters results to mappings that apply to the given service or workspace ID").Action(c.scopeID.Set).StringVar(&c.scopeID.Value)
-	c.CmdClause.Flag("scope-type", "Filters results to the given scope type").HintOptions(knownScopeTypes...).Action(c.scopeType.Set).StringVar(&c.scopeType.Value)
-	c.CmdClause.Flag("sort", "The order in which to return results by creation date").HintOptions(knownSortValues...).Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -72,23 +51,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &eventmappings.ListInput{}
-	if c.integrationID.WasSet {
-		input.IntegrationID = &c.integrationID.Value
+	if c.IntegrationID.WasSet {
+		input.IntegrationID = &c.IntegrationID.Value
 	}
-	if c.mappingStatus.WasSet {
-		input.MappingStatus = &c.mappingStatus.Value
+	if c.MappingStatus.WasSet {
+		input.MappingStatus = &c.MappingStatus.Value
 	}
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.scopeID.WasSet {
-		input.ScopeID = &c.scopeID.Value
+	if c.ScopeID.WasSet {
+		input.ScopeID = &c.ScopeID.Value
 	}
-	if c.scopeType.WasSet {
-		input.ScopeType = &c.scopeType.Value
+	if c.ScopeType.WasSet {
+		input.ScopeType = &c.ScopeType.Value
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	ems, err := eventmappings.List(context.TODO(), fc, input)

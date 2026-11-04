@@ -8,49 +8,25 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a Jira Issue notification integration.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	IntegrationName string `name:"name" short:"n" required:"" help:"The name of the integration"`
+	BaseURL         string `required:"" help:"The base URL of the Jira instance"`
+	Username        string `required:"" help:"The Jira username (email address) used to authenticate"`
+	APIToken        string `required:"" help:"The Jira API token"`
+	ProjectKey      string `required:"" help:"The key of the Jira project where issues will be created"`
+	IssueType       string `required:"" help:"The type of Jira issue to create"`
+
+	// Optional.
+	Description argparser.OptionalString `help:"A description of the integration"`
+
 	argparser.JSONOutput
-
-	// Required.
-	IntegrationName string
-	BaseURL         string
-	Username        string
-	APIToken        string
-	ProjectKey      string
-	IssueType       string
-
-	// Optional.
-	Description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Jira Issue notification integration").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the integration").Short('n').Required().StringVar(&c.IntegrationName)
-	c.CmdClause.Flag("base-url", "The base URL of the Jira instance").Required().StringVar(&c.BaseURL)
-	c.CmdClause.Flag("username", "The Jira username (email address) used to authenticate").Required().StringVar(&c.Username)
-	c.CmdClause.Flag("api-token", "The Jira API token").Required().StringVar(&c.APIToken)
-	c.CmdClause.Flag("project-key", "The key of the Jira project where issues will be created").Required().StringVar(&c.ProjectKey)
-	c.CmdClause.Flag("issue-type", "The type of Jira issue to create").Required().StringVar(&c.IssueType)
-
-	// Optional.
-	c.CmdClause.Flag("description", "A description of the integration").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

@@ -11,45 +11,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update workspace-level custom signals.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	signalID    string
-	description string
-	workspaceID argparser.OptionalWorkspaceID
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a workspace")
-
-	// Required.
-	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)
-	c.CmdClause.Flag("description", "User submitted description of a custom signal.").Required().StringVar(&c.description)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-		Required:    true,
-	})
+	SignalID    string                        `required:"" help:"Custom Signal ID"`
+	Description string                        `required:"" help:"User submitted description of a custom signal."`
+	WorkspaceID argparser.OptionalWorkspaceID `required:"" help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -59,17 +34,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	var err error
 	input := &signals.UpdateInput{
-		SignalID:    &c.signalID,
-		Description: &c.description,
+		SignalID:    &c.SignalID,
+		Description: &c.Description,
 		Scope: &scope.Scope{
 			Type: scope.ScopeTypeWorkspace,
 		},
 	}
 
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
-	input.Scope.AppliesTo = []string{c.workspaceID.Value}
+	input.Scope.AppliesTo = []string{c.WorkspaceID.Value}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
 	if !ok {

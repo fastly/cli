@@ -9,39 +9,21 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.CmdClause = parent.Command("list", "List all TLS activations")
-	c.Globals = g
-
-	// Optional.
-	c.CmdClause.Flag("filter-cert", "Limit the returned activations to a specific certificate").StringVar(&c.filterTLSCertID)
-	c.CmdClause.Flag("filter-config", "Limit the returned activations to a specific TLS configuration").StringVar(&c.filterTLSConfigID)
-	c.CmdClause.Flag("filter-domain", "Limit the returned rules to a specific domain name").StringVar(&c.filterTLSDomainID)
-	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.pageSize)
-
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	filterTLSCertID   string
-	filterTLSConfigID string
-	filterTLSDomainID string
-	include           string
-	pageNumber        int
-	pageSize          int
+	// Optional.
+	FilterTLSCertID   string `name:"filter-cert" help:"Limit the returned activations to a specific certificate"`
+	FilterTLSConfigID string `name:"filter-config" help:"Limit the returned activations to a specific TLS configuration"`
+	FilterTLSDomainID string `name:"filter-domain" help:"Limit the returned rules to a specific domain name"`
+	Include           string `default:"" enum:"tls_certificate,tls_configuration,tls_domain," hints:"tls_certificate,tls_configuration,tls_domain" help:"Include related objects (comma-separated values)"`
+	argparser.JSONOutput
+	PageNumber int `name:"page" help:"Page number of data set to fetch"`
+	PageSize   int `name:"per-page" help:"Number of records per page"`
 }
 
 // Exec invokes the application logic for the command.
@@ -55,12 +37,12 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.ListTLSActivations(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Filter TLS Certificate ID":   c.filterTLSCertID,
-			"Filter TLS Configuration ID": c.filterTLSConfigID,
-			"Filter TLS Domain ID":        c.filterTLSDomainID,
-			"Include":                     c.include,
-			"Page Number":                 c.pageNumber,
-			"Page Size":                   c.pageSize,
+			"Filter TLS Certificate ID":   c.FilterTLSCertID,
+			"Filter TLS Configuration ID": c.FilterTLSConfigID,
+			"Filter TLS Domain ID":        c.FilterTLSDomainID,
+			"Include":                     c.Include,
+			"Page Number":                 c.PageNumber,
+			"Page Size":                   c.PageSize,
 		})
 		return err
 	}
@@ -84,23 +66,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListTLSActivationsInput {
 	var input fastly.ListTLSActivationsInput
 
-	if c.filterTLSCertID != "" {
-		input.FilterTLSCertificateID = c.filterTLSCertID
+	if c.FilterTLSCertID != "" {
+		input.FilterTLSCertificateID = c.FilterTLSCertID
 	}
-	if c.filterTLSConfigID != "" {
-		input.FilterTLSConfigurationID = c.filterTLSConfigID
+	if c.FilterTLSConfigID != "" {
+		input.FilterTLSConfigurationID = c.FilterTLSConfigID
 	}
-	if c.filterTLSDomainID != "" {
-		input.FilterTLSDomainID = c.filterTLSDomainID
+	if c.FilterTLSDomainID != "" {
+		input.FilterTLSDomainID = c.FilterTLSDomainID
 	}
-	if c.include != "" {
-		input.Include = c.include
+	if c.Include != "" {
+		input.Include = c.Include
 	}
-	if c.pageNumber > 0 {
-		input.PageNumber = c.pageNumber
+	if c.PageNumber > 0 {
+		input.PageNumber = c.PageNumber
 	}
-	if c.pageSize > 0 {
-		input.PageSize = c.pageSize
+	if c.PageSize > 0 {
+		input.PageSize = c.PageSize
 	}
 
 	return &input

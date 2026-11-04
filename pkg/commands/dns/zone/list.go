@@ -3,41 +3,37 @@ package zone
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/dns/v1/dnszones"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list DNS Zones.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	name argparser.OptionalString
-	sort argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List DNS Zones")
 
 	// Optional.
-	c.CmdClause.Flag("name", "Filter zones to only those containing the provided name.").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("sort", "Order in which to list results. Valid values are: name_asc, name_desc, created_at_asc, created_at_desc.").Action(c.sort.Set).HintOptions(SortOptions...).EnumVar(&c.sort.Value, SortOptions...)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	NameFlag argparser.OptionalString `name:"name" help:"Filter zones to only those containing the provided name."`
+	Sort     argparser.OptionalString `hints:"name_asc,name_desc,created_at_asc,created_at_desc" help:"Order in which to list results. Valid values are: name_asc, name_desc, created_at_asc, created_at_desc."`
+	argparser.JSONOutput
+}
 
-	return &c
+// AfterApply checks the values kong cannot check by itself.
+func (c *ListCommand) AfterApply(ctx *kong.Context) error {
+	if (c.Sort.Value != "" || kongcompat.Given(ctx, "sort")) && !slices.Contains([]string{"name_asc", "name_desc", "created_at_asc", "created_at_desc"}, c.Sort.Value) {
+		return fmt.Errorf("enum value must be one of name_asc,name_desc,created_at_asc,created_at_desc, got '%s'", c.Sort.Value)
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -52,11 +48,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &dnszones.ListInput{}
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.sort.WasSet {
-		v := sortAPIValue[c.sort.Value]
+	if c.Sort.WasSet {
+		v := sortAPIValue[c.Sort.Value]
 		input.Sort = &v
 	}
 

@@ -7,7 +7,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/alerts/webhook"
@@ -16,40 +15,13 @@ import (
 // RotateSigningKeyCommand calls the Fastly API to get Webhook alerts.
 type RotateSigningKeyCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	AlertID     string
-	WorkspaceID argparser.OptionalWorkspaceID
-}
-
-// NewRotateSigningKeyCommand returns a usable command registered under the parent.
-func NewRotateSigningKeyCommand(parent argparser.Registerer, g *global.Data) *RotateSigningKeyCommand {
-	c := RotateSigningKeyCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("rotate-signing-key", "Rotate webhook alert signing key")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFAlertID,
-		Description: argparser.FlagNGWAFAlertIDDesc,
-		Dst:         &c.AlertID,
-		Required:    true,
-	})
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	AlertID     string                        `required:"" help:"Alphanumeric string identifying the alert"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

@@ -9,7 +9,6 @@ import (
 	sdkdraft "github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/draft"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -19,24 +18,8 @@ type UpdateCommand struct {
 	argparser.Base
 
 	// Required.
-	comment         string
-	routingConfigID string
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Set the comment on a routing config's draft version")
-
-	// Required.
-	c.CmdClause.Flag("comment", "A descriptive note about the changes made in the draft").Required().StringVar(&c.comment)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	return &c
+	Comment         string `required:"" help:"A descriptive note about the changes made in the draft"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 }
 
 // Exec invokes the application logic for the command.
@@ -47,18 +30,18 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &sdkdraft.UpdateInput{
-		Comment:         &c.comment,
-		RoutingConfigID: &c.routingConfigID,
+		Comment:         &c.Comment,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
 	_, err := sdkdraft.Update(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}
 
-	text.Success(out, "Updated draft comment for routing config (routing-config-id: %s)", c.routingConfigID)
+	text.Success(out, "Updated draft comment for routing config (routing-config-id: %s)", c.RoutingConfigID)
 	return nil
 }

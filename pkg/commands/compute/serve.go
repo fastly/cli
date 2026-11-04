@@ -47,79 +47,62 @@ type ServeCommand struct {
 	build *BuildCommand
 
 	// Build fields
-	dir                   argparser.OptionalString
-	includeSrc            argparser.OptionalBool
-	lang                  argparser.OptionalString
-	metadataDisable       argparser.OptionalBool
-	metadataFilterEnvVars argparser.OptionalString
-	metadataShow          argparser.OptionalBool
-	packageName           argparser.OptionalString
-	timeout               argparser.OptionalInt
+	Dir                   argparser.OptionalString `short:"C" help:"Project directory to build (default: current directory)"`
+	IncludeSrc            argparser.OptionalBool   `name:"include-source" help:"Include source code in built package"`
+	Lang                  argparser.OptionalString `name:"language" help:"Language type"`
+	MetadataDisable       argparser.OptionalBool   `help:"Disable Wasm binary metadata annotations"`
+	MetadataFilterEnvVars argparser.OptionalString `name:"metadata-filter-envvars" help:"Redact specified environment variables from [scripts.env_vars] using comma-separated list"`
+	MetadataShow          argparser.OptionalBool   `help:"Inspect the Wasm binary metadata"`
+	PackageName           argparser.OptionalString `help:"Package name"`
+	Timeout               argparser.OptionalInt    `help:"Timeout, in seconds, for the build compilation step"`
 
 	// Serve public fields (public for testing purposes)
-	ForceCheckViceroyLatest bool
-	ViceroyBinExtraArgs     string
-	ViceroyBinPath          string
-	ViceroyVersioner        github.AssetVersioner
+	ForceCheckViceroyLatest bool                  `name:"viceroy-check" help:"Force the CLI to check for a newer version of the Viceroy binary"`
+	ViceroyBinExtraArgs     string                `name:"viceroy-args" help:"Additional arguments to pass to the Viceroy binary, separated by space"`
+	ViceroyBinPath          string                `name:"viceroy-path" help:"The path to a user installed version of the Viceroy binary"`
+	ViceroyVersioner        github.AssetVersioner `kong:"-"`
 
-	// Serve private fields
-	addr                        string
-	debug                       bool
-	enablePushpin               bool
-	enableWebsocketsPassthrough argparser.OptionalBool
-	pushpinRunnerBinPath        string
-	pushpinProxyPort            string
-	pushpinPublishPort          string
-	env                         argparser.OptionalString
-	file                        argparser.OptionalString
-	profileGuest                bool
-	profileGuestDir             argparser.OptionalString
+	// Serve fields
+	Addr                        string                   `default:"127.0.0.1:7676" help:"The IPv4 address and port to listen on"`
+	Debug                       bool                     `hidden:"" help:"Run the server in Debug Adapter mode"`
+	EnablePushpin               bool                     `name:"experimental-enable-pushpin" help:"Enable experimental Pushpin support for local testing of Fanout"`
+	EnableWebsocketsPassthrough argparser.OptionalBool   `name:"experimental-websockets-passthrough" help:"Enable WebSocket passthrough support for local testing of WebSockets. Overrides 'local_server.websockets_passthrough.enable' from 'fastly.toml', and if not specified there, defaults to true."`
+	PushpinRunnerBinPath        string                   `name:"pushpin-path" help:"The path to a user installed version of the Pushpin runner binary"`
+	PushpinProxyPort            string                   `help:"The port to run the Pushpin runner on. Overrides 'local_server.pushpin.proxy_port' from 'fastly.toml', and if not specified there, defaults to 7677."`
+	PushpinPublishPort          string                   `help:"The port to run the Pushpin publish handler on. Overrides 'local_server.pushpin.publish_port' from 'fastly.toml', and if not specified there, defaults to 5561."`
+	Env                         argparser.OptionalString `help:"The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')"`
+	File                        argparser.OptionalString `help:"The Wasm file to run (causes build process to be skipped)"`
+	ProfileGuest                bool                     `help:"Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/."`
+	ProfileGuestDir             argparser.OptionalString `help:"The directory where the per-request profiles are saved to. Defaults to guest-profiles."`
 	projectDir                  string
-	skipBuild                   bool
-	watch                       bool
-	watchDir                    argparser.OptionalString
+	SkipBuild                   bool                     `help:"Skip the build step"`
+	Watch                       bool                     `help:"Watch for file changes, then rebuild project and restart local server"`
+	WatchDir                    argparser.OptionalString `help:"The directory to watch files from (can be relative or absolute). Defaults to current directory."`
 }
 
-// NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCommand) *ServeCommand {
+// NewServeCommand returns a ServeCommand set up as it was before parsing.
+// Its flags now come from the struct's tags.
+func NewServeCommand(g *global.Data, build *BuildCommand) *ServeCommand {
 	var c ServeCommand
 	c.build = build
 	c.Globals = g
 	c.ViceroyVersioner = g.Versioners.Viceroy
-	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
-
-	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
-	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
-	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').Action(c.dir.Set).StringVar(&c.dir.Value)
-	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
-	c.CmdClause.Flag("file", "The Wasm file to run (causes build process to be skipped)").Action(c.file.Set).StringVar(&c.file.Value)
-	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
-	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
-	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").Action(c.metadataDisable.Set).BoolVar(&c.metadataDisable.Value)
-	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
-	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
-	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
-	c.CmdClause.Flag("experimental-enable-pushpin", "Enable experimental Pushpin support for local testing of Fanout").BoolVar(&c.enablePushpin)
-	c.CmdClause.Flag("pushpin-path", "The path to a user installed version of the Pushpin runner binary").StringVar(&c.pushpinRunnerBinPath)
-	c.CmdClause.Flag("pushpin-proxy-port", "The port to run the Pushpin runner on. Overrides 'local_server.pushpin.proxy_port' from 'fastly.toml', and if not specified there, defaults to 7677.").StringVar(&c.pushpinProxyPort)
-	c.CmdClause.Flag("pushpin-publish-port", "The port to run the Pushpin publish handler on. Overrides 'local_server.pushpin.publish_port' from 'fastly.toml', and if not specified there, defaults to 5561.").StringVar(&c.pushpinPublishPort)
-	c.CmdClause.Flag("experimental-websockets-passthrough", "Enable WebSocket passthrough support for local testing of WebSockets. Overrides 'local_server.websockets_passthrough.enable' from 'fastly.toml', and if not specified there, defaults to true.").Action(c.enableWebsocketsPassthrough.Set).BoolVar(&c.enableWebsocketsPassthrough.Value)
-	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
-	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
-	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
-	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
-	c.CmdClause.Flag("viceroy-args", "Additional arguments to pass to the Viceroy binary, separated by space").StringVar(&c.ViceroyBinExtraArgs)
-	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.ForceCheckViceroyLatest)
-	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.ViceroyBinPath)
-	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
-	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
 
 	return &c
 }
 
+// BeforeApply sets the command up with the values bound when the parser
+// was built, before kong applies the command line.
+func (c *ServeCommand) BeforeApply(g *global.Data) error {
+	c.build = &BuildCommand{}
+	c.build.Globals = g
+	c.ViceroyVersioner = g.Versioners.Viceroy
+	return nil
+}
+
 // Exec implements the command interface.
 func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if c.skipBuild && c.watch {
+	if c.SkipBuild && c.Watch {
 		return fsterr.ErrIncompatibleServeFlags
 	}
 
@@ -130,8 +113,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	manifestFilename := EnvironmentManifest(c.env.Value)
-	if c.env.Value != "" {
+	manifestFilename := EnvironmentManifest(c.Env.Value)
+	if c.Env.Value != "" {
 		if c.Globals.Verbose() {
 			text.Info(out, EnvManifestMsg, manifestFilename, manifest.Filename)
 		}
@@ -146,7 +129,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}()
 	manifestPath := filepath.Join(wd, manifestFilename)
 
-	c.projectDir, err = ChangeProjectDirectory(c.dir.Value)
+	c.projectDir, err = ChangeProjectDirectory(c.Dir.Value)
 	if err != nil {
 		return err
 	}
@@ -158,15 +141,15 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	wasmBinaryToRun := binWasmPath
-	if c.file.WasSet {
-		wasmBinaryToRun = c.file.Value
+	if c.File.WasSet {
+		wasmBinaryToRun = c.File.Value
 	}
 
 	// We skip the build if explicitly told to with --skip-build but also when the
 	// user sets --file to specify their own wasm binary to pass to Viceroy. This
 	// is typically for users who compile a Wasm binary using an unsupported
 	// programming language for the Fastly Compute platform.
-	if !c.skipBuild && !c.file.WasSet {
+	if !c.SkipBuild && !c.File.WasSet {
 		err = c.Build(in, out)
 		if err != nil {
 			return err
@@ -190,14 +173,14 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// If the user doesn't set --skip-build then `compute serve` will call
 	// `compute build` and the logic there will update the manifest in-memory data
 	// with the relevant project directory and environment manifest content.
-	if c.skipBuild || c.file.WasSet {
+	if c.SkipBuild || c.File.WasSet {
 		err := c.Globals.Manifest.File.Read(manifestPath)
 		if err != nil {
 			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
 		}
 		c.ViceroyVersioner.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
 		if c.Globals.Verbose() {
-			if c.skipBuild || c.file.WasSet {
+			if c.SkipBuild || c.File.WasSet {
 				text.Break(out)
 			}
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
@@ -209,7 +192,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	enablePushpin := c.enablePushpin ||
+	enablePushpin := c.EnablePushpin ||
 		(c.Globals.Manifest.File.LocalServer.Pushpin != nil &&
 			c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin != nil &&
 			*c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin)
@@ -231,8 +214,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// takes precedence over the manifest.
 	enableWebsocketsPassthrough := true
 	switch {
-	case c.enableWebsocketsPassthrough.WasSet:
-		enableWebsocketsPassthrough = c.enableWebsocketsPassthrough.Value
+	case c.EnableWebsocketsPassthrough.WasSet:
+		enableWebsocketsPassthrough = c.EnableWebsocketsPassthrough.Value
 	case c.Globals.Manifest.File.LocalServer.WebsocketsPassthrough != nil &&
 		c.Globals.Manifest.File.LocalServer.WebsocketsPassthrough.EnableWebsocketsPassthrough != nil:
 		enableWebsocketsPassthrough = *c.Globals.Manifest.File.LocalServer.WebsocketsPassthrough.EnableWebsocketsPassthrough
@@ -258,22 +241,22 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var restart bool
 	for {
 		err = local(localOpts{
-			addr:                        c.addr,
+			addr:                        c.Addr,
 			bin:                         bin,
-			debug:                       c.debug,
+			debug:                       c.Debug,
 			enableWebsocketsPassthrough: enableWebsocketsPassthrough,
 			errLog:                      c.Globals.ErrLog,
 			extraArgs:                   c.ViceroyBinExtraArgs,
 			manifestPath:                manifestPath,
 			out:                         out,
-			profileGuest:                c.profileGuest,
-			profileGuestDir:             c.profileGuestDir,
+			profileGuest:                c.ProfileGuest,
+			profileGuestDir:             c.ProfileGuestDir,
 			pushpinProxyPort:            pushpinCtx.proxyPort,
 			restarted:                   restart,
 			verbose:                     c.Globals.Verbose(),
 			wasmBinPath:                 wasmBinaryToRun,
-			watch:                       c.watch,
-			watchDir:                    c.watchDir,
+			watch:                       c.Watch,
+			watchDir:                    c.WatchDir,
 		})
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
@@ -301,32 +284,32 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // Build constructs and executes the build logic.
 func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on ServeCommand values.
-	if c.dir.WasSet {
-		c.build.Flags.Dir = c.dir.Value
+	if c.Dir.WasSet {
+		c.build.Flags.Dir = c.Dir.Value
 	}
-	if c.env.WasSet {
-		c.build.Flags.Env = c.env.Value
+	if c.Env.WasSet {
+		c.build.Flags.Env = c.Env.Value
 	}
-	if c.includeSrc.WasSet {
-		c.build.Flags.IncludeSrc = c.includeSrc.Value
+	if c.IncludeSrc.WasSet {
+		c.build.Flags.IncludeSrc = c.IncludeSrc.Value
 	}
-	if c.lang.WasSet {
-		c.build.Flags.Lang = c.lang.Value
+	if c.Lang.WasSet {
+		c.build.Flags.Lang = c.Lang.Value
 	}
-	if c.packageName.WasSet {
-		c.build.Flags.PackageName = c.packageName.Value
+	if c.PackageName.WasSet {
+		c.build.Flags.PackageName = c.PackageName.Value
 	}
-	if c.timeout.WasSet {
-		c.build.Flags.Timeout = c.timeout.Value
+	if c.Timeout.WasSet {
+		c.build.Flags.Timeout = c.Timeout.Value
 	}
-	if c.metadataDisable.WasSet {
-		c.build.MetadataDisable = c.metadataDisable.Value
+	if c.MetadataDisable.WasSet {
+		c.build.MetadataDisable = c.MetadataDisable.Value
 	}
-	if c.metadataFilterEnvVars.WasSet {
-		c.build.MetadataFilterEnvVars = c.metadataFilterEnvVars.Value
+	if c.MetadataFilterEnvVars.WasSet {
+		c.build.MetadataFilterEnvVars = c.MetadataFilterEnvVars.Value
 	}
-	if c.metadataShow.WasSet {
-		c.build.MetadataShow = c.metadataShow.Value
+	if c.MetadataShow.WasSet {
+		c.build.MetadataShow = c.MetadataShow.Value
 	}
 	if c.projectDir != "" {
 		c.build.SkipChangeDir = true // we've already changed directory
@@ -380,7 +363,7 @@ func (c *ServeCommand) GetViceroy(spinner text.Spinner, out io.Writer, manifestP
 // It can be overridden by providing the --pushpin-proxy-port command-line parameter.
 // If it is not found then `local_server.pushpin.proxy_port` in fastly.toml is also checked.
 func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
-	pushpinProxyPortStr := c.pushpinProxyPort
+	pushpinProxyPortStr := c.PushpinProxyPort
 	var pushpinProxyPort uint16
 	if pushpinProxyPortStr != "" {
 		pushpinProxyPortInt, err := strconv.ParseUint(pushpinProxyPortStr, 10, 16)
@@ -423,7 +406,7 @@ func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
 // It can be overridden by providing the --pushpin-publish-port command-line parameter.
 // If it is not found then `local_server.pushpin.publish_port` in fastly.toml is also checked.
 func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
-	pushpinPublishPortStr := c.pushpinPublishPort
+	pushpinPublishPortStr := c.PushpinPublishPort
 	var pushpinPublishPort uint16
 	if pushpinPublishPortStr != "" {
 		pushpinPublishPortInt, err := strconv.ParseUint(pushpinPublishPortStr, 10, 16)
@@ -464,7 +447,7 @@ func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
 // It can be overridden by providing the --pushpin-path command-line parameter.
 // If it is not found then `local_server.pushpin.pushpin_path` in fastly.toml is also checked.
 func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
-	pushpinRunnerBinPath := c.pushpinRunnerBinPath
+	pushpinRunnerBinPath := c.PushpinRunnerBinPath
 	if pushpinRunnerBinPath != "" {
 		if c.Globals.Verbose() {
 			text.Info(out, "Using user provided install of Pushpin runner via --pushpin-path flag: %s", pushpinRunnerBinPath)
@@ -832,6 +815,20 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 	text.Break(out)
 
 	return pushpinCtx, nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *ServeCommand) FlagOrder() []string {
+	return []string{
+		"addr", "debug", "dir", "env", "file", "include-source", "language",
+		"metadata-disable", "metadata-filter-envvars", "metadata-show",
+		"package-name", "experimental-enable-pushpin", "pushpin-path",
+		"pushpin-proxy-port", "pushpin-publish-port",
+		"experimental-websockets-passthrough", "profile-guest",
+		"profile-guest-dir", "skip-build", "timeout", "viceroy-args",
+		"viceroy-check", "viceroy-path", "watch", "watch-dir",
+	}
 }
 
 // localOpts represents the inputs for `local()`.

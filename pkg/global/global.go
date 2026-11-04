@@ -229,29 +229,42 @@ func (d *Data) AccountEndpoint() (string, lookup.Source) {
 // IMPORTANT: Kingpin doesn't support global flags.
 // We hack a solution in ../app/run.go (`configureKingpin` function).
 type Flags struct {
+	// Any flags defined below must also be added to two other places:
+	// 1. ../app/usage.go (`globalFlags` map).
+	// 2. ../cmd/argparser.go (`IsGlobalFlagsOnly` function).
+	//
+	// NOTE: Global flags (long and short) MUST be unique.
+	// A subcommand can't define a flag that is already global.
+	// Kingpin will otherwise trigger a runtime panic 🎉
+	// Interestingly, short flags can be reused but only across subcommands.
+
 	// AcceptDefaults auto-resolves prompts with a default defined.
-	AcceptDefaults bool
+	AcceptDefaults bool `short:"d" help:"Accept default options for all interactive prompts apart from Yes/No confirmations"`
 	// AccountEndpoint is the authentication host address.
-	AccountEndpoint string
+	AccountEndpoint string `name:"account" hidden:"" help:"Fastly Accounts endpoint"`
 	// APIEndpoint is the Fastly API address.
-	APIEndpoint string
+	APIEndpoint string `name:"api" hidden:"" help:"Fastly API endpoint"`
 	// AutoYes auto-resolves Yes/No prompts by answering "Yes".
-	AutoYes bool
+	AutoYes bool `short:"y" help:"Answer yes automatically to all Yes/No confirmations. This may suppress security warnings"`
 	// Debug enables the CLI's debug mode.
-	Debug bool
+	//
+	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
+	Debug bool `name:"debug-mode" help:"Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)"`
+	// SSO enables SSO authentication tokens for the current profile.
+	//
+	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
+	SSO bool `name:"enable-sso" hidden:"" help:"[DEPRECATED: use 'fastly auth login --sso --token <name>'] Enable SSO for current profile"`
 	// JSON indicates --json output was requested. Detected automatically by
 	// Exec. Unlike Quiet, JSON mode does not suppress stderr warnings.
-	JSON bool
+	JSON bool `kong:"-"`
 	// NonInteractive auto-resolves all prompts.
-	NonInteractive bool
+	NonInteractive bool `short:"i" help:"Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes"`
 	// Profile indicates the profile to use (consequently the 'token' used).
-	Profile string
+	Profile string `short:"o" hidden:"" help:"[DEPRECATED: use 'fastly auth use'] Switch account profile for single command execution"`
 	// Quiet silences all output except direct command output.
-	Quiet bool
-	// SSO enables SSO authentication tokens for the current profile.
-	SSO bool
+	Quiet bool `short:"q" help:"Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)"`
 	// Token is an override for a profile (when passed SSO is disabled).
-	Token string
+	Token string `short:"t" help:"Fastly API token, or name of a stored auth token (use 'default' for the default token). Falls back to FASTLY_API_TOKEN env var"`
 	// Verbose prints additional output.
-	Verbose bool
+	Verbose bool `short:"v" help:"Verbose logging"`
 }

@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,28 +17,12 @@ import (
 // that can be used when creating an event mapping.
 type ListEventTypesCommand struct {
 	argparser.Base
+
+	// Optional.
+	ScopeType argparser.OptionalString `hints:"account,vcl,wasm,ngwaf" help:"Filters results to event types compatible with the given scope type"`
+	Sort      argparser.OptionalString `hints:"event_type,-event_type" help:"The order in which to return results, alphabetically by event type"`
+
 	argparser.JSONOutput
-
-	// Optional.
-	scopeType argparser.OptionalString
-	sort      argparser.OptionalString
-}
-
-// NewListEventTypesCommand returns a usable command registered under the parent.
-func NewListEventTypesCommand(parent argparser.Registerer, g *global.Data) *ListEventTypesCommand {
-	c := ListEventTypesCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list-event-types", "List the audit event types supported when creating an event mapping")
-
-	// Optional.
-	c.CmdClause.Flag("scope-type", "Filters results to event types compatible with the given scope type").HintOptions(knownScopeTypes...).Action(c.scopeType.Set).StringVar(&c.scopeType.Value)
-	c.CmdClause.Flag("sort", "The order in which to return results, alphabetically by event type").HintOptions("event_type", "-event_type").Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -54,11 +37,11 @@ func (c *ListEventTypesCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &eventtypes.ListInput{}
-	if c.scopeType.WasSet {
-		input.ScopeType = &c.scopeType.Value
+	if c.ScopeType.WasSet {
+		input.ScopeType = &c.ScopeType.Value
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	types, err := eventtypes.List(context.TODO(), fc, input)

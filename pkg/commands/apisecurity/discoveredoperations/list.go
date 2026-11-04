@@ -12,7 +12,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -23,47 +22,25 @@ type ListCommand struct {
 
 	// Required.
 	input       operations.ListDiscoveredInput
-	serviceName argparser.OptionalServiceNameID
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
 
 	// Optional.
-	domain argparser.OptionalString
-	method argparser.OptionalString
-	path   argparser.OptionalString
-	status argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List discovered operations")
+	Domain argparser.OptionalString `help:"The domain for the operation"`
+	Method argparser.OptionalString `help:"Filters operations by HTTP method (e.g., GET, POST, PUT)"`
+	Path   argparser.OptionalString `help:"Filters operations by path (exact match)"`
+	Status argparser.OptionalString `help:"Filters operations by status. Valid values are: discovered, saved, ignored"`
 
 	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	ServiceID *string `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+}
 
-	// Optional.
-	c.CmdClause.Flag("status", "Filters operations by status. Valid values are: discovered, saved, ignored").Action(c.status.Set).StringVar(&c.status.Value)
-	c.CmdClause.Flag("domain", "The domain for the operation").Action(c.domain.Set).StringVar(&c.domain.Value)
-	c.CmdClause.Flag("method", "Filters operations by HTTP method (e.g., GET, POST, PUT)").Action(c.method.Set).StringVar(&c.method.Value)
-	c.CmdClause.Flag("path", "Filters operations by path (exact match)").Action(c.path.Set).StringVar(&c.path.Value)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -72,7 +49,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -86,8 +63,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	// so we are handling accordingly here and allowing
 	// end users to still use the normal lowercase pattern
 	// for input in the CLI.
-	if c.status.WasSet {
-		switch c.status.Value {
+	if c.Status.WasSet {
+		switch c.Status.Value {
 		case "discovered":
 			status := "DISCOVERED"
 			c.input.Status = &status
@@ -98,19 +75,19 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			status := "IGNORED"
 			c.input.Status = &status
 		default:
-			err := fmt.Errorf("invalid status: %s. Valid options: 'discovered', 'saved', 'ignored'", c.status.Value)
+			err := fmt.Errorf("invalid status: %s. Valid options: 'discovered', 'saved', 'ignored'", c.Status.Value)
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	}
-	if c.domain.WasSet {
-		c.input.Domain = []string{c.domain.Value}
+	if c.Domain.WasSet {
+		c.input.Domain = []string{c.Domain.Value}
 	}
-	if c.method.WasSet {
-		c.input.Method = []string{c.method.Value}
+	if c.Method.WasSet {
+		c.input.Method = []string{c.Method.Value}
 	}
-	if c.path.WasSet {
-		c.input.Path = &c.path.Value
+	if c.Path.WasSet {
+		c.input.Path = &c.Path.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -131,10 +108,10 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
-				"Domain":     c.domain.Value,
-				"Method":     c.method.Value,
-				"Status":     c.status.Value,
-				"Path":       c.path.Value,
+				"Domain":     c.Domain.Value,
+				"Method":     c.Method.Value,
+				"Status":     c.Status.Value,
+				"Path":       c.Path.Value,
 				"Page":       page,
 			})
 			return err
@@ -204,4 +181,13 @@ func (c *ListCommand) printVerbose(out io.Writer, o []operations.DiscoveredOpera
 	fmt.Fprintln(out)
 
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *ListCommand) FlagOrder() []string {
+	return []string{
+		"service-id", "service-name", "status", "domain", "method", "path",
+		"json",
+	}
 }

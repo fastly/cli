@@ -10,35 +10,21 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	var c UpdateCommand
-	c.CmdClause = parent.Command("update", "Replace a TLS certificate with a newly reissued TLS certificate, or update a TLS certificate's name")
-	c.Globals = g
-
-	// Required
-	// cert-blob and cert-path are mutually exclusive. One is required.
-	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob, mutually exclusive with --cert-path").StringVar(&c.certBlob)
-	c.CmdClause.Flag("cert-path", "Filepath to a PEM-formatted certificate, mutually exclusive with --cert-blob").StringVar(&c.certPath)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.id)
-
-	// Optional.
-	c.CmdClause.Flag("name", "A customizable name for your certificate. Defaults to the certificate's Common Name or first Subject Alternative Names (SAN) entry").StringVar(&c.name)
-	return &c
-}
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
 
-	certBlob string
-	certPath string
-	id       string
-	name     string
+	// Required
+	// cert-blob and cert-path are mutually exclusive. One is required.
+	CertBlob string `help:"The PEM-formatted certificate blob, mutually exclusive with --cert-path"`
+	CertPath string `help:"Filepath to a PEM-formatted certificate, mutually exclusive with --cert-blob"`
+	ID       string `required:"" help:"Alphanumeric string identifying a TLS certificate"`
+
+	// Optional.
+	NameFlag string `name:"name" help:"A customizable name for your certificate. Defaults to the certificate's Common Name or first Subject Alternative Names (SAN) entry"`
 }
 
 // Exec invokes the application logic for the command.
@@ -51,13 +37,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.UpdateCustomTLSCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Certificate ID":   c.id,
-			"TLS Certificate Name": c.name,
+			"TLS Certificate ID":   c.ID,
+			"TLS Certificate Name": c.NameFlag,
 		})
 		return err
 	}
 
-	if c.name != "" {
+	if c.NameFlag != "" {
 		text.Success(out, "Updated TLS Certificate '%s' (previously: '%s')", r.Name, input.Name)
 	} else {
 		text.Success(out, "Updated TLS Certificate '%s'", r.ID)
@@ -69,36 +55,36 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput() (*fastly.UpdateCustomTLSCertificateInput, error) {
 	var input fastly.UpdateCustomTLSCertificateInput
 
-	if c.certPath == "" && c.certBlob == "" {
+	if c.CertPath == "" && c.CertBlob == "" {
 		return nil, fmt.Errorf("neither --cert-path or --cert-blob provided, one must be provided")
 	}
 
-	if c.certPath != "" && c.certBlob != "" {
+	if c.CertPath != "" && c.CertBlob != "" {
 		return nil, fmt.Errorf("cert-path and cert-blob provided, only one can be specified")
 	}
 
-	input.ID = c.id
+	input.ID = c.ID
 
-	if c.certBlob != "" {
-		input.CertBlob = c.certBlob
+	if c.CertBlob != "" {
+		input.CertBlob = c.CertBlob
 	}
 
-	if c.certPath != "" {
-		path, err := filepath.Abs(c.certPath)
+	if c.CertPath != "" {
+		path, err := filepath.Abs(c.CertPath)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing cert-path '%s': %q", c.certPath, err)
+			return nil, fmt.Errorf("error parsing cert-path '%s': %q", c.CertPath, err)
 		}
 
 		data, err := os.ReadFile(path) // #nosec
 		if err != nil {
-			return nil, fmt.Errorf("error reading cert-path '%s': %q", c.certPath, err)
+			return nil, fmt.Errorf("error reading cert-path '%s': %q", c.CertPath, err)
 		}
 
 		input.CertBlob = string(data)
 	}
 
-	if c.name != "" {
-		input.Name = c.name
+	if c.NameFlag != "" {
+		input.Name = c.NameFlag
 	}
 
 	return &input, nil

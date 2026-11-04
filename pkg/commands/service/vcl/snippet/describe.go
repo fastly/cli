@@ -9,60 +9,36 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("describe", "Get the uploaded VCL snippet for a particular service and version").Alias("get")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.CmdClause.Flag("content", "Outputs the raw content of the identified snippet").Action(c.content.Set).BoolVar(&c.content.Value)
-	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("name", "The name of the VCL snippet").StringVar(&c.name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").StringVar(&c.snippetID)
-
-	return &c
+	return nil
 }
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	Content argparser.OptionalBool `help:"Outputs the raw content of the identified snippet"`
+	Dynamic argparser.OptionalBool `help:"Whether the VCL snippet is dynamic or versioned"`
 	argparser.JSONOutput
 
-	dynamic        argparser.OptionalBool
-	content        argparser.OptionalBool
-	name           string
-	serviceName    argparser.OptionalServiceNameID
+	NameFlag       string                          `name:"name" help:"The name of the VCL snippet"`
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceVersion argparser.OptionalServiceVersion
-	snippetID      string
+	SnippetID      string `help:"Alphanumeric string identifying a VCL Snippet"`
 }
 
 // Exec invokes the application logic for the command.
@@ -72,10 +48,10 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	// Ensure that the --content flag is not used
 	// with --verbose or --json
-	if c.Globals.Verbose() && c.content.WasSet {
+	if c.Globals.Verbose() && c.Content.WasSet {
 		return fsterr.ErrInvalidContentOutputCombo
 	}
-	if c.JSONOutput.Enabled && c.content.WasSet {
+	if c.JSONOutput.Enabled && c.Content.WasSet {
 		return fsterr.ErrInvalidContentOutputCombo
 	}
 
@@ -83,7 +59,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -97,7 +73,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
-	if c.dynamic.WasSet {
+	if c.Dynamic.WasSet {
 		input, err := c.constructDynamicInput(serviceID, serviceVersionNumber)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -152,10 +128,10 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DescribeCommand) constructDynamicInput(serviceID string, _ int) (*fastly.GetDynamicSnippetInput, error) {
 	var input fastly.GetDynamicSnippetInput
 
-	input.SnippetID = c.snippetID
+	input.SnippetID = c.SnippetID
 	input.ServiceID = serviceID
 
-	if c.snippetID == "" {
+	if c.SnippetID == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id with a dynamic VCL snippet")
 	}
 
@@ -166,11 +142,11 @@ func (c *DescribeCommand) constructDynamicInput(serviceID string, _ int) (*fastl
 func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (*fastly.GetSnippetInput, error) {
 	var input fastly.GetSnippetInput
 
-	input.Name = c.name
+	input.Name = c.NameFlag
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
-	if c.name == "" {
+	if c.NameFlag == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --name with a versioned VCL snippet")
 	}
 
@@ -180,7 +156,7 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 // print displays the 'dynamic' information returned from the API.
 func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
 	// If the --content flag is set, output only the raw VCL content.
-	if c.content.WasSet {
+	if c.Content.WasSet {
 		fmt.Fprint(out, fastly.ToValue(ds.Content))
 		return nil
 	}
@@ -200,7 +176,7 @@ func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet)
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 	// If the --content flag is set, output only the raw VCL content.
-	if c.content.WasSet {
+	if c.Content.WasSet {
 		fmt.Fprint(out, fastly.ToValue(s.Content))
 		return nil
 	}

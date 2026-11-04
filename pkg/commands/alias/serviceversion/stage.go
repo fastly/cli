@@ -5,21 +5,12 @@ import (
 
 	newcmd "github.com/fastly/cli/pkg/commands/service/version"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // StageCommand wraps the StageCommand from the newcmd package.
 type StageCommand struct {
-	*newcmd.StageCommand
-}
-
-// NewStageCommand returns a usable command registered under the parent.
-func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand {
-	c := StageCommand{newcmd.NewStageCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	newcmd.StageCommand
 }
 
 // Exec implements the command interface.

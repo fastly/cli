@@ -11,36 +11,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to describe a compute ACL.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	id string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("describe", "Describe a compute ACL")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Compute ACL ID").Required().StringVar(&c.id)
+	ID string `name:"acl-id" required:"" help:"Compute ACL ID"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -55,7 +37,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	acl, err := computeacls.Describe(context.TODO(), fc, &computeacls.DescribeInput{
-		ComputeACLID: &c.id,
+		ComputeACLID: &c.ID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

@@ -8,35 +8,29 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("list", "List secret stores")
-
-	// Optional.
-	c.RegisterFlag(argparser.CursorFlag(&c.Input.Cursor))  // --cursor
-	c.RegisterFlagBool(c.JSONFlag())                       // --json
-	c.RegisterFlagInt(argparser.LimitFlag(&c.Input.Limit)) // --limit
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	c.Input.Cursor = c.Cursor
+	c.Input.Limit = c.Limit
+	return nil
 }
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
+	Cursor string `short:"c" help:"Pagination cursor (Use 'next_cursor' value from list output)"`
 	argparser.JSONOutput
 
 	// NOTE: API returns 10 items even when --limit is set to smaller.
-	Input fastly.ListSecretStoresInput
+	Input fastly.ListSecretStoresInput `kong:"-"`
+
+	Limit int `short:"l" default:"50" help:"Maximum number of items to list"`
 }
 
 // Exec invokes the application logic for the command.

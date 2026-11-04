@@ -5,21 +5,12 @@ import (
 
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // PurgeCommand wraps the PurgeCommand from the servicepurge package.
 type Command struct {
-	*servicepurge.PurgeCommand
-}
-
-// NewCommand returns a usable command registered under the parent.
-func NewCommand(parent argparser.Registerer, g *global.Data) *Command {
-	c := Command{servicepurge.NewPurgeCommand(parent, g)}
-	c.CmdClause.Hidden()
-	return &c
+	servicepurge.PurgeCommand
 }
 
 // Exec implements the command interface.

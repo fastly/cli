@@ -10,44 +10,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to get a workspace threshold.
 type GetCommand struct {
 	argparser.Base
+
+	// Required.
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+	ThresholdID string                        `required:"" help:"Threshold ID"`
+
+	// Optional.
 	argparser.JSONOutput
-
-	// Required.
-	thresholdID string
-	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("get", "Retrieves a workspace threshold")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
-	c.CmdClause.Flag("threshold-id", "Threshold ID").Required().StringVar(&c.thresholdID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -57,12 +32,12 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 	input := &thresholds.GetInput{
-		ThresholdID: &c.thresholdID,
-		WorkspaceID: &c.workspaceID.Value,
+		ThresholdID: &c.ThresholdID,
+		WorkspaceID: &c.WorkspaceID.Value,
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

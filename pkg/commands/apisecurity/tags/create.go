@@ -10,52 +10,31 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create an operation tag.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	name        string
-	serviceName argparser.OptionalServiceNameID
+	NameFlag string `name:"name" required:"" help:"Name of the operation tag"`
 
 	// Optional.
-	description argparser.OptionalString
+	ServiceID   *string                         `help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Description argparser.OptionalString        `help:"Description of the operation tag"`
+
+	argparser.JSONOutput
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-
-	c.CmdClause = parent.Command("create", "Create an operation tag")
-
-	// Required.
-	c.CmdClause.Flag("name", "Name of the operation tag").Required().StringVar(&c.name)
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("description", "Description of the operation tag").Action(c.description.Set).StringVar(&c.description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -64,7 +43,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -83,11 +62,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &operations.CreateTagInput{
 		ServiceID: &serviceID,
-		Name:      &c.name,
+		Name:      &c.NameFlag,
 	}
 
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
 	}
 
 	tag, err := operations.CreateTag(context.TODO(), fc, input)

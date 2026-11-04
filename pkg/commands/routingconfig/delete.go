@@ -9,33 +9,18 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a routing config.
 type DeleteCommand struct {
 	argparser.Base
-	routingConfigID string
-	force           bool
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a routing config. This is rejected if the routing config is still associated with any domain, regardless of --force; unset those associations first with 'fastly domain update --routing-config-id nil'").Alias("remove")
 
 	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 
 	// Optional.
-	c.CmdClause.Flag("force", "Delete the routing config even if it has an active version, bypassing the active-version check. You still can't delete a routing config that's linked to a domain").BoolVar(&c.force)
-
-	return &c
+	Force bool `help:"Delete the routing config even if it has an active version, bypassing the active-version check. You still can't delete a routing config that's linked to a domain"`
 }
 
 // Exec invokes the application logic for the command.
@@ -46,20 +31,20 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &routingconfigs.DeleteInput{
-		RoutingConfigID: &c.routingConfigID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
-	if c.force {
-		input.Force = &c.force
+	if c.Force {
+		input.Force = &c.Force
 	}
 
 	err := routingconfigs.Delete(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted routing config (routing-config-id: %s)", c.routingConfigID)
+	text.Success(out, "Deleted routing config (routing-config-id: %s)", c.RoutingConfigID)
 	return nil
 }

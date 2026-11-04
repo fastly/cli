@@ -10,56 +10,32 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
-	name           string
-	serviceName    argparser.OptionalServiceNameID
-	serviceVersion argparser.OptionalServiceVersion
-	autoClone      argparser.OptionalAutoClone
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a condition on a Fastly service version").Alias("remove")
 
 	// Required flags
-	c.CmdClause.Flag("name", "Condition name").Short('n').Required().StringVar(&c.name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	NameFlag       string `name:"name" short:"n" required:"" help:"Condition name"`
+	Version        string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional flags
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
+	AutoClone   argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
 
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -67,11 +43,11 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -86,7 +62,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	var input fastly.DeleteConditionInput
 	input.ServiceID = serviceID
 	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
-	input.Name = c.name
+	input.Name = c.NameFlag
 
 	if err := c.Globals.APIClient.DeleteCondition(context.TODO(), &input); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -96,6 +72,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted condition %s (service %s version %d)", c.name, serviceID, fastly.ToValue(serviceVersion.Number))
+	text.Success(out, "Deleted condition %s (service %s version %d)", c.NameFlag, serviceID, fastly.ToValue(serviceVersion.Number))
 	return nil
 }

@@ -10,51 +10,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a redaction.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	field         string
-	redactionType string
-	workspaceID   argparser.OptionalWorkspaceID
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a redaction").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("field", "The name of the field that should be redacted.").Required().StringVar(&c.field)
-	c.CmdClause.Flag("type", "The type of field that is being redacted.").Required().StringVar(&c.redactionType)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	Field         string                        `required:"" help:"The name of the field that should be redacted."`
+	RedactionType string                        `name:"type" required:"" help:"The type of field that is being redacted."`
+	WorkspaceID   argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 
@@ -64,9 +40,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	var err error
 	input := &redactions.CreateInput{
-		Field:       &c.field,
-		Type:        &c.redactionType,
-		WorkspaceID: &c.workspaceID.Value,
+		Field:       &c.Field,
+		Type:        &c.RedactionType,
+		WorkspaceID: &c.WorkspaceID.Value,
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

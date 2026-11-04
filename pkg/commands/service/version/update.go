@@ -9,7 +9,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,61 +16,38 @@ import (
 type UpdateCommand struct {
 	argparser.Base
 	input          fastly.UpdateVersionInput
-	serviceName    argparser.OptionalServiceNameID
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
+	Version        string                          `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 	serviceVersion argparser.OptionalServiceVersion
-	autoClone      argparser.OptionalAutoClone
-
-	comment argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a Fastly service version")
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
+	AutoClone      argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
 
 	// TODO(integralist):
 	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
 	// which will hopefully have better/more correct consistency as far as which
 	// fields are supposed to be optional and which should be 'required'.
 	//
-	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
-	return &c
+	Comment argparser.OptionalString `help:"Human-readable comment"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	c.serviceVersion.Value = c.Version
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -85,17 +61,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
-	if !c.comment.WasSet {
+	if !c.Comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
 	}
-	c.input.Comment = &c.comment.Value
+	c.input.Comment = &c.Comment.Value
 
 	ver, err := c.Globals.APIClient.UpdateVersion(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": fastly.ToValue(serviceVersion.Number),
-			"Comment":         c.comment.Value,
+			"Comment":         c.Comment.Value,
 		})
 		return err
 	}

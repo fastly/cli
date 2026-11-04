@@ -11,39 +11,37 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // GetCommand calls the Fastly API to fetch the value of a key from a kv store.
 type GetCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	Input      fastly.GetKVStoreItemInput
-	Generation string
-}
-
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
-		Base: argparser.Base{
-			Globals: g,
-			// This argument suppresses the 'Fastly API' output from the global verbose command.
-			SuppressVerbose: true,
-		},
-	}
-	c.CmdClause = parent.Command("get", "Get the value associated with a key")
+	Input fastly.GetKVStoreItemInput `kong:"-"`
 
 	// Required.
-	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
+	Key     string `short:"k" required:"" help:"Key name"`
+	StoreID string `short:"s" required:"" help:"Store ID"`
 
 	// Optional.
-	c.CmdClause.Flag("if-generation-match", "Compares if the provided generation marker matches that of the object").StringVar(&c.Generation)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	Generation string `name:"if-generation-match" help:"Compares if the provided generation marker matches that of the object"`
+	argparser.JSONOutput
+}
 
-	return &c
+// BeforeApply sets the command up before kong applies the command line.
+func (c *GetCommand) BeforeApply() error {
+	// This argument suppresses the 'Fastly API' output from the global verbose command.
+	c.SuppressVerbose = true
+	return nil
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *GetCommand) AfterApply() error {
+	c.Input.Key = c.Key
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

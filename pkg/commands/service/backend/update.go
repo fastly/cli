@@ -10,123 +10,66 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update backends.
 type UpdateCommand struct {
 	argparser.Base
-	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
-	autoClone      argparser.OptionalAutoClone
-
-	name                string
-	Address             argparser.OptionalString
-	AutoLoadbalance     argparser.OptionalBool
-	BetweenBytesTimeout argparser.OptionalInt
-	Comment             argparser.OptionalString
-	ConnectTimeout      argparser.OptionalInt
-	FirstByteTimeout    argparser.OptionalInt
-	HealthCheck         argparser.OptionalString
-	Hostname            argparser.OptionalString
-	MaxConn             argparser.OptionalInt
-	MaxUse              argparser.OptionalInt
-	MaxLifetime         argparser.OptionalInt
-	MaxTLSVersion       argparser.OptionalString
-	MinTLSVersion       argparser.OptionalString
-	NewName             argparser.OptionalString
-	NoSSLCheckCert      argparser.OptionalBool
-	OverrideHost        argparser.OptionalString
-	Port                argparser.OptionalInt
-	preferIPv6          argparser.OptionalString
-	RequestCondition    argparser.OptionalString
-	SSLCACert           argparser.OptionalString
-	SSLCertHostname     argparser.OptionalString
-	SSLCheckCert        argparser.OptionalBool
-	SSLCiphers          argparser.OptionalString
-	SSLClientCert       argparser.OptionalString
-	SSLClientKey        argparser.OptionalString
-	SSLSNIHostname      argparser.OptionalString
-	Shield              argparser.OptionalString
-	TCPKaEnable         argparser.OptionalString
-	TCPKaInterval       argparser.OptionalInt
-	TCPKaProbes         argparser.OptionalInt
-	TCPKaTime           argparser.OptionalInt
-	HTTPKaTime          argparser.OptionalInt
-	UseSSL              argparser.OptionalBool
-	Weight              argparser.OptionalInt
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a backend on a Fastly service version")
 
 	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-	c.CmdClause.Flag("name", "backend name").Short('n').Required().StringVar(&c.name)
+	Version  string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+	NameFlag string `name:"name" short:"n" required:"" help:"backend name"`
 
 	// Optional.
-	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.Address.Set).StringVar(&c.Address.Value)
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("auto-loadbalance", "Whether or not this backend should be automatically load balanced").Action(c.AutoLoadbalance.Set).BoolVar(&c.AutoLoadbalance.Value)
-	c.CmdClause.Flag("between-bytes-timeout", "How long to wait between bytes in milliseconds").Action(c.BetweenBytesTimeout.Set).IntVar(&c.BetweenBytesTimeout.Value)
-	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
-	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.ConnectTimeout.Set).IntVar(&c.ConnectTimeout.Value)
-	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).IntVar(&c.FirstByteTimeout.Value)
-	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.HealthCheck.Set).StringVar(&c.HealthCheck.Value)
-	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).IntVar(&c.MaxConn.Value)
-	c.CmdClause.Flag("max-use", "Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited.").Action(c.MaxUse.Set).IntVar(&c.MaxUse.Value)
-	c.CmdClause.Flag("max-lifetime", "Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited.").Action(c.MaxLifetime.Set).IntVar(&c.MaxLifetime.Value)
-	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.MaxTLSVersion.Set).StringVar(&c.MaxTLSVersion.Value)
-	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.MinTLSVersion.Set).StringVar(&c.MinTLSVersion.Value)
-	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.NoSSLCheckCert.Set).BoolVar(&c.NoSSLCheckCert.Value)
-	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.OverrideHost.Set).StringVar(&c.OverrideHost.Value)
-	c.CmdClause.Flag("port", "Port number of the address").Action(c.Port.Set).IntVar(&c.Port.Value)
-	c.CmdClause.Flag("prefer-ipv6", "Prefer IPv6 connections").Action(c.preferIPv6.Set).StringVar(&c.preferIPv6.Value)
-	c.CmdClause.Flag("request-condition", "condition, which if met, will select this backend during a request").Action(c.RequestCondition.Set).StringVar(&c.RequestCondition.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").Action(c.Shield.Set).StringVar(&c.Shield.Value)
-	c.CmdClause.Flag("ssl-ca-cert", "CA certificate attached to origin").Action(c.SSLCACert.Set).StringVar(&c.SSLCACert.Value)
-	c.CmdClause.Flag("ssl-cert-hostname", "Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all.").Action(c.SSLCertHostname.Set).StringVar(&c.SSLCertHostname.Value)
-	c.CmdClause.Flag("ssl-check-cert", "Be strict on checking SSL certs").Action(c.SSLCheckCert.Set).BoolVar(&c.SSLCheckCert.Value)
-	c.CmdClause.Flag("ssl-ciphers", "List of OpenSSL ciphers (https://www.openssl.org/docs/man1.0.2/man1/ciphers)").Action(c.SSLCiphers.Set).StringVar(&c.SSLCiphers.Value)
-	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").Action(c.SSLClientCert.Set).StringVar(&c.SSLClientCert.Value)
-	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").Action(c.SSLClientKey.Set).StringVar(&c.SSLClientKey.Value)
-	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").Action(c.SSLSNIHostname.Set).StringVar(&c.SSLSNIHostname.Value)
-	c.CmdClause.Flag("tcp-ka-enabled", "Enable TCP keepalive probes [true, false]").Action(c.TCPKaEnable.Set).StringVar(&c.TCPKaEnable.Value)
-	c.CmdClause.Flag("tcp-ka-interval", "Configure how long to wait between sending each TCP keepalive probe.").Action(c.TCPKaInterval.Set).IntVar(&c.TCPKaInterval.Value)
-	c.CmdClause.Flag("tcp-ka-probes", "Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead.").Action(c.TCPKaProbes.Set).IntVar(&c.TCPKaProbes.Value)
-	c.CmdClause.Flag("tcp-ka-time", "Configure how long to wait after the last sent data before sending TCP keepalive probes.").Action(c.TCPKaTime.Set).IntVar(&c.TCPKaTime.Value)
-	c.CmdClause.Flag("http-ka-time", "Configure how long to keep idle HTTP keepalive connections in the connection pool.").Action(c.HTTPKaTime.Set).IntVar(&c.HTTPKaTime.Value)
-	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").Action(c.UseSSL.Set).BoolVar(&c.UseSSL.Value)
-	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.Weight.Set).IntVar(&c.Weight.Value)
-	return &c
+	Address             argparser.OptionalString        `help:"A hostname, IPv4, or IPv6 address for the backend"`
+	AutoClone           argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	AutoLoadbalance     argparser.OptionalBool          `help:"Whether or not this backend should be automatically load balanced"`
+	BetweenBytesTimeout argparser.OptionalInt           `help:"How long to wait between bytes in milliseconds"`
+	Comment             argparser.OptionalString        `help:"A descriptive note"`
+	ConnectTimeout      argparser.OptionalInt           `help:"How long to wait for a timeout in milliseconds"`
+	FirstByteTimeout    argparser.OptionalInt           `help:"How long to wait for the first bytes in milliseconds"`
+	HealthCheck         argparser.OptionalString        `name:"healthcheck" help:"The name of the healthcheck to use with this backend"`
+	Hostname            argparser.OptionalString        `kong:"-"`
+	MaxConn             argparser.OptionalInt           `help:"Maximum number of connections"`
+	MaxUse              argparser.OptionalInt           `help:"Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited."`
+	MaxLifetime         argparser.OptionalInt           `help:"Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited."`
+	MaxTLSVersion       argparser.OptionalString        `help:"Maximum allowed TLS version on SSL connections to this backend"`
+	MinTLSVersion       argparser.OptionalString        `help:"Minimum allowed TLS version on SSL connections to this backend"`
+	NewName             argparser.OptionalString        `help:"New backend name"`
+	NoSSLCheckCert      argparser.OptionalBool          `help:"Skip checking SSL certs"`
+	OverrideHost        argparser.OptionalString        `help:"The hostname to override the Host header"`
+	Port                argparser.OptionalInt           `help:"Port number of the address"`
+	PreferIPv6          argparser.OptionalString        `name:"prefer-ipv6" help:"Prefer IPv6 connections"`
+	RequestCondition    argparser.OptionalString        `help:"condition, which if met, will select this backend during a request"`
+	ServiceID           *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName         argparser.OptionalServiceNameID `help:"The name of the service"`
+	Shield              argparser.OptionalString        `help:"The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network"`
+	SSLCACert           argparser.OptionalString        `name:"ssl-ca-cert" help:"CA certificate attached to origin"`
+	SSLCertHostname     argparser.OptionalString        `help:"Overrides ssl_hostname, but only for cert verification. Does not affect SNI at all."`
+	SSLCheckCert        argparser.OptionalBool          `help:"Be strict on checking SSL certs"`
+	SSLCiphers          argparser.OptionalString        `help:"List of OpenSSL ciphers (https://www.openssl.org/docs/man1.0.2/man1/ciphers)"`
+	SSLClientCert       argparser.OptionalString        `help:"Client certificate attached to origin"`
+	SSLClientKey        argparser.OptionalString        `help:"Client key attached to origin"`
+	SSLSNIHostname      argparser.OptionalString        `name:"ssl-sni-hostname" help:"Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all."`
+	TCPKaEnable         argparser.OptionalString        `name:"tcp-ka-enabled" help:"Enable TCP keepalive probes [true, false]"`
+	TCPKaInterval       argparser.OptionalInt           `help:"Configure how long to wait between sending each TCP keepalive probe."`
+	TCPKaProbes         argparser.OptionalInt           `help:"Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead."`
+	TCPKaTime           argparser.OptionalInt           `help:"Configure how long to wait after the last sent data before sending TCP keepalive probes."`
+	HTTPKaTime          argparser.OptionalInt           `help:"Configure how long to keep idle HTTP keepalive connections in the connection pool."`
+	UseSSL              argparser.OptionalBool          `help:"Whether or not to use SSL to reach the backend"`
+	Weight              argparser.OptionalInt           `help:"Weight used to load balance this backend against others"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -134,11 +77,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -153,7 +96,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &fastly.UpdateBackendInput{
 		ServiceID:      serviceID,
 		ServiceVersion: fastly.ToValue(serviceVersion.Number),
-		Name:           c.name,
+		Name:           c.NameFlag,
 	}
 
 	if c.NewName.WasSet {
@@ -176,8 +119,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.OverrideHost = &c.OverrideHost.Value
 	}
 
-	if c.preferIPv6.WasSet {
-		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value, "prefer-ipv6")
+	if c.PreferIPv6.WasSet {
+		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.PreferIPv6.Value, "prefer-ipv6")
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

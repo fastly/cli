@@ -8,36 +8,29 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("describe", "Retrieve a single secret").Alias("get")
-
-	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))           // --name
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.Input.Name = c.NameFlag
+	c.Input.StoreID = c.StoreID
+	return nil
 }
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	Input fastly.GetSecretInput
+	Input fastly.GetSecretInput `kong:"-"`
+
+	// Required.
+	NameFlag string `name:"name" short:"n" required:"" help:"Secret name"`
+	StoreID  string `short:"s" required:"" help:"Store ID"`
+
+	// Optional.
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

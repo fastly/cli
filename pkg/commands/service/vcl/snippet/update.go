@@ -4,78 +4,54 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"4d63.com/optional"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply checks the values kong cannot check by itself, then hands the
+// parsed flags over to the fields the command reads them from.
+func (c *UpdateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.Location.Value != "" || kongcompat.Given(ctx, "type")) && !slices.Contains([]string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}, c.Location.Value) {
+		return fmt.Errorf("enum value must be one of init,recv,hash,hit,miss,pass,fetch,error,deliver,log,none, got '%s'", c.Location.Value)
 	}
-	c.CmdClause = parent.Command("update", "Update a VCL snippet for a particular service and version")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(< snippet.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
-	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
-	c.CmdClause.Flag("name", "The name of the VCL snippet to update").StringVar(&c.name)
-	c.CmdClause.Flag("new-name", "New name for the VCL snippet").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).StringVar(&c.priority.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").StringVar(&c.snippetID)
-
-	// NOTE: Locations is defined in the same snippet package inside create.go
-	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").HintOptions(Locations...).Action(c.location.Set).EnumVar(&c.location.Value, Locations...)
-
-	return &c
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
 
-	autoClone      argparser.OptionalAutoClone
-	content        argparser.OptionalString
-	dynamic        argparser.OptionalBool
-	location       argparser.OptionalString
-	name           string
-	newName        argparser.OptionalString
-	priority       argparser.OptionalString
-	serviceName    argparser.OptionalServiceNameID
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	AutoClone      argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Content        argparser.OptionalString        `help:"VCL snippet passed as file path or content, e.g. $(< snippet.vcl)"`
+	Dynamic        argparser.OptionalBool          `help:"Whether the VCL snippet is dynamic or versioned"`
+	NameFlag       string                          `name:"name" help:"The name of the VCL snippet to update"`
+	NewName        argparser.OptionalString        `help:"New name for the VCL snippet"`
+	Priority       argparser.OptionalString        `short:"p" help:"Priority determines execution order. Lower numbers execute first"`
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
 	serviceVersion argparser.OptionalServiceVersion
-	snippetID      string
+	SnippetID      string `help:"Alphanumeric string identifying a VCL Snippet"`
+
+	// NOTE: Locations is defined in the same snippet package inside create.go
+	Location argparser.OptionalString `name:"type" hints:"init,recv,hash,hit,miss,pass,fetch,error,deliver,log,none" help:"The location in generated VCL where the snippet should be placed"`
 }
 
 // Exec invokes the application logic for the command.
@@ -84,7 +60,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	// so we require those states to be 'false'
 	allowActive := optional.Of(false)
 	allowLocked := optional.Of(false)
-	if c.dynamic.WasSet && c.dynamic.Value {
+	if c.Dynamic.WasSet && c.Dynamic.Value {
 		// in this case, we will accept all states ('active' and 'inactive', 'locked' and 'unlocked'),
 		// so we mark the Optional[bool] fields as 'empty' and they will not be applied as filters
 		allowActive = optional.Empty[bool]()
@@ -93,11 +69,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             allowActive,
 		Locked:             allowLocked,
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -111,7 +87,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
-	if c.dynamic.WasSet {
+	if c.Dynamic.WasSet {
 		input, err := c.constructDynamicInput(serviceID, serviceVersionNumber)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -164,17 +140,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.UpdateDynamicSnippetInput, error) {
 	var input fastly.UpdateDynamicSnippetInput
 
-	input.SnippetID = c.snippetID
+	input.SnippetID = c.SnippetID
 	input.ServiceID = serviceID
 
-	if c.newName.WasSet {
+	if c.NewName.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet")
 	}
-	if c.snippetID == "" {
+	if c.SnippetID == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
 	}
-	if c.content.WasSet {
-		input.Content = new(argparser.Content(c.content.Value))
+	if c.Content.WasSet {
+		input.Content = new(argparser.Content(c.Content.Value))
 	}
 
 	return &input, nil
@@ -184,27 +160,27 @@ func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.
 func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*fastly.UpdateSnippetInput, error) {
 	var input fastly.UpdateSnippetInput
 
-	input.Name = c.name
+	input.Name = c.NameFlag
 	input.ServiceID = serviceID
 	input.ServiceVersion = serviceVersion
 
-	if c.snippetID != "" {
+	if c.SnippetID != "" {
 		return nil, fmt.Errorf("error parsing arguments: --snippet-id is not supported when updating a versioned VCL snippet")
 	}
-	if c.name == "" {
+	if c.NameFlag == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --name to update a versioned VCL snippet")
 	}
-	if c.newName.WasSet {
-		input.NewName = &c.newName.Value
+	if c.NewName.WasSet {
+		input.NewName = &c.NewName.Value
 	}
-	if c.priority.WasSet {
-		input.Priority = &c.priority.Value
+	if c.Priority.WasSet {
+		input.Priority = &c.Priority.Value
 	}
-	if c.content.WasSet {
-		input.Content = new(argparser.Content(c.content.Value))
+	if c.Content.WasSet {
+		input.Content = new(argparser.Content(c.Content.Value))
 	}
-	if c.location.WasSet {
-		location := fastly.SnippetType(c.location.Value)
+	if c.Location.WasSet {
+		location := fastly.SnippetType(c.Location.Value)
 		input.Type = &location
 	}
 

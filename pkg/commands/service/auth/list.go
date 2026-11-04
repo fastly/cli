@@ -7,7 +7,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v19/fastly"
@@ -16,22 +15,22 @@ import (
 // ListCommand calls the Fastly API to list service authorizations.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
 	argparser.JSONOutput
 
 	input fastly.ListServiceAuthorizationsInput
+
+	Page    int `help:"Page number of data set to fetch"`
+	PerPage int `help:"Number of records per page"`
 }
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("list", "List service authorizations")
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.PageNumber)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PageSize)
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	c.input.PageNumber = c.Page
+	c.input.PageSize = c.PerPage
+	return nil
 }
 
 // Exec invokes the application logic for the command.

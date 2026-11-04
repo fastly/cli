@@ -10,57 +10,40 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update domains.
 type UpdateCommand struct {
 	argparser.Base
-	domainID        string
-	serviceID       string
-	description     argparser.OptionalString
-	routingConfigID argparser.OptionalString
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a domain")
 
 	// Required.
-	c.CmdClause.Flag("domain-id", "The Domain Identifier (UUID)").Required().StringVar(&c.domainID)
+	DomainID string `required:"" help:"The Domain Identifier (UUID)"`
 
 	// Optional
-	c.CmdClause.Flag("description", "The description for the domain").Action(c.description.Set).StringVar(&c.description.Value)
-	c.CmdClause.Flag("service-id", "The service_id associated with your domain (omit to unset)").StringVar(&c.serviceID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier to associate with the domain. Pass 'nil' to remove the association").Action(c.routingConfigID.Set).StringVar(&c.routingConfigID.Value)
-
-	return &c
+	Description     argparser.OptionalString `help:"The description for the domain"`
+	ServiceID       string                   `help:"The service_id associated with your domain (omit to unset)"`
+	RoutingConfigID argparser.OptionalString `help:"The Routing Config Identifier to associate with the domain. Pass 'nil' to remove the association"`
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &domains.UpdateInput{
-		DomainID: &c.domainID,
+		DomainID: &c.DomainID,
 	}
-	if c.serviceID != "" {
-		input.ServiceID = &c.serviceID
-	}
-
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.ServiceID != "" {
+		input.ServiceID = &c.ServiceID
 	}
 
-	if c.routingConfigID.WasSet {
-		if c.routingConfigID.Value == "nil" {
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
+	}
+
+	if c.RoutingConfigID.WasSet {
+		if c.RoutingConfigID.Value == "nil" {
 			input.RoutingConfigurationID = fastly.NullValue[string]()
 		} else {
-			input.RoutingConfigurationID = fastly.NewNullable(c.routingConfigID.Value)
+			input.RoutingConfigurationID = fastly.NewNullable(c.RoutingConfigID.Value)
 		}
 	}
 
@@ -72,8 +55,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	d, err := domains.Update(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Domain ID":  c.domainID,
-			"Service ID": c.serviceID,
+			"Domain ID":  c.DomainID,
+			"Service ID": c.ServiceID,
 		})
 		return err
 	}

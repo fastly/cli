@@ -10,34 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to describe a DNS Zone.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	zoneID string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Describe a DNS Zone").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("zone-id", "The zone ID to describe.").Required().StringVar(&c.zoneID)
+	ZoneID string `required:"" help:"The zone ID to describe."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -52,11 +36,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	z, err := dnszones.Get(context.TODO(), fc, &dnszones.GetInput{
-		ZoneID: &c.zoneID,
+		ZoneID: &c.ZoneID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Zone ID": c.zoneID,
+			"Zone ID": c.ZoneID,
 		})
 		return err
 	}

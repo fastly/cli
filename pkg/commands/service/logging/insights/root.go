@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -30,59 +30,33 @@ var visualizationOptions = func() (visualizations []string) {
 // Command exposes the Log Insights API.
 type Command struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	start         string
-	end           string
-	visualization string
+	Start         string `required:"" help:"Inclusive start time in RFC3339 format"`
+	End           string `required:"" help:"Exclusive end time in RFC3339 format"`
+	Visualization string `required:"" help:"Log Insights visualization to retrieve"`
 
 	// Optional.
-	serviceName      argparser.OptionalServiceNameID
-	domain           argparser.OptionalString
-	domainExactMatch bool
-	limit            argparser.OptionalInt
-	pops             argparser.OptionalString
+	ServiceID        *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName      argparser.OptionalServiceNameID `help:"The name of the service"`
+	Domain           argparser.OptionalString        `help:"Limit data to the specified request domain"`
+	DomainExactMatch bool                            `help:"Treat --domain as an exact match"`
+	Limit            argparser.OptionalInt           `help:"Maximum number of rows to return (up to 100)"`
+	Pops             argparser.OptionalString        `help:"Comma-separated list of Fastly POP codes"`
+
+	argparser.JSONOutput
 }
 
-// NewInsightsCommand returns a usable Log Insights command registered under the parent.
-func NewInsightsCommand(parent argparser.Registerer, g *global.Data) *Command {
-	c := Command{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply checks the values kong cannot check by itself, then hands the
+// parsed flags over to the fields the command reads them from.
+func (c *Command) AfterApply() error {
+	if !slices.Contains(visualizationOptions, c.Visualization) {
+		return fmt.Errorf("enum value must be one of %s, got '%s'", strings.Join(visualizationOptions, ","), c.Visualization)
 	}
-
-	c.CmdClause = parent.Command(CommandName, "Retrieve statistics from sampled log records")
-
-	// Required.
-	c.CmdClause.Flag("start", "Inclusive start time in RFC3339 format").Required().StringVar(&c.start)
-	c.CmdClause.Flag("end", "Exclusive end time in RFC3339 format").Required().StringVar(&c.end)
-	c.CmdClause.Flag("visualization", "Log Insights visualization to retrieve").
-		Required().
-		HintOptions(visualizationOptions...).
-		EnumVar(&c.visualization, visualizationOptions...)
-
-	// Optional.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("domain", "Limit data to the specified request domain").Action(c.domain.Set).StringVar(&c.domain.Value)
-	c.CmdClause.Flag("domain-exact-match", "Treat --domain as an exact match").BoolVar(&c.domainExactMatch)
-	c.CmdClause.Flag("limit", "Maximum number of rows to return (up to 100)").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("pops", "Comma-separated list of Fastly POP codes").Action(c.pops.Set).StringVar(&c.pops.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the Log Insights API.
@@ -91,7 +65,7 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -101,21 +75,21 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.GetLogInsightsInput{
 		ServiceID:     serviceID,
-		Start:         c.start,
-		End:           c.end,
-		Visualization: fastly.LogInsightsVisualization(c.visualization),
+		Start:         c.Start,
+		End:           c.End,
+		Visualization: fastly.LogInsightsVisualization(c.Visualization),
 	}
-	if c.domain.WasSet {
-		input.Domain = &c.domain.Value
+	if c.Domain.WasSet {
+		input.Domain = &c.Domain.Value
 	}
-	if c.domainExactMatch {
+	if c.DomainExactMatch {
 		input.DomainExactMatch = new(true)
 	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
+	if c.Limit.WasSet {
+		input.Limit = &c.Limit.Value
 	}
-	if c.pops.WasSet {
-		input.POPs = splitPOPs(c.pops.Value)
+	if c.Pops.WasSet {
+		input.POPs = splitPOPs(c.Pops.Value)
 	}
 
 	result, err := c.Globals.APIClient.GetLogInsights(context.TODO(), input)
@@ -130,6 +104,14 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 
 	printLogInsights(out, result)
 	return nil
+}
+
+// Hints returns the completion hints of the flags whose values are only
+// known at run time, as kingpin's HintOptions gave them.
+func (c *Command) Hints() map[string][]string {
+	return map[string][]string{
+		"visualization": visualizationOptions,
+	}
 }
 
 func splitPOPs(value string) []string {

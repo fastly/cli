@@ -15,37 +15,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update an account-level rule.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	path   string
-	ruleID string
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a workspace")
-
-	// Required.
-	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
-	c.CmdClause.Flag("path", "Path to a json file that contains the rule schema.").Required().StringVar(&c.path)
+	RuleID string `required:"" help:"Rule ID"`
+	Path   string `required:"" help:"Path to a json file that contains the rule schema."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,15 +38,15 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	var err error
 
 	rule := &rules.Rule{}
-	if c.path != "" {
-		path, err := filepath.Abs(c.path)
+	if c.Path != "" {
+		path, err := filepath.Abs(c.Path)
 		if err != nil {
-			return fmt.Errorf("error parsing path '%s': %q", c.path, err)
+			return fmt.Errorf("error parsing path '%s': %q", c.Path, err)
 		}
 
 		jsonFile, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("error reading path '%s': %q", c.path, err)
+			return fmt.Errorf("error reading path '%s': %q", c.Path, err)
 		}
 		defer jsonFile.Close()
 
@@ -79,7 +61,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &rules.UpdateInput{
-		RuleID:             &c.ruleID,
+		RuleID:             &c.RuleID,
 		Actions:            []*rules.UpdateAction{},
 		Conditions:         []*rules.UpdateCondition{},
 		Description:        &rule.Description,

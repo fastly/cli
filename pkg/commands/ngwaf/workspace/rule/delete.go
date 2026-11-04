@@ -12,43 +12,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a workspace-level rule.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	ruleID      string
-	workspaceID argparser.OptionalWorkspaceID
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("delete", "Delete a workspace-level rule")
-
-	// Required.
-	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	RuleID      string                        `required:"" help:"Rule ID"`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,7 +32,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 
@@ -66,10 +42,10 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	err := rules.Delete(context.TODO(), fc, &rules.DeleteInput{
-		RuleID: &c.ruleID,
+		RuleID: &c.RuleID,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeWorkspace,
-			AppliesTo: []string{c.workspaceID.Value},
+			AppliesTo: []string{c.WorkspaceID.Value},
 		},
 	})
 	if err != nil {
@@ -82,13 +58,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.ruleID,
+			c.RuleID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted workspace-level rule with id: %s", c.ruleID)
+	text.Success(out, "Deleted workspace-level rule with id: %s", c.RuleID)
 	return nil
 }

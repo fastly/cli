@@ -10,35 +10,14 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List API tokens (deprecated: use the Fastly API directly)")
-
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagCustomerIDName,
-		Description: argparser.FlagCustomerIDDesc,
-		Dst:         &c.customerID.Value,
-		Action:      c.customerID.Set,
-	})
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
+	CustomerID argparser.OptionalCustomerID `help:"Alphanumeric string identifying the customer (falls back to FASTLY_CUSTOMER_ID)"`
 	argparser.JSONOutput
-
-	customerID argparser.OptionalCustomerID
 }
 
 // Exec invokes the application logic for the command.
@@ -56,8 +35,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		o   []*fastly.Token
 	)
 
-	if err = c.customerID.Parse(); err == nil {
-		if !c.customerID.WasSet && !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
+	if err = c.CustomerID.Parse(); err == nil {
+		if !c.CustomerID.WasSet && !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
 			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n")
 		}
 		input := c.constructInput()
@@ -93,7 +72,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListCustomerTokensInput {
 	var input fastly.ListCustomerTokensInput
 
-	input.CustomerID = c.customerID.Value
+	input.CustomerID = c.CustomerID.Value
 
 	return &input
 }

@@ -8,34 +8,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to describe a notification integration.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input fastly.GetIntegrationInput
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Retrieve a single notification integration").Alias("get")
-
-	// Required.
-	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.Input.ID)
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
+	argparser.JSONOutput
 
-	return &c
+	Input fastly.GetIntegrationInput `kong:"-"`
+
+	// Required.
+	ID string `arg:"" required:"" help:"Integration ID"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DescribeCommand) AfterApply() error {
+	c.Input.ID = c.ID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

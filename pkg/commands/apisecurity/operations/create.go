@@ -13,29 +13,28 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/apisecurity/operations"
 
-	"github.com/fastly/kingpin"
-
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create an operation.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	serviceName argparser.OptionalServiceNameID
-	method      string
-	domain      string
-	path        string
+	ServiceID   *string                         `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	Method      string                          `help:"The HTTP method for the operation (e.g., GET, POST, PUT)"`
+	Domain      string                          `help:"Domain for the operation"`
+	Path        string                          `help:"The path for the operation, which may include path parameters.(e.g., /api/users)"`
 
 	// Optional.
-	description string
-	tagIDs      []string
-	file        string
+	Description string   `help:"Description of what the operation does"`
+	TagIDs      []string `name:"tag-ids" sep:"," help:"A comma-separated array of operation tag IDs associated with this operation"`
+	File        string   `help:"Create operations in bulk from a JSON file"`
+
+	argparser.JSONOutput
 }
 
 // OperationInput represents a single operation to be created from JSON.
@@ -52,40 +51,13 @@ type CreateFileInput struct {
 	Operations []OperationInput `json:"operations"`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("create", "Create an operation").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("method", "The HTTP method for the operation (e.g., GET, POST, PUT)").StringVar(&c.method)
-	c.CmdClause.Flag("domain", "Domain for the operation").StringVar(&c.domain)
-	c.CmdClause.Flag("path", "The path for the operation, which may include path parameters.(e.g., /api/users)").StringVar(&c.path)
-
-	// Optional.
-	c.CmdClause.Flag("description", "Description of what the operation does").StringVar(&c.description)
-	c.CmdClause.Flag("tag-ids", "A comma-separated array of operation tag IDs associated with this operation").StringsVar(&c.tagIDs, kingpin.Separator(","))
-	c.CmdClause.Flag("file", "Create operations in bulk from a JSON file").StringVar(&c.file)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -95,15 +67,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	// Validate flags
-	if c.file != "" && (c.method != "" || c.domain != "" || c.path != "") {
+	if c.File != "" && (c.Method != "" || c.Domain != "" || c.Path != "") {
 		return fmt.Errorf("error parsing arguments: cannot use both --file and individual operation flags (--method, --domain, --path)")
 	}
 
-	if c.file == "" && (c.method == "" || c.domain == "" || c.path == "") {
+	if c.File == "" && (c.Method == "" || c.Domain == "" || c.Path == "") {
 		return fmt.Errorf("error parsing arguments: must provide either --file or all of --method, --domain, and --path")
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -112,7 +84,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	// Handle bulk mode from file
-	if c.file != "" {
+	if c.File != "" {
 		return c.createFromFile(serviceID, out)
 	}
 
@@ -128,9 +100,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
-			"Method":     c.method,
-			"Domain":     c.domain,
-			"Path":       c.path,
+			"Method":     c.Method,
+			"Domain":     c.Domain,
+			"Path":       c.Path,
 		})
 		return err
 	}
@@ -140,7 +112,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Created operation %s %s%s (ID: %s)", strings.ToUpper(o.Method), o.Domain, o.Path, o.ID)
-	if c.description != "" {
+	if c.Description != "" {
 		fmt.Fprintf(out, "\nDescription: %s\n", o.Description)
 	}
 	if len(o.TagIDs) > 0 {
@@ -154,17 +126,17 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput(serviceID string) *operations.CreateInput {
 	input := &operations.CreateInput{
 		ServiceID: &serviceID,
-		Method:    &c.method,
-		Domain:    &c.domain,
-		Path:      &c.path,
+		Method:    &c.Method,
+		Domain:    &c.Domain,
+		Path:      &c.Path,
 	}
 
-	if c.description != "" {
-		input.Description = &c.description
+	if c.Description != "" {
+		input.Description = &c.Description
 	}
 
-	if len(c.tagIDs) > 0 {
-		input.TagIDs = c.tagIDs
+	if len(c.TagIDs) > 0 {
+		input.TagIDs = c.TagIDs
 	}
 
 	return input
@@ -276,7 +248,7 @@ func (c *CreateCommand) createFromFile(serviceID string, out io.Writer) error {
 
 // readOperationsFromFile reads operations from a JSON file.
 func (c *CreateCommand) readOperationsFromFile() ([]OperationInput, error) {
-	path, err := filepath.Abs(c.file)
+	path, err := filepath.Abs(c.File)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +274,7 @@ func (c *CreateCommand) readOperationsFromFile() ([]OperationInput, error) {
 	}
 
 	if len(input.Operations) == 0 {
-		return nil, fmt.Errorf("no operations found in file: %s", c.file)
+		return nil, fmt.Errorf("no operations found in file: %s", c.File)
 	}
 
 	// Validate required fields

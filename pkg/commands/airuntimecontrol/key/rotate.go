@@ -11,37 +11,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // RotateCommand calls the Fastly API to rotate a virtual key.
 type RotateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	keyID     string
-	expiresAt time.Time
-}
-
-// NewRotateCommand returns a usable command registered under the parent.
-func NewRotateCommand(parent argparser.Registerer, g *global.Data) *RotateCommand {
-	c := RotateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("rotate", "Rotate a virtual key, generating a new access token and invalidating the previous one")
-
-	// Required.
-	c.CmdClause.Flag("key-id", "Alphanumeric string identifying the virtual key").Required().StringVar(&c.keyID)
-	c.CmdClause.Flag("expires-at", "Expiration timestamp for the rotated key (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").Required().TimeVar(time.RFC3339, &c.expiresAt)
+	KeyID     string    `required:"" help:"Alphanumeric string identifying the virtual key"`
+	ExpiresAt time.Time `required:"" hints:"2026-07-28T19:24:50+00:00" format:"2006-01-02T15:04:05Z07:00" help:"Expiration timestamp for the rotated key (RFC 3339 format)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -56,8 +38,8 @@ func (c *RotateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	data, err := key.Rotate(context.TODO(), fc, &key.RotateInput{
-		KeyID:     &c.keyID,
-		ExpiresAt: &c.expiresAt,
+		KeyID:     &c.KeyID,
+		ExpiresAt: &c.ExpiresAt,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

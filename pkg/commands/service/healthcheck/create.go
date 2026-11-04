@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -20,71 +19,34 @@ type CreateCommand struct {
 
 	// Required.
 	serviceVersion argparser.OptionalServiceVersion
+	Version        string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional.
-	autoClone        argparser.OptionalAutoClone
-	checkInterval    argparser.OptionalInt
-	comment          argparser.OptionalString
-	expectedResponse argparser.OptionalInt
-	host             argparser.OptionalString
-	httpVersion      argparser.OptionalString
-	initial          argparser.OptionalInt
-	method           argparser.OptionalString
-	name             argparser.OptionalString
-	path             argparser.OptionalString
-	serviceName      argparser.OptionalServiceNameID
-	threshold        argparser.OptionalInt
-	timeout          argparser.OptionalInt
-	window           argparser.OptionalInt
+	AutoClone        argparser.OptionalAutoClone     `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	CheckInterval    argparser.OptionalInt           `help:"How often to run the healthcheck in milliseconds"`
+	Comment          argparser.OptionalString        `help:"A descriptive note"`
+	ExpectedResponse argparser.OptionalInt           `help:"The status code expected from the host"`
+	Host             argparser.OptionalString        `help:"Which host to check"`
+	HTTPVersion      argparser.OptionalString        `help:"Whether to use version 1.0 or 1.1 HTTP"`
+	Initial          argparser.OptionalInt           `help:"When loading a config, the initial number of probes to be seen as OK"`
+	Method           argparser.OptionalString        `help:"Which HTTP method to use"`
+	NameFlag         argparser.OptionalString        `name:"name" short:"n" help:"Healthcheck name"`
+	Path             argparser.OptionalString        `help:"The path to check"`
+	ServiceID        *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName      argparser.OptionalServiceNameID `help:"The name of the service"`
+	Threshold        argparser.OptionalInt           `help:"How many healthchecks must succeed to be considered healthy"`
+	Timeout          argparser.OptionalInt           `help:"Timeout in milliseconds"`
+	Window           argparser.OptionalInt           `help:"The number of most recent healthcheck queries to keep for this healthcheck"`
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("check-interval", "How often to run the healthcheck in milliseconds").Action(c.checkInterval.Set).IntVar(&c.checkInterval.Value)
-	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("expected-response", "The status code expected from the host").Action(c.expectedResponse.Set).IntVar(&c.expectedResponse.Value)
-	c.CmdClause.Flag("host", "Which host to check").Action(c.host.Set).StringVar(&c.host.Value)
-	c.CmdClause.Flag("http-version", "Whether to use version 1.0 or 1.1 HTTP").Action(c.httpVersion.Set).StringVar(&c.httpVersion.Value)
-	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").Action(c.initial.Set).IntVar(&c.initial.Value)
-	c.CmdClause.Flag("method", "Which HTTP method to use").Action(c.method.Set).StringVar(&c.method.Value)
-	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("path", "The path to check").Action(c.path.Set).StringVar(&c.path.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.threshold.Set).IntVar(&c.threshold.Value)
-	c.CmdClause.Flag("timeout", "Timeout in milliseconds").Action(c.timeout.Set).IntVar(&c.timeout.Value)
-	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").Action(c.window.Set).IntVar(&c.window.Value)
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -92,11 +54,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -112,41 +74,41 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.comment.WasSet {
-		input.Comment = &c.comment.Value
+	if c.Comment.WasSet {
+		input.Comment = &c.Comment.Value
 	}
-	if c.method.WasSet {
-		input.Method = &c.method.Value
+	if c.Method.WasSet {
+		input.Method = &c.Method.Value
 	}
-	if c.host.WasSet {
-		input.Host = &c.host.Value
+	if c.Host.WasSet {
+		input.Host = &c.Host.Value
 	}
-	if c.path.WasSet {
-		input.Path = &c.path.Value
+	if c.Path.WasSet {
+		input.Path = &c.Path.Value
 	}
-	if c.httpVersion.WasSet {
-		input.HTTPVersion = &c.httpVersion.Value
+	if c.HTTPVersion.WasSet {
+		input.HTTPVersion = &c.HTTPVersion.Value
 	}
-	if c.timeout.WasSet {
-		input.Timeout = &c.timeout.Value
+	if c.Timeout.WasSet {
+		input.Timeout = &c.Timeout.Value
 	}
-	if c.checkInterval.WasSet {
-		input.CheckInterval = &c.checkInterval.Value
+	if c.CheckInterval.WasSet {
+		input.CheckInterval = &c.CheckInterval.Value
 	}
-	if c.expectedResponse.WasSet {
-		input.ExpectedResponse = &c.expectedResponse.Value
+	if c.ExpectedResponse.WasSet {
+		input.ExpectedResponse = &c.ExpectedResponse.Value
 	}
-	if c.window.WasSet {
-		input.Window = &c.window.Value
+	if c.Window.WasSet {
+		input.Window = &c.Window.Value
 	}
-	if c.threshold.WasSet {
-		input.Threshold = &c.threshold.Value
+	if c.Threshold.WasSet {
+		input.Threshold = &c.Threshold.Value
 	}
-	if c.initial.WasSet {
-		input.Initial = &c.initial.Value
+	if c.Initial.WasSet {
+		input.Initial = &c.Initial.Value
 	}
 
 	h, err := c.Globals.APIClient.CreateHealthCheck(context.TODO(), &input)

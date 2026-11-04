@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,26 +17,11 @@ import (
 // supported when creating an event mapping.
 type ListScopeTypesCommand struct {
 	argparser.Base
+
+	// Optional.
+	Sort argparser.OptionalString `hints:"scope_type,-scope_type" help:"The order in which to return results, alphabetically by scope type"`
+
 	argparser.JSONOutput
-
-	// Optional.
-	sort argparser.OptionalString
-}
-
-// NewListScopeTypesCommand returns a usable command registered under the parent.
-func NewListScopeTypesCommand(parent argparser.Registerer, g *global.Data) *ListScopeTypesCommand {
-	c := ListScopeTypesCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list-scope-types", "List the scope types supported when creating an event mapping")
-
-	// Optional.
-	c.CmdClause.Flag("sort", "The order in which to return results, alphabetically by scope type").HintOptions("scope_type", "-scope_type").Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -52,8 +36,8 @@ func (c *ListScopeTypesCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &scopetypes.ListInput{}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	types, err := scopetypes.List(context.TODO(), fc, input)

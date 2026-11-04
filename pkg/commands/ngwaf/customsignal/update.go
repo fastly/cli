@@ -11,37 +11,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update account-level custom signals.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	signalID    string
-	description string
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a workspace")
-
-	// Required.
-	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)
-	c.CmdClause.Flag("description", "User submitted description of a custom signal.").Required().StringVar(&c.description)
+	SignalID    string `required:"" help:"Custom Signal ID"`
+	Description string `required:"" help:"User submitted description of a custom signal."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -51,8 +33,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	var err error
 	input := &signals.UpdateInput{
-		SignalID:    &c.signalID,
-		Description: &c.description,
+		SignalID:    &c.SignalID,
+		Description: &c.Description,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeAccount,
 			AppliesTo: []string{"*"},

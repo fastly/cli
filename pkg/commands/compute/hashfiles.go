@@ -31,40 +31,37 @@ type HashFilesCommand struct {
 	argparser.Base
 
 	// Build fields
-	dir                   argparser.OptionalString
-	env                   argparser.OptionalString
-	includeSrc            argparser.OptionalBool
-	lang                  argparser.OptionalString
-	metadataDisable       argparser.OptionalBool
-	metadataFilterEnvVars argparser.OptionalString
-	metadataShow          argparser.OptionalBool
-	packageName           argparser.OptionalString
-	timeout               argparser.OptionalInt
+	Dir                   argparser.OptionalString `short:"C" help:"Project directory to build (default: current directory)"`
+	Env                   argparser.OptionalString `help:"The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')"`
+	IncludeSrc            argparser.OptionalBool   `name:"include-source" help:"Include source code in built package"`
+	Lang                  argparser.OptionalString `name:"language" help:"Language type"`
+	MetadataDisable       argparser.OptionalBool   `help:"Disable Wasm binary metadata annotations"`
+	MetadataFilterEnvVars argparser.OptionalString `name:"metadata-filter-envvars" help:"Redact specified environment variables from [scripts.env_vars] using comma-separated list"`
+	MetadataShow          argparser.OptionalBool   `help:"Inspect the Wasm binary metadata"`
+	Package               string                   `short:"p" help:"Path to a package tar.gz"`
+	PackageName           argparser.OptionalString `help:"Package name"`
+	SkipBuild             bool                     `help:"Skip the build step"`
+	Timeout               argparser.OptionalInt    `help:"Timeout, in seconds, for the build compilation step"`
 
-	buildCmd  *BuildCommand
-	Package   string
-	SkipBuild bool
+	buildCmd *BuildCommand
 }
 
-// NewHashFilesCommand returns a usable command registered under the parent.
-func NewHashFilesCommand(parent argparser.Registerer, g *global.Data, build *BuildCommand) *HashFilesCommand {
+// NewHashFilesCommand returns a HashFilesCommand set up as it was before parsing.
+// Its flags now come from the struct's tags.
+func NewHashFilesCommand(g *global.Data, build *BuildCommand) *HashFilesCommand {
 	var c HashFilesCommand
 	c.buildCmd = build
 	c.Globals = g
-	c.CmdClause = parent.Command("hash-files", "Generate a SHA512 digest from the contents of the Compute package")
-	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').Action(c.dir.Set).StringVar(&c.dir.Value)
-	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
-	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
-	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
-	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").Action(c.metadataDisable.Set).BoolVar(&c.metadataDisable.Value)
-	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
-	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
-	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
-	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
-	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 
 	return &c
+}
+
+// BeforeApply sets the command up with the values bound when the parser
+// was built, before kong applies the command line.
+func (c *HashFilesCommand) BeforeApply(g *global.Data) error {
+	c.buildCmd = &BuildCommand{}
+	c.buildCmd.Globals = g
+	return nil
 }
 
 // Exec implements the command interface.
@@ -82,7 +79,7 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var pkgPath string
 
 	if c.Package == "" {
-		manifestFilename := EnvironmentManifest(c.env.Value)
+		manifestFilename := EnvironmentManifest(c.Env.Value)
 		wd, err := os.Getwd()
 		if err != nil {
 			return fmt.Errorf("failed to get current working directory: %w", err)
@@ -92,7 +89,7 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}()
 		manifestPath := filepath.Join(wd, manifestFilename)
 
-		projectDir, err := ChangeProjectDirectory(c.dir.Value)
+		projectDir, err := ChangeProjectDirectory(c.Dir.Value)
 		if err != nil {
 			return err
 		}
@@ -103,7 +100,7 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			manifestPath = filepath.Join(projectDir, manifestFilename)
 		}
 
-		if projectDir != "" || c.env.WasSet {
+		if projectDir != "" || c.Env.WasSet {
 			err = c.Globals.Manifest.File.Read(manifestPath)
 		} else {
 			err = c.Globals.Manifest.File.ReadError()
@@ -141,32 +138,32 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 	if !c.Globals.Verbose() {
 		output = io.Discard
 	}
-	if c.dir.WasSet {
-		c.buildCmd.Flags.Dir = c.dir.Value
+	if c.Dir.WasSet {
+		c.buildCmd.Flags.Dir = c.Dir.Value
 	}
-	if c.env.WasSet {
-		c.buildCmd.Flags.Env = c.env.Value
+	if c.Env.WasSet {
+		c.buildCmd.Flags.Env = c.Env.Value
 	}
-	if c.includeSrc.WasSet {
-		c.buildCmd.Flags.IncludeSrc = c.includeSrc.Value
+	if c.IncludeSrc.WasSet {
+		c.buildCmd.Flags.IncludeSrc = c.IncludeSrc.Value
 	}
-	if c.lang.WasSet {
-		c.buildCmd.Flags.Lang = c.lang.Value
+	if c.Lang.WasSet {
+		c.buildCmd.Flags.Lang = c.Lang.Value
 	}
-	if c.packageName.WasSet {
-		c.buildCmd.Flags.PackageName = c.packageName.Value
+	if c.PackageName.WasSet {
+		c.buildCmd.Flags.PackageName = c.PackageName.Value
 	}
-	if c.timeout.WasSet {
-		c.buildCmd.Flags.Timeout = c.timeout.Value
+	if c.Timeout.WasSet {
+		c.buildCmd.Flags.Timeout = c.Timeout.Value
 	}
-	if c.metadataDisable.WasSet {
-		c.buildCmd.MetadataDisable = c.metadataDisable.Value
+	if c.MetadataDisable.WasSet {
+		c.buildCmd.MetadataDisable = c.MetadataDisable.Value
 	}
-	if c.metadataFilterEnvVars.WasSet {
-		c.buildCmd.MetadataFilterEnvVars = c.metadataFilterEnvVars.Value
+	if c.MetadataFilterEnvVars.WasSet {
+		c.buildCmd.MetadataFilterEnvVars = c.MetadataFilterEnvVars.Value
 	}
-	if c.metadataShow.WasSet {
-		c.buildCmd.MetadataShow = c.metadataShow.Value
+	if c.MetadataShow.WasSet {
+		c.buildCmd.MetadataShow = c.MetadataShow.Value
 	}
 	return c.buildCmd.Exec(in, output)
 }

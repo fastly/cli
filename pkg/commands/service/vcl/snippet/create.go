@@ -2,76 +2,55 @@ package snippet
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"slices"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"4d63.com/optional"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // Locations is a list of VCL subroutines.
 var Locations = []string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply checks the values kong cannot check by itself, then hands the
+// parsed flags over to the fields the command reads them from.
+func (c *CreateCommand) AfterApply(ctx *kong.Context) error {
+	if (c.Location.Value != "" || kongcompat.Given(ctx, "type")) && !slices.Contains([]string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}, c.Location.Value) {
+		return fmt.Errorf("enum value must be one of init,recv,hash,hit,miss,pass,fetch,error,deliver,log,none, got '%s'", c.Location.Value)
 	}
-	c.CmdClause = parent.Command("create", "Create a snippet for a particular service and version").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(< snippet.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
-	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
-	c.CmdClause.Flag("name", "The name of the VCL snippet").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).StringVar(&c.priority.Value)
-
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Action(c.location.Set).HintOptions(Locations...).EnumVar(&c.location.Value, Locations...)
-
-	return &c
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	argparser.Base
 
-	autoClone      argparser.OptionalAutoClone
-	content        argparser.OptionalString
-	dynamic        argparser.OptionalBool
-	location       argparser.OptionalString
-	name           argparser.OptionalString
-	priority       argparser.OptionalString
-	serviceName    argparser.OptionalServiceNameID
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	AutoClone argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Content   argparser.OptionalString    `help:"VCL snippet passed as file path or content, e.g. $(< snippet.vcl)"`
+	Dynamic   argparser.OptionalBool      `help:"Whether the VCL snippet is dynamic or versioned"`
+	NameFlag  argparser.OptionalString    `name:"name" help:"The name of the VCL snippet"`
+	Priority  argparser.OptionalString    `short:"p" help:"Priority determines execution order. Lower numbers execute first"`
+
+	ServiceID      *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName    argparser.OptionalServiceNameID `help:"The name of the service"`
+	Location       argparser.OptionalString        `name:"type" hints:"init,recv,hash,hit,miss,pass,fetch,error,deliver,log,none" help:"The location in generated VCL where the snippet should be placed"`
 	serviceVersion argparser.OptionalServiceVersion
 }
 
@@ -80,11 +59,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
@@ -112,9 +91,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(v.Name),
 		fastly.ToValue(v.ServiceID),
 		fastly.ToValue(v.ServiceVersion),
-		c.dynamic.WasSet,
+		c.Dynamic.WasSet,
 		fastly.ToValue(v.SnippetID),
-		c.location.Value,
+		c.Location.Value,
 		fastly.ToValue(v.Priority),
 	)
 	return nil
@@ -127,21 +106,21 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	}
-	if c.name.WasSet {
-		input.Name = &c.name.Value
+	if c.NameFlag.WasSet {
+		input.Name = &c.NameFlag.Value
 	}
-	if c.content.WasSet {
-		input.Content = new(argparser.Content(c.content.Value))
+	if c.Content.WasSet {
+		input.Content = new(argparser.Content(c.Content.Value))
 	}
-	if c.location.WasSet {
-		sType := fastly.SnippetType(c.location.Value)
+	if c.Location.WasSet {
+		sType := fastly.SnippetType(c.Location.Value)
 		input.Type = &sType
 	}
-	if c.dynamic.WasSet {
+	if c.Dynamic.WasSet {
 		input.Dynamic = new(1)
 	}
-	if c.priority.WasSet {
-		input.Priority = &c.priority.Value
+	if c.Priority.WasSet {
+		input.Priority = &c.Priority.Value
 	}
 
 	return &input

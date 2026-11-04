@@ -23,7 +23,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/debug"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -32,48 +31,32 @@ import (
 type RootCommand struct {
 	argparser.Base
 
-	Input       fastly.CreateManagedLoggingInput
-	batchCh     chan Batch // send batches to output loop
-	cfg         cfg
-	dieCh       chan struct{} // channel to end output/printing
-	doneCh      chan struct{} // channel to signal we've reached the end of the run
-	hClient     *http.Client  // TODO: this will go away when GET is in go-fastly
-	serviceName argparser.OptionalServiceNameID
-	token       string // TODO: this will go away when GET is in go-fastly
+	Input       fastly.CreateManagedLoggingInput `kong:"-"`
+	batchCh     chan Batch                       // send batches to output loop
+	ServiceID   *string                          `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID  `help:"The name of the service"`
+	Cfg         cfg                              `embed:""`
+	dieCh       chan struct{}                    // channel to end output/printing
+	doneCh      chan struct{}                    // channel to signal we've reached the end of the run
+	hClient     *http.Client                     // TODO: this will go away when GET is in go-fastly
+	token       string                           // TODO: this will go away when GET is in go-fastly
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "log-tail"
 
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Tail Compute logs")
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
-	c.CmdClause.Flag("to", "To time, in Unix seconds").Int64Var(&c.cfg.to)
-	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)
-	c.CmdClause.Flag("search-padding", "Time beyond from/to to consider in searches").Default("2s").DurationVar(&c.cfg.searchPadding)
-	c.CmdClause.Flag("stream", "Output: stdout, stderr, both (default)").StringVar(&c.cfg.stream)
-	c.CmdClause.Flag("timestamps", "Print timestamps with logs").BoolVar(&c.cfg.printTimestamps)
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *RootCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -85,7 +68,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.Kind = fastly.ManagedLoggingInstanceOutput
 	endpoint, _ := c.Globals.APIEndpoint()
-	c.cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", endpoint, c.Input.ServiceID)
+	c.Cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", endpoint, c.Input.ServiceID)
 
 	c.dieCh = make(chan struct{})
 	c.batchCh = make(chan Batch)
@@ -134,11 +117,11 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 // printing.
 func (c *RootCommand) tail(out io.Writer) error {
 	// Start this with --from and --to if set.
-	curWindow := c.cfg.from
-	toWindow := c.cfg.to
+	curWindow := c.Cfg.From
+	toWindow := c.Cfg.To
 
 	// Start the loop with an initial address to query.
-	path, err := makeNewPath(c.cfg.path, curWindow, "")
+	path, err := makeNewPath(c.Cfg.path, curWindow, "")
 	if err != nil {
 		return err
 	}
@@ -177,8 +160,8 @@ func (c *RootCommand) tail(out io.Writer) error {
 			// If the response was a 404, the from time was
 			// not valid, give them an error stating this and exit.
 			if resp.StatusCode == http.StatusNotFound &&
-				c.cfg.from != 0 {
-				return fmt.Errorf("specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
+				c.Cfg.From != 0 {
+				return fmt.Errorf("specified 'from' time %d not found, either too far in the past or future", c.Cfg.From)
 			}
 
 			// In an effort to clean up the output, do not print on
@@ -288,15 +271,15 @@ func (c *RootCommand) tail(out io.Writer) error {
 // adjustTimes adjusts the passed in from and to flags based on the
 // specified padding.
 func (c *RootCommand) adjustTimes() {
-	if c.cfg.from != 0 {
+	if c.Cfg.From != 0 {
 		// Adjust from based on search padding, we want to
 		// look back further.
-		c.cfg.from -= int64(c.cfg.searchPadding.Seconds())
+		c.Cfg.From -= int64(c.Cfg.SearchPadding.Seconds())
 	}
 
-	if c.cfg.to != 0 {
+	if c.Cfg.To != 0 {
 		// Adjust to based on search padding, we want look forward more.
-		c.cfg.to += int64(c.cfg.searchPadding.Seconds())
+		c.Cfg.To += int64(c.Cfg.SearchPadding.Seconds())
 	}
 }
 
@@ -386,7 +369,7 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 				// In only the empty case, start a new timer
 				// since this is the head of the slice.
 				if len(recv) == 0 {
-					time.AfterFunc(c.cfg.sortBuffer, func() {
+					time.AfterFunc(c.Cfg.SortBuffer, func() {
 						tdCh <- bufferedLog{
 							reqID: req,
 							seq:   highSeq,
@@ -430,7 +413,7 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 				// We create a new timer, we subtract
 				// off time already served from the
 				// user defined sortBuffer.
-				time.AfterFunc(c.cfg.sortBuffer-time.Since(recv[0].when), func() {
+				time.AfterFunc(c.Cfg.SortBuffer-time.Since(recv[0].when), func() {
 					tdCh <- bufferedLog{
 						reqID: reqID,
 						seq:   recv[0].highSeq,
@@ -449,10 +432,10 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 // streams.
 func (c *RootCommand) printLogs(out io.Writer, logs []Log) {
 	if len(logs) > 0 {
-		filtered := filterStream(c.cfg.stream, logs)
+		filtered := filterStream(c.Cfg.Stream, logs)
 
 		for _, l := range filtered {
-			if c.cfg.printTimestamps {
+			if c.Cfg.PrintTimestamps {
 				fmt.Fprint(out, l.RequestStartFromRaw().UTC().Format(time.RFC3339))
 				fmt.Fprint(out, " | ")
 			}
@@ -491,26 +474,25 @@ type (
 		path string
 
 		// from is how far in the past to start showing logs.
-		from int64
+		From int64 `help:"From time, in Unix seconds"`
 
 		// to is when to get logs until.
-		to int64
-
-		// printTimestamps is whether to print timestamps with logs.
-		printTimestamps bool
+		To int64 `help:"To time, in Unix seconds"`
 
 		// sortBuffer is how long to buffer logs from when the cli
 		// receives them to when the cli prints them. It will sort
 		// by RequestID for that buffer period.
-		sortBuffer time.Duration
+		SortBuffer time.Duration `default:"1s" help:"Duration of sort buffer for received logs"`
 		// searchPadding is how much of a window on either side of
 		// from and to to use for searching for the beginning or
 		// through the end timestamps.
-		searchPadding time.Duration
+		SearchPadding time.Duration `default:"2s" help:"Time beyond from/to to consider in searches"`
 		// stream specifies which of stdout or stderr or both the
 		// customer wants to consume.
 		// Undefined == both stderr and stdout.
-		stream string
+		Stream string `help:"Output: stdout, stderr, both (default)"`
+		// printTimestamps is whether to print timestamps with logs.
+		PrintTimestamps bool `name:"timestamps" help:"Print timestamps with logs"`
 	}
 
 	// Log defines the message envelope that the Compute platform wraps the

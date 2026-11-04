@@ -9,56 +9,34 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *ListCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("list", "List ACLs")
-
-	// Required.
-	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.direction, argparser.PaginationDirection...)
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
-	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.sort)
-
-	return &c
+	return nil
 }
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
-	aclID       string
-	direction   string
-	page        int
-	perPage     int
-	serviceName argparser.OptionalServiceNameID
-	sort        string
+	// Required.
+	ACLID string `name:"acl-id" required:"" help:"Alphanumeric string identifying a ACL"`
+
+	// Optional.
+	argparser.JSONOutput
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+
+	Direction string `default:"ascend" enum:"ascend,descend" hints:"ascend,descend" help:"Direction in which to sort results"`
+	Page      int    `help:"Page number of data set to fetch"`
+	PerPage   int    `help:"Number of records per page"`
+	Sort      string `default:"created" help:"Field on which to sort"`
 }
 
 // Exec invokes the application logic for the command.
@@ -67,7 +45,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -83,7 +61,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		data, err := paginator.GetNext()
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"ACL ID":          c.aclID,
+				"ACL ID":          c.ACLID,
 				"Service ID":      serviceID,
 				"Remaining Pages": paginator.Remaining(),
 			})
@@ -111,19 +89,19 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput(serviceID string) *fastly.GetACLEntriesInput {
 	var input fastly.GetACLEntriesInput
 
-	input.ACLID = c.aclID
-	if c.direction != "" {
-		input.Direction = new(c.direction)
+	input.ACLID = c.ACLID
+	if c.Direction != "" {
+		input.Direction = new(c.Direction)
 	}
-	if c.page > 0 {
-		input.Page = new(c.page)
+	if c.Page > 0 {
+		input.Page = new(c.Page)
 	}
-	if c.perPage > 0 {
-		input.PerPage = new(c.perPage)
+	if c.PerPage > 0 {
+		input.PerPage = new(c.PerPage)
 	}
 	input.ServiceID = serviceID
-	if c.sort != "" {
-		input.Sort = new(c.sort)
+	if c.Sort != "" {
+		input.Sort = new(c.Sort)
 	}
 
 	return &input

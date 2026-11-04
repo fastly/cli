@@ -11,8 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fastly/kingpin"
-
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -24,10 +23,10 @@ import (
 // with Kingpin's annoying love of side effects, we have to swap the app.Writers
 // to capture output; the out and err parameters, therefore, are the io.Writers
 // re-assigned to the app via app.Writers after calling Usage.
-func Usage(args []string, app *kingpin.Application, out, err io.Writer, vars map[string]any) string {
+func Usage(args []string, app *kongcompat.Application, out, err io.Writer, vars map[string]any) string {
 	var buf bytes.Buffer
 	app.Writers(&buf, io.Discard)
-	app.UsageContext(&kingpin.UsageContext{
+	app.UsageContext(&kongcompat.UsageContext{
 		Template: CompactUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
 		Vars:     vars,
@@ -123,7 +122,7 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 // UsageTemplateFuncs is a map of template functions which get passed to the
 // usage template renderer.
 var UsageTemplateFuncs = template.FuncMap{
-	"CommandsToTwoColumns": func(c []*kingpin.CmdModel) [][2]string {
+	"CommandsToTwoColumns": func(c []*kongcompat.CmdModel) [][2]string {
 		rows := [][2]string{}
 		for _, cmd := range c {
 			if !cmd.Hidden {
@@ -132,9 +131,9 @@ var UsageTemplateFuncs = template.FuncMap{
 		}
 		return rows
 	},
-	"GlobalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
+	"GlobalFlags": func(f []*kongcompat.ClauseModel) []*kongcompat.ClauseModel {
 		gf := globalFlags()
-		flags := []*kingpin.ClauseModel{}
+		flags := []*kongcompat.ClauseModel{}
 		for _, flag := range f {
 			if gf[flag.Name] {
 				flags = append(flags, flag)
@@ -142,9 +141,9 @@ var UsageTemplateFuncs = template.FuncMap{
 		}
 		return flags
 	},
-	"OptionalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
+	"OptionalFlags": func(f []*kongcompat.ClauseModel) []*kongcompat.ClauseModel {
 		gf := globalFlags()
-		optionalFlags := []*kingpin.ClauseModel{}
+		optionalFlags := []*kongcompat.ClauseModel{}
 		for _, flag := range f {
 			if !flag.Required && !flag.Hidden && !gf[flag.Name] {
 				optionalFlags = append(optionalFlags, flag)
@@ -155,7 +154,7 @@ var UsageTemplateFuncs = template.FuncMap{
 	"Bold": func(s string) string {
 		return text.Bold(s)
 	},
-	"SeeAlso": func(cm *kingpin.CmdModel) string {
+	"SeeAlso": func(cm *kongcompat.CmdModel) string {
 		cmd := cm.FullCommand()
 		url := "https://www.fastly.com/documentation/reference/cli/"
 		var trail string
@@ -241,7 +240,7 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 // the various places where help output can be displayed.
 func processCommandInput(
 	data *global.Data,
-	app *kingpin.Application,
+	app *kongcompat.Application,
 	commands []argparser.Command,
 ) (command argparser.Command, cmdName string, err error) {
 	// As the `help` command model gets privately added as a side-effect of
@@ -419,7 +418,7 @@ func processCommandInput(
 	return command, cmdName, nil
 }
 
-func useFullHelpOutput(app *kingpin.Application, args []string, out io.Writer) *bytes.Buffer {
+func useFullHelpOutput(app *kongcompat.Application, args []string, out io.Writer) *bytes.Buffer {
 	var buf bytes.Buffer
 	app.Writers(&buf, io.Discard)
 	_, _ = app.Parse(args)
@@ -451,7 +450,7 @@ type commandsMetadata map[string]any
 
 // UsageJSON returns a structured representation of the application usage
 // documentation in JSON format. This is useful for machine consumption.
-func UsageJSON(app *kingpin.Application) (string, error) {
+func UsageJSON(app *kongcompat.Application) (string, error) {
 	var data commandsMetadata
 	err := json.Unmarshal(metadata, &data)
 	if err != nil {
@@ -501,8 +500,8 @@ type commandJSON struct {
 	Examples    []Example     `json:"examples,omitempty"`
 }
 
-func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
-	var globalFlags []*kingpin.ClauseModel
+func getGlobalFlagJSON(models []*kongcompat.ClauseModel) []flagJSON {
+	var globalFlags []*kongcompat.ClauseModel
 	for _, f := range models {
 		if !f.Hidden {
 			globalFlags = append(globalFlags, f)
@@ -511,7 +510,7 @@ func getGlobalFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 	return getFlagJSON(globalFlags)
 }
 
-func getCommandJSON(models []*kingpin.CmdModel, data commandsMetadata) []commandJSON {
+func getCommandJSON(models []*kongcompat.CmdModel, data commandsMetadata) []commandJSON {
 	var cmds []commandJSON
 	for _, m := range models {
 		if m.Hidden {
@@ -602,7 +601,7 @@ func resolveToString(i any, key string) string {
 	return ""
 }
 
-func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
+func getFlagJSON(models []*kongcompat.ClauseModel) []flagJSON {
 	var flags []flagJSON
 	for _, m := range models {
 		if m.Hidden {
@@ -628,7 +627,7 @@ func getFlagJSON(models []*kingpin.ClauseModel) []flagJSON {
 func displayHelp(
 	errLog fsterr.LogInterface,
 	args []string,
-	app *kingpin.Application,
+	app *kongcompat.Application,
 	stdout, stderr io.Writer,
 ) func(vars map[string]any, err error) error {
 	return func(vars map[string]any, err error) error {

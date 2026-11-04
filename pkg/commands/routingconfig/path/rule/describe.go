@@ -10,37 +10,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to describe a rule.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	pathID          string
-	routingConfigID string
-	ruleID          string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Show detailed information about a rule").Alias("get")
-
-	// Required.
-	c.CmdClause.Flag("path-id", "The Path Identifier").Required().StringVar(&c.pathID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-	c.CmdClause.Flag("rule-id", "The Rule Identifier").Required().StringVar(&c.ruleID)
+	PathID          string `required:"" help:"The Path Identifier"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
+	RuleID          string `required:"" help:"The Rule Identifier"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -55,17 +37,17 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &rules.GetInput{
-		PathID:          &c.pathID,
-		RoutingConfigID: &c.routingConfigID,
-		RuleID:          &c.ruleID,
+		PathID:          &c.PathID,
+		RoutingConfigID: &c.RoutingConfigID,
+		RuleID:          &c.RuleID,
 	}
 
 	d, err := rules.Get(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path ID":           c.pathID,
-			"Routing Config ID": c.routingConfigID,
-			"Rule ID":           c.ruleID,
+			"Path ID":           c.PathID,
+			"Routing Config ID": c.RoutingConfigID,
+			"Rule ID":           c.RuleID,
 		})
 		return err
 	}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,20 +16,11 @@ import (
 type RootCommand struct {
 	argparser.Base
 
-	versionToInstall string
+	VersionToInstall string `arg:"" name:"version" required:"" help:"CLI release version to install (e.g. 10.8.0)"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "install"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Install the specified version of the CLI")
-	c.CmdClause.Arg("version", "CLI release version to install (e.g. 10.8.0)").Required().StringVar(&c.versionToInstall)
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
@@ -40,13 +30,13 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	var downloadedBin string
-	err = spinner.Process(fmt.Sprintf("Fetching release %s", c.versionToInstall), func(_ *text.SpinnerWrapper) error {
-		downloadedBin, err = c.Globals.Versioners.CLI.DownloadVersion(c.versionToInstall)
+	err = spinner.Process(fmt.Sprintf("Fetching release %s", c.VersionToInstall), func(_ *text.SpinnerWrapper) error {
+		downloadedBin, err = c.Globals.Versioners.CLI.DownloadVersion(c.VersionToInstall)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"CLI version to install": c.versionToInstall,
+				"CLI version to install": c.VersionToInstall,
 			})
-			return fmt.Errorf("error downloading release version %s: %w", c.versionToInstall, err)
+			return fmt.Errorf("error downloading release version %s: %w", c.VersionToInstall, err)
 		}
 		return nil
 	})
@@ -116,6 +106,6 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "\nInstalled version %s.", c.versionToInstall)
+	text.Success(out, "\nInstalled version %s.", c.VersionToInstall)
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -12,18 +11,17 @@ import (
 type RootCommand struct {
 	argparser.Base
 	// no flags
+
+	Create   CreateCommand      `cmd:"" hidden:"" help:"Create Alert"`
+	Delete   DeleteCommand      `cmd:"" hidden:"" help:"Delete Alert"`
+	Describe DescribeCommand    `cmd:"" hidden:"" help:"Describe Alert"`
+	List     ListCommand        `cmd:"" hidden:"" help:"List Alerts"`
+	History  ListHistoryCommand `cmd:"" hidden:"" help:"List history"`
+	Update   UpdateCommand      `cmd:"" hidden:"" help:"Update Alert"`
 }
 
 // CommandName is the string to be used to invoke this command.
 const CommandName = "alerts"
-
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
-	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Alerts").Hidden()
-	return &c
-}
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {

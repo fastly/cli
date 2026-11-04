@@ -6,56 +6,28 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/go-fastly/v19/fastly"
 )
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("create", "Create Alert")
-
-	// Required.
-	c.CmdClause.Flag("description", "Additional text that is included in the alert notification.").Required().StringVar(&c.description)
-	c.CmdClause.Flag("metric", "Metric name to alert on for a specific source.").Required().StringVar(&c.metric)
-	c.CmdClause.Flag("name", "Name of the alert definition.").Required().StringVar(&c.name)
-	c.CmdClause.Flag("period", "Period of time to evaluate whether the conditions have been met. The data is polled every minute.").Required().HintOptions(evaluationPeriod...).EnumVar(&c.period, evaluationPeriod...)
-	c.CmdClause.Flag("source", "Source where the metric comes from.").Required().StringVar(&c.source)
-	c.CmdClause.Flag("threshold", "Threshold used to alert.").Required().Float64Var(&c.threshold)
-	c.CmdClause.Flag("type", "Type of strategy to use to evaluate.").Required().HintOptions(evaluationType...).EnumVar(&c.eType, evaluationType...)
-
-	// Optional.
-	c.CmdClause.Flag("dimensions", "Dimensions filters depending on the source type.").Action(c.dimensions.Set).StringsVar(&c.dimensions.Value)
-	c.CmdClause.Flag("ignoreBelow", "IgnoreBelow is the threshold for the denominator value used in evaluations that calculate a rate or ratio. Usually used to filter out noise.").Action(c.ignoreBelow.Set).Float64Var(&c.ignoreBelow.Value)
-	c.CmdClause.Flag("integrations", "Integrations are a list of integrations used to notify when alert fires.").Action(c.integrations.Set).StringsVar(&c.integrations.Value)
-	c.RegisterFlagBool(c.JSONFlag())                                                                                                   // --json
-	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value) // --service-id
-
-	return &c
-}
 
 // CreateCommand calls the Fastly API to list appropriate resources.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	Description string  `required:"" help:"Additional text that is included in the alert notification."`
+	Metric      string  `required:"" help:"Metric name to alert on for a specific source."`
+	NameFlag    string  `name:"name" required:"" help:"Name of the alert definition."`
+	Period      string  `required:"" enum:"2m,3m,5m,15m,30m" hints:"2m,3m,5m,15m,30m" help:"Period of time to evaluate whether the conditions have been met. The data is polled every minute."`
+	Source      string  `required:"" help:"Source where the metric comes from."`
+	Threshold   float64 `required:"" help:"Threshold used to alert."`
+	EType       string  `name:"type" required:"" enum:"above_threshold,all_above_threshold,below_threshold,percent_absolute,percent_decrease,percent_increase" hints:"above_threshold,all_above_threshold,below_threshold,percent_absolute,percent_decrease,percent_increase" help:"Type of strategy to use to evaluate."`
+
+	// Optional.
+	Dimensions   argparser.OptionalStringSlice `sep:"none" help:"Dimensions filters depending on the source type."`
+	IgnoreBelow  argparser.OptionalFloat64     `name:"ignoreBelow" help:"IgnoreBelow is the threshold for the denominator value used in evaluations that calculate a rate or ratio. Usually used to filter out noise."`
+	Integrations argparser.OptionalStringSlice `sep:"none" help:"Integrations are a list of integrations used to notify when alert fires."`
 	argparser.JSONOutput
-
-	description string
-	eType       string
-	metric      string
-	name        string
-	period      string
-	source      string
-	threshold   float64
-
-	dimensions   argparser.OptionalStringSlice
-	ignoreBelow  argparser.OptionalFloat64
-	integrations argparser.OptionalStringSlice
-	serviceID    argparser.OptionalString
+	ServiceID argparser.OptionalString `help:"ServiceID of the definition"`
 }
 
 // Exec invokes the application logic for the command.
@@ -86,38 +58,38 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateAlertDefinitionInput {
 	input := fastly.CreateAlertDefinitionInput{
-		Description: &c.description,
+		Description: &c.Description,
 		EvaluationStrategy: map[string]any{
-			"type":      c.eType,
-			"period":    c.period,
-			"threshold": c.threshold,
+			"type":      c.EType,
+			"period":    c.Period,
+			"threshold": c.Threshold,
 		},
-		Metric: &c.metric,
-		Name:   &c.name,
-		Source: &c.source,
+		Metric: &c.Metric,
+		Name:   &c.NameFlag,
+		Source: &c.Source,
 	}
 
-	if c.ignoreBelow.WasSet {
-		input.EvaluationStrategy["ignore_below"] = c.ignoreBelow.Value
+	if c.IgnoreBelow.WasSet {
+		input.EvaluationStrategy["ignore_below"] = c.IgnoreBelow.Value
 	}
 
-	if c.serviceID.WasSet {
-		input.ServiceID = &c.serviceID.Value
+	if c.ServiceID.WasSet {
+		input.ServiceID = &c.ServiceID.Value
 	}
 
 	dimensions := map[string][]string{}
-	if c.source == "origins" || c.source == "domains" {
+	if c.Source == "origins" || c.Source == "domains" {
 		var filter []string
-		if c.dimensions.WasSet {
-			filter = c.dimensions.Value
+		if c.Dimensions.WasSet {
+			filter = c.Dimensions.Value
 		}
-		dimensions[c.source] = filter
+		dimensions[c.Source] = filter
 	}
 	input.Dimensions = dimensions
 
 	input.IntegrationIDs = []string{}
-	if c.integrations.WasSet {
-		input.IntegrationIDs = c.integrations.Value
+	if c.Integrations.WasSet {
+		input.IntegrationIDs = c.Integrations.Value
 	}
 
 	return &input

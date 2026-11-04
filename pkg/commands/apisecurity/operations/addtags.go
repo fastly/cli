@@ -12,59 +12,34 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/apisecurity/operations"
 
-	"github.com/fastly/kingpin"
-
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // AddTagsCommand calls the Fastly API to add tags to operations.
 type AddTagsCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	serviceName argparser.OptionalServiceNameID
-	tagIDs      []string
+	ServiceID   *string                         `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	TagIDs      []string                        `name:"tag-ids" required:"" sep:"," help:"Comma-separated list of tag IDs to add"`
 
 	// Optional.
-	operationIDs []string
-	file         string
+	OperationIDs []string `name:"operation-ids" sep:"," help:"Comma-separated list of operation IDs to add tags to"`
+	File         string   `help:"Add tags to operations in bulk from a JSON file"`
+
+	argparser.JSONOutput
 }
 
-// NewAddTagsCommand returns a usable command registered under the parent.
-func NewAddTagsCommand(parent argparser.Registerer, g *global.Data) *AddTagsCommand {
-	c := AddTagsCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *AddTagsCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("add-tags", "Add tags to operation(s)")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("tag-ids", "Comma-separated list of tag IDs to add").Required().StringsVar(&c.tagIDs, kingpin.Separator(","))
-
-	// Optional.
-	c.CmdClause.Flag("operation-ids", "Comma-separated list of operation IDs to add tags to").StringsVar(&c.operationIDs, kingpin.Separator(","))
-	c.CmdClause.Flag("file", "Add tags to operations in bulk from a JSON file").StringVar(&c.file)
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -73,15 +48,15 @@ func (c *AddTagsCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if len(c.operationIDs) == 0 && c.file == "" {
+	if len(c.OperationIDs) == 0 && c.File == "" {
 		return fmt.Errorf("error parsing arguments: must provide either --operation-ids or --file")
 	}
 
-	if len(c.operationIDs) > 0 && c.file != "" {
+	if len(c.OperationIDs) > 0 && c.File != "" {
 		return fmt.Errorf("error parsing arguments: cannot use both --operation-ids and --file")
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -92,7 +67,7 @@ func (c *AddTagsCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Get operation IDs and tag IDs from file or flags
 	var operationIDs []string
 	var tagIDs []string
-	if c.file != "" {
+	if c.File != "" {
 		fileInput, err := c.readFromFile()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
@@ -101,8 +76,8 @@ func (c *AddTagsCommand) Exec(_ io.Reader, out io.Writer) error {
 		operationIDs = fileInput.OperationIDs
 		tagIDs = fileInput.TagIDs
 	} else {
-		operationIDs = c.operationIDs
-		tagIDs = c.tagIDs
+		operationIDs = c.OperationIDs
+		tagIDs = c.TagIDs
 	}
 
 	if c.Globals.Verbose() {
@@ -125,7 +100,7 @@ func (c *AddTagsCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Operation Count": len(operationIDs),
-			"Tag Count":       len(c.tagIDs),
+			"Tag Count":       len(c.TagIDs),
 		})
 		return err
 	}
@@ -145,7 +120,7 @@ type AddTagsFileInput struct {
 
 // readFromFile reads operation IDs and tag IDs from a JSON file.
 func (c *AddTagsCommand) readFromFile() (*AddTagsFileInput, error) {
-	path, err := filepath.Abs(c.file)
+	path, err := filepath.Abs(c.File)
 	if err != nil {
 		return nil, err
 	}
@@ -171,11 +146,11 @@ func (c *AddTagsCommand) readFromFile() (*AddTagsFileInput, error) {
 	}
 
 	if len(input.OperationIDs) == 0 {
-		return nil, fmt.Errorf("no operation IDs found in file: %s", c.file)
+		return nil, fmt.Errorf("no operation IDs found in file: %s", c.File)
 	}
 
 	if len(input.TagIDs) == 0 {
-		return nil, fmt.Errorf("no tag IDs found in file: %s", c.file)
+		return nil, fmt.Errorf("no tag IDs found in file: %s", c.File)
 	}
 
 	return &input, nil

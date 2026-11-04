@@ -9,33 +9,19 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.CmdClause = parent.Command("list", "List all TLS private keys")
-	c.Globals = g
-
-	// Optional.
-	c.CmdClause.Flag("filter-in-use", "Limit the returned keys to those without any matching TLS certificates").HintOptions("false").EnumVar(&c.filterInUse, "false")
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.pageSize)
-
-	return &c
-}
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
+	FilterInUse string `default:"" enum:"false," hints:"false" help:"Limit the returned keys to those without any matching TLS certificates"`
 	argparser.JSONOutput
 
-	filterInUse string
-	pageNumber  int
-	pageSize    int
+	PageNumber int `name:"page" help:"Page number of data set to fetch"`
+	PageSize   int `name:"per-page" help:"Number of records per page"`
 }
 
 // Exec invokes the application logic for the command.
@@ -49,9 +35,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.ListPrivateKeys(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Filter In Use": c.filterInUse,
-			"Page Number":   c.pageNumber,
-			"Page Size":     c.pageSize,
+			"Filter In Use": c.FilterInUse,
+			"Page Number":   c.PageNumber,
+			"Page Size":     c.PageSize,
 		})
 		return err
 	}
@@ -75,14 +61,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *ListCommand) constructInput() *fastly.ListPrivateKeysInput {
 	var input fastly.ListPrivateKeysInput
 
-	if c.filterInUse != "" {
-		input.FilterInUse = c.filterInUse
+	if c.FilterInUse != "" {
+		input.FilterInUse = c.FilterInUse
 	}
-	if c.pageNumber > 0 {
-		input.PageNumber = c.pageNumber
+	if c.PageNumber > 0 {
+		input.PageNumber = c.PageNumber
 	}
-	if c.pageSize > 0 {
-		input.PageSize = c.pageSize
+	if c.PageSize > 0 {
+		input.PageSize = c.PageSize
 	}
 
 	return &input

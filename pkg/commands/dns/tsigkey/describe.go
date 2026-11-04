@@ -10,34 +10,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to describe a TSIG key.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	tsigKeyID string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Describe a TSIG key").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("tsig-key-id", "The TSIG key ID to describe.").Required().StringVar(&c.tsigKeyID)
+	TSIGKeyID string `required:"" help:"The TSIG key ID to describe."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -52,11 +36,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	k, err := tsigkeys.Get(context.TODO(), fc, &tsigkeys.GetInput{
-		TSIGKeyID: &c.tsigKeyID,
+		TSIGKeyID: &c.TSIGKeyID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TSIG Key ID": c.tsigKeyID,
+			"TSIG Key ID": c.TSIGKeyID,
 		})
 		return err
 	}

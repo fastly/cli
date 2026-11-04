@@ -15,35 +15,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create account-level rules.
 type CreateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	path string
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create an account-level rule").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("path", "Path to a json file that contains the rule schema.").Required().StringVar(&c.path)
+	Path string `required:"" help:"Path to a json file that contains the rule schema."`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -53,15 +36,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	var err error
 	rule := &rules.Rule{}
-	if c.path != "" {
-		path, err := filepath.Abs(c.path)
+	if c.Path != "" {
+		path, err := filepath.Abs(c.Path)
 		if err != nil {
-			return fmt.Errorf("error parsing path '%s': %q", c.path, err)
+			return fmt.Errorf("error parsing path '%s': %q", c.Path, err)
 		}
 
 		jsonFile, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("error reading path '%s': %q", c.path, err)
+			return fmt.Errorf("error reading path '%s': %q", c.Path, err)
 		}
 		defer jsonFile.Close()
 

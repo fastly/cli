@@ -6,27 +6,18 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // LoginCommand stores a token as the default credential.
 type LoginCommand struct {
 	argparser.Base
-	sso bool
-}
-
-func NewLoginCommand(parent argparser.Registerer, g *global.Data) *LoginCommand {
-	var c LoginCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("login", "Authenticate and store a default token (paste token or use --sso)")
 	// Optional.
-	c.CmdClause.Flag("sso", "Authenticate via browser-based SSO (requires --token <name> to specify the stored token name)").BoolVar(&c.sso)
-	return &c
+	SSO bool `help:"Authenticate via browser-based SSO (requires --token <name> to specify the stored token name)"`
 }
 
 func (c *LoginCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.sso {
+	if c.SSO {
 		return c.execSSO(in, out)
 	}
 

@@ -3,13 +3,17 @@ package argparser
 import (
 	"fmt"
 	"io"
+	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/fastly/go-fastly/v19/fastly"
 
-	"github.com/fastly/kingpin"
+	"github.com/alecthomas/kong"
 
 	"4d63.com/optional"
 
+	"github.com/fastly/cli/internal/kongcompat"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -40,7 +44,7 @@ func Select(name string, commands []Command) (Command, bool) {
 // each concrete command struct's constructor as the "parent" into which the
 // command should install itself.
 type Registerer interface {
-	Command(name, help string) *kingpin.CmdClause
+	Command(name, help string) *kongcompat.CmdClause
 }
 
 // Globals are flags and other stuff that's useful to every command. Globals are
@@ -55,20 +59,30 @@ type Globals struct {
 
 // Base is stuff that should be included in every concrete command.
 type Base struct {
-	CmdClause       *kingpin.CmdClause
-	Globals         *global.Data
-	SuppressVerbose bool
+	// CommandName is the command's full name, as kingpin's FullCommand gave it;
+	// kongcompat sets it when the parser is built.
+	CommandName string `kong:"-" kongcompat:"command-name"`
+
+	Globals         *global.Data `kong:"-"`
+	SuppressVerbose bool         `kong:"-"`
 }
 
 // Name implements the Command interface, and returns the FullCommand from the
 // kingpin.Command that's used to select which command to actually run.
 func (b Base) Name() string {
-	return b.CmdClause.FullCommand()
+	return b.CommandName
 }
 
 // SuppressesVerbose returns true if this command should suppress verbose output.
 func (b Base) SuppressesVerbose() bool {
 	return b.SuppressVerbose
+}
+
+// BeforeApply sets the command up with the values bound when the parser
+// was built, before kong applies the command line.
+func (b *Base) BeforeApply(g *global.Data) error {
+	b.Globals = g
+	return nil
 }
 
 // Optional models an optional type that consumers can use to assert whether the
@@ -77,10 +91,13 @@ type Optional struct {
 	WasSet bool
 }
 
-// Set implements kingpin.Action and is used as callback to set that the optional
-// inner value is valid.
-func (o *Optional) Set(_ *kingpin.ParseElement, _ *kingpin.ParseContext) error {
-	o.WasSet = true
+// AfterApply records that the flag was given on the command line.
+// Kong also calls it for flags that only received a default or an environment
+// variable, which do not count, hence the check of the parse path.
+func (o *Optional) AfterApply(ctx *kong.Context, path *kong.Path) error {
+	if !path.Resolved && slices.Contains(ctx.Path, path) {
+		o.WasSet = true
+	}
 	return nil
 }
 
@@ -90,10 +107,36 @@ type OptionalString struct {
 	Value string
 }
 
+// Decode implements kong.MapperValue, so the flag value lands in Value.
+func (o *OptionalString) Decode(ctx *kong.DecodeContext) error {
+	return ctx.Scan.PopValueInto("value", &o.Value)
+}
+
 // OptionalStringSlice models an optional string slice flag value.
 type OptionalStringSlice struct {
 	Optional
 	Value []string
+}
+
+// Decode implements kong.MapperValue, so the flag values accumulate in
+// Value.
+// A value is split on the separator given by the field's sep tag.
+func (o *OptionalStringSlice) Decode(ctx *kong.DecodeContext) error {
+	var s string
+	if err := ctx.Scan.PopValueInto("value", &s); err != nil {
+		return err
+	}
+	if sep := ctx.Value.Tag.Sep; sep != -1 {
+		o.Value = append(o.Value, strings.Split(s, string(sep))...)
+	} else {
+		o.Value = append(o.Value, s)
+	}
+	return nil
+}
+
+// IsCumulative tells kongcompat the flag may be repeated, as kingpin allowed.
+func (o *OptionalStringSlice) IsCumulative() bool {
+	return true
 }
 
 // OptionalBool models an optional boolean flag value.
@@ -102,16 +145,71 @@ type OptionalBool struct {
 	Value bool
 }
 
+// Decode implements kong.MapperValue, so the flag value lands in Value.
+// The flag takes no value, but --flag=false is still understood.
+// As in kingpin v3, a flag named no-x given alone is false.
+func (o *OptionalBool) Decode(ctx *kong.DecodeContext) error {
+	if ctx.Scan.Peek().Type != kong.FlagValueToken {
+		o.Value = !strings.HasPrefix(ctx.Value.Name, "no-")
+		return nil
+	}
+	switch v := ctx.Scan.Pop().Value.(type) {
+	case bool:
+		o.Value = v
+	case string:
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			return fmt.Errorf("expected a boolean but got %q", v)
+		}
+		o.Value = b
+	}
+	return nil
+}
+
+// IsBool tells kong the flag does not take a value.
+func (o *OptionalBool) IsBool() bool {
+	return true
+}
+
 // OptionalInt models an optional int flag value.
 type OptionalInt struct {
 	Optional
 	Value int
 }
 
+// Decode implements kong.MapperValue, so the flag value lands in Value.
+// kingpin parsed an int as a float and dropped the fraction.
+func (o *OptionalInt) Decode(ctx *kong.DecodeContext) error {
+	var s string
+	if err := ctx.Scan.PopValueInto("value", &s); err != nil {
+		return err
+	}
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return err
+	}
+	o.Value = int(n)
+	return nil
+}
+
 // OptionalFloat64 models an optional int flag value.
 type OptionalFloat64 struct {
 	Optional
 	Value float64
+}
+
+// Decode implements kong.MapperValue, so the flag value lands in Value.
+func (o *OptionalFloat64) Decode(ctx *kong.DecodeContext) error {
+	var s string
+	if err := ctx.Scan.PopValueInto("value", &s); err != nil {
+		return err
+	}
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return err
+	}
+	o.Value = n
+	return nil
 }
 
 // ServiceDetailsOpts provides data and behaviours required by the

@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,72 +17,40 @@ import (
 type UpdateCommand struct {
 	argparser.Base
 	input          fastly.UpdateHealthCheckInput
-	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
-	autoClone      argparser.OptionalAutoClone
-
-	NewName          argparser.OptionalString
-	Comment          argparser.OptionalString
-	Method           argparser.OptionalString
-	Host             argparser.OptionalString
-	Path             argparser.OptionalString
-	HTTPVersion      argparser.OptionalString
-	Timeout          argparser.OptionalInt
-	CheckInterval    argparser.OptionalInt
-	ExpectedResponse argparser.OptionalInt
-	Window           argparser.OptionalInt
-	Threshold        argparser.OptionalInt
-	Initial          argparser.OptionalInt
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a healthcheck on a Fastly service version")
 
 	// Required.
-	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.input.Name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	NameFlag string `name:"name" short:"n" required:"" help:"Healthcheck name"`
+	Version  string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
 
 	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("check-interval", "How often to run the healthcheck in milliseconds").Action(c.CheckInterval.Set).IntVar(&c.CheckInterval.Value)
-	c.CmdClause.Flag("comment", "A descriptive note").Action(c.Comment.Set).StringVar(&c.Comment.Value)
-	c.CmdClause.Flag("expected-response", "The status code expected from the host").Action(c.ExpectedResponse.Set).IntVar(&c.ExpectedResponse.Value)
-	c.CmdClause.Flag("host", "Which host to check").Action(c.Host.Set).StringVar(&c.Host.Value)
-	c.CmdClause.Flag("http-version", "Whether to use version 1.0 or 1.1 HTTP").Action(c.HTTPVersion.Set).StringVar(&c.HTTPVersion.Value)
-	c.CmdClause.Flag("initial", "When loading a config, the initial number of probes to be seen as OK").Action(c.Initial.Set).IntVar(&c.Initial.Value)
-	c.CmdClause.Flag("method", "Which HTTP method to use").Action(c.Method.Set).StringVar(&c.Method.Value)
-	c.CmdClause.Flag("new-name", "Healthcheck name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	c.CmdClause.Flag("path", "The path to check").Action(c.Path.Set).StringVar(&c.Path.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.Threshold.Set).IntVar(&c.Threshold.Value)
-	c.CmdClause.Flag("timeout", "Timeout in milliseconds").Action(c.Timeout.Set).IntVar(&c.Timeout.Value)
-	c.CmdClause.Flag("window", "The number of most recent healthcheck queries to keep for this healthcheck").Action(c.Window.Set).IntVar(&c.Window.Value)
-	return &c
+	AutoClone     argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	CheckInterval argparser.OptionalInt       `help:"How often to run the healthcheck in milliseconds"`
+
+	Comment          argparser.OptionalString        `help:"A descriptive note"`
+	ExpectedResponse argparser.OptionalInt           `help:"The status code expected from the host"`
+	Host             argparser.OptionalString        `help:"Which host to check"`
+	HTTPVersion      argparser.OptionalString        `help:"Whether to use version 1.0 or 1.1 HTTP"`
+	Initial          argparser.OptionalInt           `help:"When loading a config, the initial number of probes to be seen as OK"`
+	Method           argparser.OptionalString        `help:"Which HTTP method to use"`
+	NewName          argparser.OptionalString        `help:"Healthcheck name"`
+	Path             argparser.OptionalString        `help:"The path to check"`
+	ServiceID        *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName      argparser.OptionalServiceNameID `help:"The name of the service"`
+	Threshold        argparser.OptionalInt           `help:"How many healthchecks must succeed to be considered healthy"`
+	Timeout          argparser.OptionalInt           `help:"Timeout in milliseconds"`
+	Window           argparser.OptionalInt           `help:"The number of most recent healthcheck queries to keep for this healthcheck"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.input.Name = c.NameFlag
+	c.serviceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -91,11 +58,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
+		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
-		ServiceNameFlag:    c.serviceName,
+		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})

@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,49 +17,36 @@ var Permissions = []string{"full", "read_only", "purge_select", "purge_all"}
 // CreateCommand calls the Fastly API to create a service authorization.
 type CreateCommand struct {
 	argparser.Base
-	input       fastly.CreateServiceAuthorizationInput
-	serviceName argparser.OptionalServiceNameID
-	userID      string
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create service authorization").Alias("add")
+	input fastly.CreateServiceAuthorizationInput
 
 	// Required.
-	c.CmdClause.Flag("user-id", "Alphanumeric string identifying the user").Required().Short('u').StringVar(&c.userID)
+	UserID string `short:"u" required:"" help:"Alphanumeric string identifying the user"`
 
 	// Optional.
 	// NOTE: We default to 'read_only' for security reasons.
 	// The API otherwise defaults to 'full' permissions!
-	c.CmdClause.Flag("permission", "The permission the user has in relation to the service (default: read_only)").HintOptions(Permissions...).Default("read_only").Short('p').EnumVar(&c.input.Permission, Permissions...)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	return &c
+	Permission  string                          `short:"p" default:"read_only" enum:"full,read_only,purge_select,purge_all" hints:"full,read_only,purge_select,purge_all" help:"The permission the user has in relation to the service (default: read_only)"`
+	ServiceID   *string                         `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *CreateCommand) AfterApply() error {
+	c.input.Permission = c.Permission
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
+	}
+	return nil
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":   c.Globals.Manifest.Flag.ServiceID,
-			"Service Name": c.serviceName.Value,
+			"Service Name": c.ServiceName.Value,
 		})
 		return err
 	}
@@ -72,7 +58,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ID: serviceID,
 	}
 	c.input.User = &fastly.SAUser{
-		ID: c.userID,
+		ID: c.UserID,
 	}
 
 	s, err := c.Globals.APIClient.CreateServiceAuthorization(context.TODO(), &c.input)

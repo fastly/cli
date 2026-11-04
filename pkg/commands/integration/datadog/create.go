@@ -8,43 +8,22 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a Datadog notification integration.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	IntegrationName string `name:"name" short:"n" required:"" help:"The name of the integration"`
+	APIKey          string `required:"" help:"Datadog API key"`
+
+	// Optional.
+	Description argparser.OptionalString `help:"A description of the integration"`
+	Site        argparser.OptionalString `help:"Datadog site, e.g. \"datadoghq.eu\" (defaults to the US site)"`
+
 	argparser.JSONOutput
-
-	// Required.
-	IntegrationName string
-	APIKey          string
-
-	// Optional.
-	Description argparser.OptionalString
-	Site        argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a Datadog notification integration").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the integration").Short('n').Required().StringVar(&c.IntegrationName)
-	c.CmdClause.Flag("api-key", "Datadog API key").Required().StringVar(&c.APIKey)
-
-	// Optional.
-	c.CmdClause.Flag("description", "A description of the integration").Action(c.Description.Set).StringVar(&c.Description.Value)
-	c.CmdClause.Flag("site", "Datadog site, e.g. \"datadoghq.eu\" (defaults to the US site)").Action(c.Site.Set).StringVar(&c.Site.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.

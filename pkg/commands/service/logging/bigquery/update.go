@@ -10,9 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/service/logging/logflags"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -20,79 +18,44 @@ import (
 // UpdateCommand calls the Fastly API to update a BigQuery logging endpoint.
 type UpdateCommand struct {
 	argparser.Base
-	Manifest manifest.Data
+	Manifest manifest.Data `kong:"-"`
 
 	// Required.
-	EndpointName   string // Can't shadow argparser.Base method Name().
-	ServiceName    argparser.OptionalServiceNameID
-	ServiceVersion argparser.OptionalServiceVersion
+	EndpointName   string                           `name:"name" short:"n" required:"" help:"The name of the BigQuery logging object"` // Can't shadow argparser.Base method Name().
+	ServiceName    argparser.OptionalServiceNameID  `help:"The name of the service"`
+	ServiceVersion argparser.OptionalServiceVersion `kong:"-"`
 
 	// Optional.
-	AccountName       argparser.OptionalString
-	AutoClone         argparser.OptionalAutoClone
-	Dataset           argparser.OptionalString
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	NewName           argparser.OptionalString
-	Placement         argparser.OptionalString
-	ProcessingRegion  argparser.OptionalString
-	ProjectID         argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	SecretKey         argparser.OptionalString
-	Table             argparser.OptionalString
-	Template          argparser.OptionalString
-	User              argparser.OptionalString
+	AccountName       argparser.OptionalString    `help:"The google account name used to obtain temporary credentials (default none)"`
+	AutoClone         argparser.OptionalAutoClone `name:"autoclone" help:"If the selected service version is not editable, clone it and use the clone."`
+	Dataset           argparser.OptionalString    `help:"Your BigQuery dataset"`
+	Format            argparser.OptionalString    `help:"Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting"`
+	FormatVersion     argparser.OptionalInt       `help:"The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1"`
+	NewName           argparser.OptionalString    `help:"New name of the BigQuery logging object"`
+	Placement         argparser.OptionalString    `help:"Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement"`
+	ProcessingRegion  argparser.OptionalString    `help:"The region where logs will be processed before streaming to BigQuery. One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region"`
+	ProjectID         argparser.OptionalString    `help:"Your Google Cloud Platform project ID"`
+	ResponseCondition argparser.OptionalString    `help:"The name of an existing condition in the configured endpoint, or leave blank to always execute"`
+	SecretKey         argparser.OptionalString    `help:"Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON."`
+	Table             argparser.OptionalString    `help:"Your BigQuery table"`
+	Template          argparser.OptionalString    `name:"template-suffix" help:"BigQuery table name suffix template"`
+	User              argparser.OptionalString    `help:"Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON."`
+
+	// Required.
+	Version string `required:"" help:"'latest', 'active', 'staged', or the number of a specific Fastly service version"`
+
+	// Optional.
+	ServiceID *string `short:"s" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.ServiceVersion.Value = c.Version
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update a BigQuery logging endpoint on a Fastly service version")
-
-	// Required.
-	c.CmdClause.Flag("name", "The name of the BigQuery logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.ServiceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
-	logflags.AccountName(c.CmdClause, &c.AccountName)
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.AutoClone.Set,
-		Dst:    &c.AutoClone.Value,
-	})
-	c.CmdClause.Flag("dataset", "Your BigQuery dataset").Action(c.Dataset.Set).StringVar(&c.Dataset.Value)
-	logflags.Format(c.CmdClause, &c.Format)
-	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	c.CmdClause.Flag("new-name", "New name of the BigQuery logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	logflags.Placement(c.CmdClause, &c.Placement)
-	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "BigQuery")
-	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
-	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.ServiceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.ServiceName.Value,
-	})
-	c.CmdClause.Flag("table", "Your BigQuery table").Action(c.Table.Set).StringVar(&c.Table.Value)
-	c.CmdClause.Flag("template-suffix", "BigQuery table name suffix template").Action(c.Template.Set).StringVar(&c.Template.Value)
-	c.CmdClause.Flag("user", "Your Google Cloud Platform service account email address. The client_email field in your service account authentication JSON.").Action(c.User.Set).StringVar(&c.User.Value)
-	return &c
+	return nil
 }
 
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -197,4 +160,15 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(bq.ServiceVersion),
 	)
 	return nil
+}
+
+// FlagOrder lists the flags in the order kingpin showed them in help, which
+// the fields do not follow.
+func (c *UpdateCommand) FlagOrder() []string {
+	return []string{
+		"name", "version", "account-name", "autoclone", "dataset", "format",
+		"format-version", "new-name", "placement", "processing-region",
+		"project-id", "response-condition", "secret-key", "service-id",
+		"service-name", "table", "template-suffix", "user",
+	}
 }

@@ -10,48 +10,22 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create workspace-level signal lists.
 type CreateCommand struct {
 	argparser.Base
+
+	// Required.
+	Entries     string                        `required:"" help:"Entries for the list. Can either be a comma separated list or a path to a file."`
+	NameFlag    string                        `name:"name" required:"" help:"User submitted display name of a list."`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
+
+	// Optional.
+	Description argparser.OptionalString `help:"User submitted description of the list."`
+
 	argparser.JSONOutput
-
-	// Required.
-	entries     string
-	name        string
-	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-	description argparser.OptionalString
-}
-
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("create", "Create a workspace-level signal list").Alias("add")
-
-	// Required.
-	c.CmdClause.Flag("entries", "Entries for the list. Can either be a comma separated list or a path to a file.").Required().StringVar(&c.entries)
-	c.CmdClause.Flag("name", "User submitted display name of a list.").Required().StringVar(&c.name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
-
-	// Optional.
-	c.CmdClause.Flag("description", "User submitted description of the list.").Action(c.description.Set).StringVar(&c.description.Value)
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
 }
 
 // Exec invokes the application logic for the command.
@@ -61,11 +35,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	input := ngwaflist.ListCreateInput{
 		CommandScope: scope.ScopeTypeWorkspace,
-		Description:  c.description,
-		Entries:      c.entries,
-		Name:         c.name,
+		Description:  c.Description,
+		Entries:      c.Entries,
+		Name:         c.NameFlag,
 		Type:         "signal",
-		WorkspaceID:  &c.workspaceID,
+		WorkspaceID:  &c.WorkspaceID,
 	}
 
 	var ok bool

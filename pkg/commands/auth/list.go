@@ -6,20 +6,12 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand lists stored tokens.
 type ListCommand struct {
 	argparser.Base
-}
-
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("list", "List stored tokens and show the default")
-	return &c
 }
 
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {

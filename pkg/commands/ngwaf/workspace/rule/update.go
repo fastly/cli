@@ -15,44 +15,20 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a workspace-level rule.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	path        string
-	ruleID      string
-	workspaceID argparser.OptionalWorkspaceID
-}
-
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("update", "Update a workspace")
-
-	// Required.
-	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
-	c.CmdClause.Flag("path", "Path to a json file that contains the rule schema.").Required().StringVar(&c.path)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	RuleID      string                        `required:"" help:"Rule ID"`
+	Path        string                        `required:"" help:"Path to a json file that contains the rule schema."`
+	WorkspaceID argparser.OptionalWorkspaceID `help:"Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -60,19 +36,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if err := c.workspaceID.Parse(); err != nil {
+	if err := c.WorkspaceID.Parse(); err != nil {
 		return err
 	}
 	rule := &rules.Rule{}
-	if c.path != "" {
-		path, err := filepath.Abs(c.path)
+	if c.Path != "" {
+		path, err := filepath.Abs(c.Path)
 		if err != nil {
-			return fmt.Errorf("error parsing path '%s': %q", c.path, err)
+			return fmt.Errorf("error parsing path '%s': %q", c.Path, err)
 		}
 
 		jsonFile, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("error reading path '%s': %q", c.path, err)
+			return fmt.Errorf("error reading path '%s': %q", c.Path, err)
 		}
 		defer jsonFile.Close()
 
@@ -96,10 +72,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Type:               &rule.Type,
 		GroupOperator:      &rule.GroupOperator,
 		RequestLogging:     &rule.RequestLogging,
-		RuleID:             &c.ruleID,
+		RuleID:             &c.RuleID,
 		Scope: &scope.Scope{
 			Type:      scope.ScopeTypeWorkspace,
-			AppliesTo: []string{c.workspaceID.Value},
+			AppliesTo: []string{c.WorkspaceID.Value},
 		},
 	}
 

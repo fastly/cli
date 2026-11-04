@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/paths/rules"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -18,26 +17,9 @@ type DeleteCommand struct {
 	argparser.Base
 
 	// Required.
-	pathID          string
-	routingConfigID string
-	ruleID          string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a rule").Alias("remove")
-
-	// Required.
-	c.CmdClause.Flag("path-id", "The Path Identifier").Required().StringVar(&c.pathID)
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-	c.CmdClause.Flag("rule-id", "The Rule Identifier").Required().StringVar(&c.ruleID)
-
-	return &c
+	PathID          string `required:"" help:"The Path Identifier"`
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
+	RuleID          string `required:"" help:"The Rule Identifier"`
 }
 
 // Exec invokes the application logic for the command.
@@ -48,21 +30,21 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &rules.DeleteInput{
-		PathID:          &c.pathID,
-		RoutingConfigID: &c.routingConfigID,
-		RuleID:          &c.ruleID,
+		PathID:          &c.PathID,
+		RoutingConfigID: &c.RoutingConfigID,
+		RuleID:          &c.RuleID,
 	}
 
 	err := rules.Delete(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path ID":           c.pathID,
-			"Routing Config ID": c.routingConfigID,
-			"Rule ID":           c.ruleID,
+			"Path ID":           c.PathID,
+			"Routing Config ID": c.RoutingConfigID,
+			"Rule ID":           c.RuleID,
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted rule (rule-id: %s)", c.ruleID)
+	text.Success(out, "Deleted rule (rule-id: %s)", c.RuleID)
 	return nil
 }

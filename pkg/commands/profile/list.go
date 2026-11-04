@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -15,15 +14,6 @@ import (
 type ListCommand struct {
 	argparser.Base
 	argparser.JSONOutput
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	var c ListCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("list", "List user profiles (deprecated: use 'fastly auth list' instead)")
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
 }
 
 // Exec invokes the application logic for the command.

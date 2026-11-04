@@ -17,7 +17,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -28,23 +27,11 @@ var errCancelled = errors.New("cancelled")
 // RevokeCommand revokes a token via the API and removes it from local config.
 type RevokeCommand struct {
 	argparser.Base
-	current    bool
-	name       string
-	tokenValue string
-	id         string
-	file       string
-}
-
-func NewRevokeCommand(parent argparser.Registerer, g *global.Data) *RevokeCommand {
-	var c RevokeCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("revoke", "Revoke a token via the API and remove it from local config")
-	c.CmdClause.Flag("current", "Revoke the token used to authenticate the current request").BoolVar(&c.current)
-	c.CmdClause.Flag("name", "Name of a locally stored token to revoke").StringVar(&c.name)
-	c.CmdClause.Flag("token-value", "Raw API token string to revoke (pass '-' to read from stdin)").StringVar(&c.tokenValue)
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a token to revoke").StringVar(&c.id)
-	c.CmdClause.Flag("file", "Path to a newline-delimited file of token IDs to revoke in bulk").StringVar(&c.file)
-	return &c
+	Current    bool   `help:"Revoke the token used to authenticate the current request"`
+	NameFlag   string `name:"name" help:"Name of a locally stored token to revoke"`
+	TokenValue string `help:"Raw API token string to revoke (pass '-' to read from stdin)"`
+	ID         string `help:"Alphanumeric string identifying a token to revoke"`
+	File       string `help:"Path to a newline-delimited file of token IDs to revoke in bulk"`
 }
 
 func (c *RevokeCommand) Exec(in io.Reader, out io.Writer) error {
@@ -57,15 +44,15 @@ func (c *RevokeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	switch {
-	case c.current:
+	case c.Current:
 		return c.revokeCurrent(in, out)
-	case c.name != "":
+	case c.NameFlag != "":
 		return c.revokeByName(in, out)
-	case c.tokenValue != "":
+	case c.TokenValue != "":
 		return c.revokeByTokenValue(in, out)
-	case c.id != "":
+	case c.ID != "":
 		return c.revokeByID(out)
-	case c.file != "":
+	case c.File != "":
 		return c.revokeByFile(out)
 	}
 
@@ -74,19 +61,19 @@ func (c *RevokeCommand) Exec(in io.Reader, out io.Writer) error {
 
 func (c *RevokeCommand) validateFlags() error {
 	count := 0
-	if c.current {
+	if c.Current {
 		count++
 	}
-	if c.name != "" {
+	if c.NameFlag != "" {
 		count++
 	}
-	if c.tokenValue != "" {
+	if c.TokenValue != "" {
 		count++
 	}
-	if c.id != "" {
+	if c.ID != "" {
 		count++
 	}
-	if c.file != "" {
+	if c.File != "" {
 		count++
 	}
 	if count == 0 {
@@ -125,12 +112,12 @@ func (c *RevokeCommand) revokeCurrent(in io.Reader, out io.Writer) error {
 }
 
 func (c *RevokeCommand) revokeByName(in io.Reader, out io.Writer) error {
-	entry := c.Globals.Config.GetAuthToken(c.name)
+	entry := c.Globals.Config.GetAuthToken(c.NameFlag)
 	if entry == nil {
-		return fmt.Errorf("token %q not found", c.name)
+		return fmt.Errorf("token %q not found", c.NameFlag)
 	}
 
-	if err := c.confirmDefaultRevocation([]string{c.name}, in, out); err != nil {
+	if err := c.confirmDefaultRevocation([]string{c.NameFlag}, in, out); err != nil {
 		if errors.Is(err, errCancelled) {
 			return nil
 		}
@@ -151,12 +138,12 @@ func (c *RevokeCommand) revokeByName(in io.Reader, out io.Writer) error {
 			return err
 		}
 	} else {
-		text.Success(out, "Revoked token %q", c.name)
+		text.Success(out, "Revoked token %q", c.NameFlag)
 	}
 
-	names := []string{c.name}
+	names := []string{c.NameFlag}
 	for _, n := range findLocalTokensByValue(&c.Globals.Config, entry.Token) {
-		if n != c.name {
+		if n != c.NameFlag {
 			names = append(names, n)
 		}
 	}
@@ -164,7 +151,7 @@ func (c *RevokeCommand) revokeByName(in io.Reader, out io.Writer) error {
 }
 
 func (c *RevokeCommand) revokeByTokenValue(in io.Reader, out io.Writer) error {
-	raw, err := readTokenValue(c.tokenValue, in)
+	raw, err := readTokenValue(c.TokenValue, in)
 	if err != nil {
 		return err
 	}
@@ -208,7 +195,7 @@ func (c *RevokeCommand) revokeByID(out io.Writer) error {
 	}
 
 	err = client.DeleteToken(context.TODO(), &fastly.DeleteTokenInput{
-		TokenID: c.id,
+		TokenID: c.ID,
 	})
 	if err != nil {
 		if isAlreadyGone(err) {
@@ -218,9 +205,9 @@ func (c *RevokeCommand) revokeByID(out io.Writer) error {
 			return err
 		}
 	} else {
-		text.Success(out, "Revoked token '%s'", c.id)
+		text.Success(out, "Revoked token '%s'", c.ID)
 	}
-	names := findLocalTokensByID(&c.Globals.Config, c.id)
+	names := findLocalTokensByID(&c.Globals.Config, c.ID)
 	if len(names) == 0 {
 		text.Info(out, "No local token entry with matching API token ID found; local cleanup skipped\n")
 		return nil
@@ -229,7 +216,7 @@ func (c *RevokeCommand) revokeByID(out io.Writer) error {
 }
 
 func (c *RevokeCommand) revokeByFile(out io.Writer) error {
-	ids, err := readTokenIDFile(c.file)
+	ids, err := readTokenIDFile(c.File)
 	if err != nil {
 		return err
 	}

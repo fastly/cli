@@ -10,59 +10,34 @@ import (
 	"github.com/fastly/go-fastly/v19/fastly"
 	"github.com/fastly/go-fastly/v19/fastly/apisecurity/operations"
 
-	"github.com/fastly/kingpin"
-
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update an operation.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 
 	// Required.
-	serviceName argparser.OptionalServiceNameID
-	operationID string
+	ServiceID   *string                         `short:"s" required:"" help:"Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"`
+	ServiceName argparser.OptionalServiceNameID `help:"The name of the service"`
+	OperationID string                          `required:"" help:"The unique identifier of the operation"`
 
 	// Optional.
-	description argparser.OptionalString
-	tagIDs      argparser.OptionalStringSlice
+	Description argparser.OptionalString      `help:"Updated description of what the operation does"`
+	TagIDs      argparser.OptionalStringSlice `name:"tag-ids" sep:"," help:"Comma-separated list of tag IDs to associate with the operation"`
+
+	argparser.JSONOutput
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	if c.ServiceID != nil {
+		c.Globals.Manifest.Flag.ServiceID = *c.ServiceID
 	}
-	c.CmdClause = parent.Command("update", "Update an operation")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
-	c.CmdClause.Flag("operation-id", "The unique identifier of the operation").Required().StringVar(&c.operationID)
-
-	// Optional.
-	c.CmdClause.Flag("description", "Updated description of what the operation does").Action(c.description.Set).StringVar(&c.description.Value)
-	c.CmdClause.Flag("tag-ids", "Comma-separated list of tag IDs to associate with the operation").Action(c.tagIDs.Set).StringsVar(&c.tagIDs.Value, kingpin.Separator(","))
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-
-	return &c
+	return nil
 }
 
 // Exec invokes the application logic for the command.
@@ -71,11 +46,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if !c.description.WasSet && !c.tagIDs.WasSet {
+	if !c.Description.WasSet && !c.TagIDs.WasSet {
 		return fmt.Errorf("error parsing arguments: must provide at least one field to update (--description or --tag-ids)")
 	}
 
-	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -94,7 +69,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":   serviceID,
-			"Operation ID": c.operationID,
+			"Operation ID": c.OperationID,
 		})
 		return err
 	}
@@ -125,15 +100,15 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructInput(serviceID string) *operations.UpdateInput {
 	input := &operations.UpdateInput{
 		ServiceID:   &serviceID,
-		OperationID: &c.operationID,
+		OperationID: &c.OperationID,
 	}
 
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+	if c.Description.WasSet {
+		input.Description = &c.Description.Value
 	}
 
-	if c.tagIDs.WasSet {
-		input.TagIDs = &c.tagIDs.Value
+	if c.TagIDs.WasSet {
+		input.TagIDs = &c.TagIDs.Value
 	}
 
 	return input

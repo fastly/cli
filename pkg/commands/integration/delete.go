@@ -8,34 +8,27 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // DeleteCommand calls the Fastly API to delete a notification integration.
 type DeleteCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input fastly.DeleteIntegrationInput
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Delete a notification integration")
-
-	// Required.
-	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.Input.ID)
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
+	argparser.JSONOutput
 
-	return &c
+	Input fastly.DeleteIntegrationInput `kong:"-"`
+
+	// Required.
+	ID string `arg:"" required:"" help:"Integration ID"`
+}
+
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *DeleteCommand) AfterApply() error {
+	c.Input.ID = c.ID
+	return nil
 }
 
 // Exec invokes the application logic for the command.

@@ -11,45 +11,22 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list session logs.
 type ListCommand struct {
 	argparser.Base
+
+	// Optional.
+	Key      argparser.OptionalString `help:"Filter by a specific virtual key ID"`
+	Provider argparser.OptionalString `help:"Filter by provider connection ID"`
+	Model    argparser.OptionalString `help:"Filter by AI model identifier"`
+	From     time.Time                `hints:"2026-07-28T19:24:50+00:00" format:"2006-01-02T15:04:05Z07:00" help:"Start of the time range (RFC 3339 format)"`
+	To       time.Time                `hints:"2026-07-28T19:24:50+00:00" format:"2006-01-02T15:04:05Z07:00" help:"End of the time range (RFC 3339 format). Defaults to now"`
 	argparser.JSONOutput
-
-	// Optional.
-	key      argparser.OptionalString
-	provider argparser.OptionalString
-	model    argparser.OptionalString
-	from     time.Time
-	to       time.Time
-	limit    int
-	sort     argparser.OptionalString
-}
-
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
-	c := ListCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("list", "List session logs")
-
-	// Optional.
-	c.CmdClause.Flag("key", "Filter by a specific virtual key ID").Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("provider", "Filter by provider connection ID").Action(c.provider.Set).StringVar(&c.provider.Value)
-	c.CmdClause.Flag("model", "Filter by AI model identifier").Action(c.model.Set).StringVar(&c.model.Value)
-	c.CmdClause.Flag("from", "Start of the time range (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.from)
-	c.CmdClause.Flag("to", "End of the time range (RFC 3339 format). Defaults to now").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.to)
-	c.RegisterFlagBool(c.JSONFlag())                 // --json
-	c.RegisterFlagInt(argparser.LimitFlag(&c.limit)) // --limit
-	c.CmdClause.Flag("sort", "Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")").Default("created_at").Action(c.sort.Set).StringVar(&c.sort.Value)
-
-	return &c
+	Limit int                      `short:"l" default:"50" help:"Maximum number of items to list"`
+	Sort  argparser.OptionalString `default:"created_at" placeholder:"\"created_at\"" help:"Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")"`
 }
 
 // Exec invokes the application logic for the command.
@@ -64,25 +41,25 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &session.ListInput{
-		Limit: &c.limit,
+		Limit: &c.Limit,
 	}
-	if c.key.WasSet {
-		input.Key = &c.key.Value
+	if c.Key.WasSet {
+		input.Key = &c.Key.Value
 	}
-	if c.provider.WasSet {
-		input.Provider = &c.provider.Value
+	if c.Provider.WasSet {
+		input.Provider = &c.Provider.Value
 	}
-	if c.model.WasSet {
-		input.Model = &c.model.Value
+	if c.Model.WasSet {
+		input.Model = &c.Model.Value
 	}
-	if !c.from.IsZero() {
-		input.From = &c.from
+	if !c.From.IsZero() {
+		input.From = &c.From
 	}
-	if !c.to.IsZero() {
-		input.To = &c.to
+	if !c.To.IsZero() {
+		input.To = &c.To
 	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
+	if c.Sort.WasSet {
+		input.Sort = &c.Sort.Value
 	}
 
 	// session.List() automatically paginates through all pages internally.

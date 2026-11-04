@@ -8,7 +8,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -16,28 +15,12 @@ import (
 // Webhook notification integration.
 type GetSigningKeyCommand struct {
 	argparser.Base
+
+	// Optional.
 	argparser.JSONOutput
 
 	// Required.
-	IntegrationID string
-}
-
-// NewGetSigningKeyCommand returns a usable command registered under the parent.
-func NewGetSigningKeyCommand(parent argparser.Registerer, g *global.Data) *GetSigningKeyCommand {
-	c := GetSigningKeyCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("get-signing-key", "Get the signing key for a Webhook notification integration")
-
-	// Required.
-	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.IntegrationID)
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag())
-
-	return &c
+	IntegrationID string `arg:"" name:"id" required:"" help:"Integration ID"`
 }
 
 // Exec invokes the application logic for the command.

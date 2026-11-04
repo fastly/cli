@@ -9,7 +9,6 @@ import (
 	sdkdraft "github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/draft"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,22 +16,9 @@ import (
 // version.
 type DeleteCommand struct {
 	argparser.Base
-	routingConfigID string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	c := DeleteCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("delete", "Discard a routing config's draft version, reverting it back to the active version").Alias("discard")
 
 	// Required.
-	c.CmdClause.Flag("routing-config-id", "The Routing Config Identifier").Required().StringVar(&c.routingConfigID)
-
-	return &c
+	RoutingConfigID string `required:"" help:"The Routing Config Identifier"`
 }
 
 // Exec invokes the application logic for the command.
@@ -43,17 +29,17 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &sdkdraft.DeleteInput{
-		RoutingConfigID: &c.routingConfigID,
+		RoutingConfigID: &c.RoutingConfigID,
 	}
 
 	err := sdkdraft.Delete(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Routing Config ID": c.routingConfigID,
+			"Routing Config ID": c.RoutingConfigID,
 		})
 		return err
 	}
 
-	text.Success(out, "Discarded draft version for routing config (routing-config-id: %s)", c.routingConfigID)
+	text.Success(out, "Discarded draft version for routing config (routing-config-id: %s)", c.RoutingConfigID)
 	return nil
 }

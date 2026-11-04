@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -13,16 +12,7 @@ import (
 type DeleteCommand struct {
 	argparser.Base
 
-	profile string
-}
-
-// NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
-	var c DeleteCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("delete", "Delete user profile (deprecated: use 'fastly auth delete' instead)")
-	c.CmdClause.Arg("profile", "Profile to delete").Short('x').Required().StringVar(&c.profile)
-	return &c
+	Profile string `arg:"" required:"" help:"Profile to delete"`
 }
 
 // Exec invokes the application logic for the command.
@@ -31,7 +21,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		text.Deprecated("This command will be removed in a future release. Use 'fastly auth delete' instead.\n\n")
 	}
 
-	if !c.Globals.Config.DeleteAuthToken(c.profile) {
+	if !c.Globals.Config.DeleteAuthToken(c.Profile) {
 		return fmt.Errorf("the specified profile does not exist")
 	}
 
@@ -41,7 +31,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() {
 		text.Break(out)
 	}
-	text.Success(out, "Profile '%s' deleted", c.profile)
+	text.Success(out, "Profile '%s' deleted", c.Profile)
 
 	if c.Globals.Config.Auth.Default == "" && len(c.Globals.Config.Auth.Tokens) > 0 {
 		text.Break(out)

@@ -8,62 +8,35 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-
-	c.CmdClause = parent.Command("update", "Update a config store item")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "key",
-		Short:       'k',
-		Description: "Item name",
-		Dst:         &c.input.Key,
-		Required:    true,
-	})
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
-
-	// One of these must be set.
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
-		Name:        "stdin",
-		Description: "Read item value from STDIN. If set, --value will be ignored",
-		Dst:         &c.stdin,
-		Required:    false,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "value",
-		Description: "Item value. Required unless --stdin is set",
-		Dst:         &c.input.Value,
-		Required:    false,
-	})
-
-	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
-		Name:        "upsert",
-		Short:       'u',
-		Description: "If true, insert or update an entry in a config store. Otherwise, only update",
-		Dst:         &c.input.Upsert,
-	})
-
-	return &c
+// AfterApply hands the parsed flags over to the fields the command reads them
+// from.
+func (c *UpdateCommand) AfterApply() error {
+	c.input.Key = c.Key
+	c.input.StoreID = c.StoreID
+	c.input.Value = c.Value
+	c.input.Upsert = c.Upsert
+	return nil
 }
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
 	input fastly.UpdateConfigStoreItemInput
-	stdin bool
+
+	// Required.
+	Key     string `short:"k" required:"" help:"Item name"`
+	StoreID string `short:"s" required:"" help:"Store ID"`
+
+	// One of these must be set.
+	STDIN bool   `help:"Read item value from STDIN. If set, --value will be ignored"`
+	Value string `help:"Item value. Required unless --stdin is set"`
+
+	// Optional.
+	argparser.JSONOutput
+	Upsert bool `short:"u" help:"If true, insert or update an entry in a config store. Otherwise, only update"`
 }
 
 // Exec invokes the application logic for the command.
@@ -72,7 +45,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if c.stdin {
+	if c.STDIN {
 		// Determine if 'in' has data available.
 		if in == nil || text.IsTTY(in) {
 			return errNoSTDINData

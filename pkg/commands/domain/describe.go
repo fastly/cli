@@ -10,31 +10,17 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to describe a domain.
 type DescribeCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-	domainID string
-}
-
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
-	c := DescribeCommand{
-		Base: argparser.Base{
-			Globals: g,
-		},
-	}
-	c.CmdClause = parent.Command("describe", "Show detailed information about a domain").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("domain-id", "The Domain Identifier (UUID)").Required().StringVar(&c.domainID)
+	DomainID string `required:"" help:"The Domain Identifier (UUID)"`
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	return &c
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
@@ -49,13 +35,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &domains.GetInput{
-		DomainID: &c.domainID,
+		DomainID: &c.DomainID,
 	}
 
 	d, err := domains.Get(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Domain ID": c.domainID,
+			"Domain ID": c.DomainID,
 		})
 		return err
 	}
