@@ -7,7 +7,7 @@ package compute_test
 import (
 	"context"
 
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/testutil"
 )

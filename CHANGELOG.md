@@ -10,6 +10,8 @@
 
 ### Dependencies:
 
+- build(deps): `github.com/fastly/go-fastly` from v18.1.0 to v19.0.0
+
 ## [v17.0.0](https://github.com/fastly/cli/releases/tag/v17.0.0) (2026-10-26)
 
 ### Breaking:

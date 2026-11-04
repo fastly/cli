@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v18/fastly"
-	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/workspaces/virtualpatches"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/virtualpatches"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -69,6 +69,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	// number of virtual patches, which is 100. At this time
 	// this is sufficient as there are only 40 total, however,
 	// we may need to rework this in the future.
-	text.PrintVirtualPatchTbl(out, data.Data)
+	text.PrintVirtualPatchTbl(out, data)
 	return nil
 }

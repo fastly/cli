@@ -13,7 +13,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace/virtualpatch"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v18/fastly/ngwaf/v1/workspaces/virtualpatches"
+	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces/virtualpatches"
 )
 
 const (
@@ -174,7 +174,7 @@ func TestVirtualPatchList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(virtualpatchesObject),
+			WantOutput: fstfmt.EncodeJSON(virtualpatchesObject.Data),
 		},
 	}
 
