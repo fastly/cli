@@ -65,10 +65,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// Currently we are leaving the table to output the default
-	// number of virtual patches, which is 100. At this time
-	// this is sufficient as there are only 40 total, however,
-	// we may need to rework this in the future.
+	// List automatically paginates, so the table shows every virtual patch.
 	text.PrintVirtualPatchTbl(out, data)
 	return nil
 }
