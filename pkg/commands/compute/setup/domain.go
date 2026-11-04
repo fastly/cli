@@ -10,7 +10,7 @@ import (
 
 	petname "github.com/dustinkirkland/golang-petname"
 
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/go-fastly/v18/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 )
 
 // PrintHealthCheck pretty prints a fastly.HealthCheck structure in verbose

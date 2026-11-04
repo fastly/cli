@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v18/fastly/apisecurity/operations"
+	"github.com/fastly/go-fastly/v19/fastly/apisecurity/operations"
 )
 
 // PrintOperationTag displays an operation tag.

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v18/fastly"
-	"github.com/fastly/go-fastly/v18/fastly/airuntimecontrol/v1/usagemetrics"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/usagemetrics"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -41,7 +41,7 @@ func (c *ExportCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := usagemetrics.Export(context.TODO(), fc, c.filters.input())
+	data, err := usagemetrics.Export(context.TODO(), fc, c.filters.exportInput())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
