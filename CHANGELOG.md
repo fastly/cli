@@ -6,7 +6,7 @@
 
 ### Bug Fixes:
 
-- fix(compute/serve): persist default `override_host` to `fastly.toml` for Viceroy and log when applied ([#1940](https://github.com/fastly/cli/pull/1940))
+- fix(compute/serve): provide default `override_host` to Viceroy via temporary manifest and handle IPv6 hostnames ([#1940](https://github.com/fastly/cli/pull/1940))
 
 ### Enhancements:
 
