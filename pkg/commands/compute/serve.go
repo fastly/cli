@@ -174,8 +174,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	c.setBackendsWithDefaultOverrideHostIfMissing(out)
-
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
@@ -203,6 +201,12 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
 	}
+
+	manifestToServe, cleanup, err := c.setBackendsWithDefaultOverrideHostIfMissing(out, manifestPath)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 
 	bin, err := c.GetViceroy(spinner, out, manifestPath)
 	if err != nil {
@@ -264,7 +268,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			enableWebsocketsPassthrough: enableWebsocketsPassthrough,
 			errLog:                      c.Globals.ErrLog,
 			extraArgs:                   c.ViceroyBinExtraArgs,
-			manifestPath:                manifestPath,
+			manifestPath:                manifestToServe,
 			out:                         out,
 			profileGuest:                c.profileGuest,
 			profileGuestDir:             c.profileGuestDir,
@@ -336,23 +340,51 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 
 // setBackendsWithDefaultOverrideHostIfMissing sets an override_host for any
 // local_server.backends that is missing that property. The value will only be
-// set if the URL defined uses a hostname (e.g. http://127.0.0.1/ won't) so we
-// can set the override_host to match the hostname.
-func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer) {
+// set if the URL defined uses a hostname (e.g. http://127.0.0.1/ or http://[::1]/ won't)
+// so we can set the override_host to match the hostname.
+//
+// Viceroy reads backend configuration from the manifest file on disk. When any
+// default override_host values are applied, the modified manifest is written
+// to a temporary file passed to Viceroy to avoid mutating the user's project file.
+func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer, manifestPath string) (string, func(), error) {
+	updated := false
 	for k, backend := range c.Globals.Manifest.File.LocalServer.Backends {
 		if backend.OverrideHost == "" {
 			if u, err := url.Parse(backend.URL); err == nil {
-				segs := strings.Split(u.Host, ":") // avoid parsing IP with port
-				if ip := net.ParseIP(segs[0]); ip == nil {
-					if c.Globals.Verbose() {
-						text.Info(out, "[local_server.backends.%s] (%s) is configured without an `override_host`. We will use %s as a default to help avoid any unexpected errors. See https://www.fastly.com/documentation/reference/compute/fastly-toml#local-server for more details.", k, backend.URL, u.Host)
-					}
+				hostname := u.Hostname()
+				if ip := net.ParseIP(hostname); ip == nil && hostname != "" {
+					text.Info(out, "[local_server.backends.%s] (%s) is configured without an `override_host`. We will use %s as a default to help avoid any unexpected errors. See https://www.fastly.com/documentation/reference/compute/fastly-toml#local-server for more details.", k, backend.URL, u.Host)
 					backend.OverrideHost = u.Host
 					c.Globals.Manifest.File.LocalServer.Backends[k] = backend
+					updated = true
 				}
 			}
 		}
 	}
+	if !updated {
+		return manifestPath, func() {}, nil
+	}
+
+	tmpFile, err := os.CreateTemp("", "fastly-serve-*.toml")
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create temporary manifest: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	if err := tmpFile.Close(); err != nil {
+		_ = os.Remove(tmpPath)
+		return "", nil, fmt.Errorf("failed to close temporary manifest: %w", err)
+	}
+
+	if err := c.Globals.Manifest.File.Write(tmpPath); err != nil {
+		_ = os.Remove(tmpPath)
+		return "", nil, fmt.Errorf("failed to write temporary manifest: %w", err)
+	}
+
+	cleanup := func() {
+		_ = os.Remove(tmpPath)
+	}
+
+	return tmpPath, cleanup, nil
 }
 
 // GetViceroy returns the path to the installed binary.
