@@ -49,4 +49,9 @@ func PrintBackend(out io.Writer, prefix string, b *fastly.Backend) {
 	fmt.Fprintf(out, "TCP KeepAlive Interval: %v\n", fastly.ToValue(b.TCPKeepAliveIntvl))
 	fmt.Fprintf(out, "TCP KeepAlive Probes: %v\n", fastly.ToValue(b.TCPKeepAliveProbes))
 	fmt.Fprintf(out, "TCP KeepAlive Timeout: %v\n", fastly.ToValue(b.TCPKeepAliveTime))
+	fmt.Fprintf(out, "IAM External ID: %v\n", fastly.ToValue(b.IAMExternalID))
+	fmt.Fprintf(out, "IAM Product: %v\n", fastly.ToValue(b.IAMProduct))
+	fmt.Fprintf(out, "IAM Region: %v\n", fastly.ToValue(b.IAMRegion))
+	fmt.Fprintf(out, "IAM Role: %v\n", fastly.ToValue(b.IAMRole))
+	fmt.Fprintf(out, "IAM Vendor: %v\n", fastly.ToValue(b.IAMVendor))
 }
