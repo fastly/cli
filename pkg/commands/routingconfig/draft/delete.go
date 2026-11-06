@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v18/fastly"
-	sdkdraft "github.com/fastly/go-fastly/v18/fastly/domainmanagement/v1/routingconfigs/draft"
+	"github.com/fastly/go-fastly/v19/fastly"
+	sdkdraft "github.com/fastly/go-fastly/v19/fastly/domainmanagement/v1/routingconfigs/draft"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
