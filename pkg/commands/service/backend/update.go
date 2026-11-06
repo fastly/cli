@@ -30,6 +30,11 @@ type UpdateCommand struct {
 	FirstByteTimeout    argparser.OptionalInt
 	HealthCheck         argparser.OptionalString
 	Hostname            argparser.OptionalString
+	iamExternalID       argparser.OptionalString
+	iamProduct          argparser.OptionalString
+	iamRegion           argparser.OptionalString
+	iamRole             argparser.OptionalString
+	iamVendor           argparser.OptionalString
 	MaxConn             argparser.OptionalInt
 	MaxUse              argparser.OptionalInt
 	MaxLifetime         argparser.OptionalInt
@@ -88,6 +93,11 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("connect-timeout", "How long to wait for a timeout in milliseconds").Action(c.ConnectTimeout.Set).IntVar(&c.ConnectTimeout.Value)
 	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).IntVar(&c.FirstByteTimeout.Value)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.HealthCheck.Set).StringVar(&c.HealthCheck.Value)
+	c.CmdClause.Flag("iam-external-id", "If the backend is using IAM authentication and the IAM system policy requires a matching external identifier, it should match this value (your Fastly customer ID will be used if this is not set)").Action(c.iamExternalID.Set).StringVar(&c.iamExternalID.Value)
+	c.CmdClause.Flag("iam-product", "If the backend is using IAM authentication, the IAM signature will use this as the product element").Action(c.iamProduct.Set).StringVar(&c.iamProduct.Value)
+	c.CmdClause.Flag("iam-region", "If the backend is using IAM authentication, this region will be used for signing and access").Action(c.iamRegion.Set).StringVar(&c.iamRegion.Value)
+	c.CmdClause.Flag("iam-role", "If the backend is using IAM authentication, the fully qualified role string supplied by the storage vendor").Action(c.iamRole.Set).StringVar(&c.iamRole.Value)
+	c.CmdClause.Flag("iam-vendor", "A label that identifies the storage vendor. Providing a value enables IAM usage").Action(c.iamVendor.Set).StringVar(&c.iamVendor.Value)
 	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).IntVar(&c.MaxConn.Value)
 	c.CmdClause.Flag("max-use", "Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited.").Action(c.MaxUse.Set).IntVar(&c.MaxUse.Value)
 	c.CmdClause.Flag("max-lifetime", "Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited.").Action(c.MaxLifetime.Set).IntVar(&c.MaxLifetime.Value)
@@ -293,6 +303,22 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.HTTPKaTime.WasSet {
 		input.KeepAliveTime = &c.HTTPKaTime.Value
+	}
+
+	if c.iamExternalID.WasSet {
+		input.IAMExternalID = &c.iamExternalID.Value
+	}
+	if c.iamProduct.WasSet {
+		input.IAMProduct = &c.iamProduct.Value
+	}
+	if c.iamRegion.WasSet {
+		input.IAMRegion = &c.iamRegion.Value
+	}
+	if c.iamRole.WasSet {
+		input.IAMRole = &c.iamRole.Value
+	}
+	if c.iamVendor.WasSet {
+		input.IAMVendor = &c.iamVendor.Value
 	}
 
 	b, err := c.Globals.APIClient.UpdateBackend(context.TODO(), input)
