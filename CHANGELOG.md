@@ -8,6 +8,8 @@
 
 ### Enhancements:
 
+- feat(vcl): add `vcl check`, `vcl run`, and `vcl serve` to compile and test VCL code ([#1964](https://github.com/fastly/cli/pull/1964))
+
 ### Dependencies:
 
 - build(deps): `github.com/fastly/go-fastly` from v18.1.0 to v19.0.0
