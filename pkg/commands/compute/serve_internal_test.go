@@ -226,10 +226,8 @@ func TestSetBackendsWithDefaultOverrideHostIfMissing_BackendMatrix(t *testing.T)
 				if _, err := os.Stat(manifestToUse); err != nil {
 					t.Errorf("expected temporary manifest to exist on disk: %v", err)
 				}
-			} else {
-				if manifestToUse != manifestPath {
-					t.Errorf("expected original manifest path %s, got %s", manifestPath, manifestToUse)
-				}
+			} else if manifestToUse != manifestPath {
+				t.Errorf("expected original manifest path %s, got %s", manifestPath, manifestToUse)
 			}
 
 			if tc.wantInfoMessage && !strings.Contains(out.String(), "is configured without an `override_host`") {
