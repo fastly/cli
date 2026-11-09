@@ -21,7 +21,7 @@ const CommandName = "session"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage ARC session logs")
+	c.CmdClause = parent.Command(CommandName, "Manage AI Runtime Control session logs")
 	return &c
 }
 

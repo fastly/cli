@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/provider"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/provider"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -27,7 +27,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("list", "List AI providers supported by ARC")
+	c.CmdClause = parent.Command("list", "List AI providers supported by AI Runtime Control")
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())

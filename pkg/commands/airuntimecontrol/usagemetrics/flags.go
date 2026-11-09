@@ -3,7 +3,7 @@ package usagemetrics
 import (
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/usagemetrics"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/usagemetrics"
 
 	"github.com/fastly/cli/pkg/argparser"
 )
@@ -22,8 +22,8 @@ type filterFlags struct {
 // register defines the shared filter flags against the given command clause.
 func (f *filterFlags) register(c argparser.Base) {
 	c.CmdClause.Flag("key", "Filter by a specific virtual key ID").Action(f.key.Set).StringVar(&f.key.Value)
-	c.CmdClause.Flag("provider", "Filter by provider name").Action(f.provider.Set).StringVar(&f.provider.Value)
-	c.CmdClause.Flag("model", "Filter by model name").Action(f.model.Set).StringVar(&f.model.Value)
+	c.CmdClause.Flag("provider", "Filter by provider connection ID").Action(f.provider.Set).StringVar(&f.provider.Value)
+	c.CmdClause.Flag("model", "Filter by AI model identifier").Action(f.model.Set).StringVar(&f.model.Value)
 	c.CmdClause.Flag("from", "Start of the time range (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &f.from)
 	c.CmdClause.Flag("to", "End of the time range (RFC 3339 format). Defaults to now").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &f.to)
 	c.CmdClause.Flag("sort", "Sort field. Prefix with '-' for descending order (e.g. \"-date\")").Default("date").Action(f.sort.Set).StringVar(&f.sort.Value)
@@ -51,4 +51,17 @@ func (f *filterFlags) input() *usagemetrics.ListInput {
 		input.Sort = &f.sort.Value
 	}
 	return input
+}
+
+// exportInput builds a usagemetrics.ExportInput from the parsed flag values.
+func (f *filterFlags) exportInput() *usagemetrics.ExportInput {
+	i := f.input()
+	return &usagemetrics.ExportInput{
+		Key:      i.Key,
+		Provider: i.Provider,
+		Model:    i.Model,
+		From:     i.From,
+		To:       i.To,
+		Sort:     i.Sort,
+	}
 }

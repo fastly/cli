@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/providerconnection"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/providerconnection"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -30,7 +30,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delete a provider connection").Alias("remove")
+	c.CmdClause = parent.Command("delete", "Delete a provider connection. This is rejected if the connection is still referenced by a virtual key's failover policy").Alias("remove")
 
 	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the provider connection").Required().StringVar(&c.id)

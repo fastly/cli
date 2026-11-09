@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/session"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/session"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -41,8 +41,8 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	// Optional.
 	c.CmdClause.Flag("key", "Filter by a specific virtual key ID").Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("provider", "Filter by provider name").Action(c.provider.Set).StringVar(&c.provider.Value)
-	c.CmdClause.Flag("model", "Filter by model name").Action(c.model.Set).StringVar(&c.model.Value)
+	c.CmdClause.Flag("provider", "Filter by provider connection ID").Action(c.provider.Set).StringVar(&c.provider.Value)
+	c.CmdClause.Flag("model", "Filter by AI model identifier").Action(c.model.Set).StringVar(&c.model.Value)
 	c.CmdClause.Flag("from", "Start of the time range (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.from)
 	c.CmdClause.Flag("to", "End of the time range (RFC 3339 format). Defaults to now").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.to)
 	c.RegisterFlagBool(c.JSONFlag())                 // --json

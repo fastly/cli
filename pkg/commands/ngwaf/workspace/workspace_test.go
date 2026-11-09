@@ -12,7 +12,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/workspaces"
+	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces"
 )
 
 const (
@@ -71,6 +71,20 @@ func TestWorkspacesCreate(t *testing.T) {
 		{
 			Name: "validate API success",
 			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --clientIPHeaders %s", workspaceDescription, workspaceName, workspaceMode, workspaceClientIPHeaders),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
+					},
+				},
+			},
+			WantOutput: fstfmt.Success("Created workspace '%s' (workspace-id: %s)", workspaceName, workspaceID),
+		},
+		{
+			Name: "validate --autoEnableNewVirtualPatches flag",
+			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --autoEnableNewVirtualPatches", workspaceDescription, workspaceName, workspaceMode),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -297,7 +311,7 @@ func TestWorkspaceList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(workspacesObject),
+			WantOutput: fstfmt.EncodeJSON(workspacesObject.Data),
 		},
 	}
 

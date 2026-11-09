@@ -1,2 +1,2 @@
-// Package provider contains commands to inspect AI Runtime Control (ARC) providers.
+// Package provider contains commands to inspect AI Runtime Control providers.
 package provider

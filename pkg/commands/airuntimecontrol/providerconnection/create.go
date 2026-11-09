@@ -7,8 +7,8 @@ import (
 
 	"github.com/fastly/kingpin"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/providerconnection"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/providerconnection"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -38,9 +38,9 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause = parent.Command("create", "Create a provider connection").Alias("add")
 
 	// Required.
-	c.CmdClause.Flag("name", "Human-readable name of the provider").Required().StringVar(&c.name)
+	c.CmdClause.Flag("name", "Human-readable name of the provider connection").Required().StringVar(&c.name)
 	c.CmdClause.Flag("models", "Comma-separated list of allowed AI model identifiers").Required().StringsVar(&c.models, kingpin.Separator(","))
-	c.CmdClause.Flag("base-url", "Base URL for the provider's API").Required().StringVar(&c.baseURL)
+	c.CmdClause.Flag("base-url", "Base URL for the provider's API. Must be an absolute http or https URL").Required().StringVar(&c.baseURL)
 	c.CmdClause.Flag("api-key", "Provider's secret key for authentication").Required().StringVar(&c.apiKey)
 
 	// Optional.

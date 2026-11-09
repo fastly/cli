@@ -21,7 +21,7 @@ const CommandName = "provider"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage ARC providers")
+	c.CmdClause = parent.Command(CommandName, "Manage AI Runtime Control providers")
 	return &c
 }
 

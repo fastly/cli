@@ -17,7 +17,6 @@ concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
 env:
-  GO_VERSION: 1.26.x
   GOLANGCI_LINT_VERSION: v2.14.0
   WASI_SDK_VERSION: 25
   WASI_SDK_FULL_VERSION: "25.0"
@@ -43,20 +42,44 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
-  test:
-    name: Test (${{ matrix.platform }})
+  # The Compute tests change the process working directory, so they cannot use
+  # t.Parallel(). Instead the slow tests are split into groups across
+  # parallel jobs, and the "rest" group runs everything else with those tests
+  # disabled (they are gated by the TEST_COMPUTE_* environment variables).
+  test-group:
+    name: Test group (${{ matrix.group }})
     strategy:
+      fail-fast: false
       matrix:
         tinygo-version: [0.42.0]
-        go-version: [1.26.x]
         node-version: [18]
         platform: [ubuntu-latest]
+        group: [build-rust, build-go, build-javascript, build-other, deploy-init, rest]
+        include:
+          - group: build-rust
+            slow: "true"
+            test_args: -v -timeout 15m -run '^TestBuildRust$$' ./pkg/commands/compute/...
+          - group: build-go
+            slow: "true"
+            test_args: -v -timeout 15m -run '^TestBuildGo$$' ./pkg/commands/compute/...
+          - group: build-javascript
+            slow: "true"
+            test_args: -v -timeout 15m -run '^TestBuildJavaScript$$' ./pkg/commands/compute/...
+          - group: build-other
+            slow: "true"
+            test_args: -v -timeout 15m -run '^(TestBuildPython|TestBuildCPP|TestBuildOther|TestBuildUnknownLanguage)$$' ./pkg/commands/compute/...
+          - group: deploy-init
+            slow: "true"
+            test_args: -v -timeout 15m -run '^(TestDeploy|TestInit)$$' ./pkg/commands/compute/...
+          - group: rest
+            slow: ""
+            test_args: -v -timeout 15m ./...
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
@@ -66,7 +89,7 @@ jobs:
       - name: "Install Go"
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version-file: go.mod
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
       - uses: acifani/setup-tinygo@f51bf108c9895381060398804ce6cf6f62692106 # v3.0.1
@@ -87,7 +110,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Install uv"
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
       - name: "Install WASI SDK"
         run: |
           wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
@@ -100,18 +123,30 @@ jobs:
         run: make test
         shell: bash
         env:
-          # NOTE: The following lets us focus the test run while debugging.
-          # TEST_ARGS: "-run TestBuild ./pkg/commands/compute/..."
-          TEST_COMPUTE_INIT: true
-          TEST_COMPUTE_BUILD: true
-          TEST_COMPUTE_DEPLOY: true
+          TEST_ARGS: ${{ matrix.test_args }}
+          TEST_COMPUTE_INIT: ${{ matrix.slow }}
+          TEST_COMPUTE_BUILD: ${{ matrix.slow }}
+          TEST_COMPUTE_DEPLOY: ${{ matrix.slow }}
+  test:
+    name: Test (ubuntu-latest)
+    needs: test-group
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check group results"
+        env:
+          RESULT: ${{ needs.test-group.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "Test groups finished with result: $RESULT"
+            exit 1
+          fi
   test-release:
     name: Test release (${{ matrix.platform }})
     if: contains(github.head_ref, 'release')
     strategy:
       matrix:
         tinygo-version: [0.42.0]
-        go-version: [1.26.x]
         node-version: [18]
         platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
@@ -123,7 +158,7 @@ jobs:
       - name: "Install Go"
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version-file: go.mod
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
       - uses: acifani/setup-tinygo@f51bf108c9895381060398804ce6cf6f62692106 # v3.0.1
@@ -144,7 +179,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Install uv"
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
       - name: "Install WASI SDK (Ubuntu)"
         if: matrix.platform == 'ubuntu-latest'
         run: |
@@ -215,7 +250,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
       - name: Run golangci-lint@latest
         id: lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0

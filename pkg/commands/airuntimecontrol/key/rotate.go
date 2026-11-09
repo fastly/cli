@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/key"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/key"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -32,7 +32,7 @@ func NewRotateCommand(parent argparser.Registerer, g *global.Data) *RotateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("rotate", "Rotate a virtual key, generating a new access token")
+	c.CmdClause = parent.Command("rotate", "Rotate a virtual key, generating a new access token and invalidating the previous one")
 
 	// Required.
 	c.CmdClause.Flag("key-id", "Alphanumeric string identifying the virtual key").Required().StringVar(&c.keyID)
