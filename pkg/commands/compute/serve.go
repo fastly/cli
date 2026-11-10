@@ -365,26 +365,45 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 		return manifestPath, func() {}, nil
 	}
 
-	tmpFile, err := os.CreateTemp("", "fastly-serve-*.toml")
+	tmpDir := os.TempDir()
+	stagingFile, err := os.CreateTemp(tmpDir, "fastly-serve-staging-*.toml")
 	if err != nil {
+		return "", nil, fmt.Errorf("failed to create staging manifest: %w", err)
+	}
+	stagingPath := stagingFile.Name()
+	if err := stagingFile.Close(); err != nil {
+		_ = os.Remove(stagingPath)
+		return "", nil, fmt.Errorf("failed to close staging manifest: %w", err)
+	}
+
+	if err := c.Globals.Manifest.File.Write(stagingPath); err != nil {
+		_ = os.Remove(stagingPath)
+		return "", nil, fmt.Errorf("failed to write staging manifest: %w", err)
+	}
+
+	targetFile, err := os.CreateTemp(tmpDir, "fastly-serve-*.toml")
+	if err != nil {
+		_ = os.Remove(stagingPath)
 		return "", nil, fmt.Errorf("failed to create temporary manifest: %w", err)
 	}
-	tmpPath := tmpFile.Name()
-	if err := tmpFile.Close(); err != nil {
-		_ = os.Remove(tmpPath)
+	targetPath := targetFile.Name()
+	if err := targetFile.Close(); err != nil {
+		_ = os.Remove(stagingPath)
+		_ = os.Remove(targetPath)
 		return "", nil, fmt.Errorf("failed to close temporary manifest: %w", err)
 	}
 
-	if err := c.Globals.Manifest.File.Write(tmpPath); err != nil {
-		_ = os.Remove(tmpPath)
-		return "", nil, fmt.Errorf("failed to write temporary manifest: %w", err)
+	if err := os.Rename(stagingPath, targetPath); err != nil {
+		_ = os.Remove(stagingPath)
+		_ = os.Remove(targetPath)
+		return "", nil, fmt.Errorf("failed to atomically replace temporary manifest: %w", err)
 	}
 
 	cleanup := func() {
-		_ = os.Remove(tmpPath)
+		_ = os.Remove(targetPath)
 	}
 
-	return tmpPath, cleanup, nil
+	return targetPath, cleanup, nil
 }
 
 // GetViceroy returns the path to the installed binary.
