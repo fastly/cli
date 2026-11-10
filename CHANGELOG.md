@@ -10,9 +10,12 @@
 
 ### Enhancements:
 
+- feat(service/backend): Add support for IAM authentication ([#1963](https://github.com/fastly/cli/pull/1963))
+
 ### Dependencies:
 
 - build(deps): `github.com/fastly/go-fastly` from v18.1.0 to v19.0.0
+- build(deps): `github.com/fastly/go-fastly` from v19.0.0 to v19.1.0 ([#1963](https://github.com/fastly/cli/pull/1963))
 
 ## [v17.0.0](https://github.com/fastly/cli/releases/tag/v17.0.0) (2026-10-26)
 
