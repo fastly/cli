@@ -81,7 +81,7 @@ type StreamOptions struct {
 
 // WaitForResult follows the result stream of a session until enough fetches are done, the server closes the stream, or MaxWait runs out.
 // It returns the latest snapshot, which is nil if nothing arrived.
-// On timeout, the error comes with whatever partial snapshot was received.
+// If it times out or the stream breaks, the error comes with any partial snapshot received.
 func (c *Client) WaitForResult(ctx context.Context, sessionID string, opts StreamOptions) (*Result, error) {
 	if opts.MaxWait <= 0 {
 		opts.MaxWait = defaultMaxWait
@@ -151,8 +151,8 @@ func (c *Client) WaitForResult(ctx context.Context, sessionID string, opts Strea
 		// Don't let a partial snapshot pass for a complete answer.
 		return latest, fmt.Errorf("timed out after %s waiting for the sandbox: %w", opts.MaxWait, ctx.Err())
 	}
-	if err := scanner.Err(); err != nil && latest == nil {
-		return nil, err
+	if err := scanner.Err(); err != nil {
+		return latest, err
 	}
 	// The server closed the stream, so what we have is the answer.
 	// A nil result means this session produced nothing, and the caller can retry.
@@ -166,6 +166,9 @@ func (c *Client) Run(ctx context.Context, id string, cacheID int, opts StreamOpt
 		opts.MaxWait = defaultMaxWait
 	}
 	deadline := time.Now().Add(opts.MaxWait)
+	// MaxWait covers the whole run, including Execute and the pauses between retries.
+	runCtx, cancel := context.WithDeadline(ctx, deadline)
+	defer cancel()
 	var lastErr error
 	for attempt := 0; ; attempt++ {
 		remaining := time.Until(deadline)
@@ -175,13 +178,17 @@ func (c *Client) Run(ctx context.Context, id string, cacheID int, opts StreamOpt
 			}
 			return nil, fmt.Errorf("timed out after %s waiting for the sandbox", opts.MaxWait)
 		}
-		sessionID, err := c.Execute(ctx, id, cacheID)
+		sessionID, err := c.Execute(runCtx, id, cacheID)
 		if err != nil {
+			if ctx.Err() == nil && runCtx.Err() != nil {
+				// Report running out of time as a regular timeout, not a raw context error.
+				continue
+			}
 			return nil, err
 		}
 		attemptOpts := opts
 		attemptOpts.MaxWait = remaining
-		result, err := c.WaitForResult(ctx, sessionID, attemptOpts)
+		result, err := c.WaitForResult(runCtx, sessionID, attemptOpts)
 		if err != nil {
 			lastErr = err
 			if ctx.Err() != nil {
@@ -194,7 +201,7 @@ func (c *Client) Run(ctx context.Context, id string, cacheID int, opts StreamOpt
 		if opts.Syncing != nil {
 			opts.Syncing = nil
 		}
-		if err := sleep(ctx, time.Duration(attempt+1)*time.Second); err != nil {
+		if err := sleep(runCtx, time.Duration(attempt+1)*time.Second); err != nil && ctx.Err() != nil {
 			return nil, err
 		}
 	}
