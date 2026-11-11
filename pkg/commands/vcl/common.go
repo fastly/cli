@@ -183,6 +183,12 @@ type diagnostic struct {
 	Excerpt    string `json:"excerpt,omitempty"`
 }
 
+// compileResult is the --json output for a compile, used by check and by run when the VCL doesn't compile.
+type compileResult struct {
+	Valid       bool         `json:"valid"`
+	Diagnostics []diagnostic `json:"diagnostics"`
+}
+
 // flattenDiagnostics turns a lint report into a sorted list, with the file each message is about.
 func flattenDiagnostics(lint map[string][]fiddle.Diagnostic, sources vclSources) []diagnostic {
 	var out []diagnostic

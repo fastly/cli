@@ -114,6 +114,7 @@ func TestVCLRun(t *testing.T) {
 	dir := t.TempDir()
 	recv := writeVCL(t, dir, "recv.vcl", "set req.http.X = \"1\";\n")
 	valid := fakeSandbox(t, true)
+	invalid := fakeSandbox(t, false)
 
 	runVCL(t, "run", []testutil.CLIScenario{
 		{
@@ -140,6 +141,13 @@ func TestVCLRun(t *testing.T) {
 			Name:       "json output",
 			Args:       recv + " --json --sandbox-endpoint " + valid.URL,
 			WantOutput: `"provider": "fiddle"`,
+		},
+		{
+			Name:           "compile failure in json",
+			Args:           recv + " --json --sandbox-endpoint " + invalid.URL,
+			WantError:      "the VCL failed to compile",
+			WantOutput:     `"valid": false`,
+			DontWantOutput: "error: Unknown variable",
 		},
 	})
 }

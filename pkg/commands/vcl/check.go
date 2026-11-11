@@ -54,10 +54,7 @@ func (c *CheckCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	diags := flattenDiagnostics(saved.LintStatus, sources)
-	if ok, err := c.WriteJSON(out, struct {
-		Valid       bool         `json:"valid"`
-		Diagnostics []diagnostic `json:"diagnostics"`
-	}{saved.Valid, diags}); ok {
+	if ok, err := c.WriteJSON(out, compileResult{saved.Valid, diags}); ok {
 		if err == nil && !saved.Valid {
 			return errCompileFailed
 		}
