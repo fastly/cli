@@ -67,13 +67,19 @@ func (r *Result) CompleteFetches() int {
 	return n
 }
 
+// done is true once at least want fetches have finished and no request the server started is still running.
+func (r *Result) done(want int) bool {
+	n := r.CompleteFetches()
+	return n >= want && n >= r.RequestCount
+}
+
 // defaultMaxWait is long enough for a cold edge sync, without leaving a terminal hanging forever.
 const defaultMaxWait = 2 * time.Minute
 
 // StreamOptions controls how long WaitForResult keeps the stream open.
 type StreamOptions struct {
-	// WantFetches is how many finished client fetches count as done.
-	// Zero means the first snapshot is enough.
+	// WantFetches is the minimum number of finished client fetches to wait for.
+	// Requests the server is still running, like a redirect being followed, are waited for too.
 	WantFetches int
 	// MaxWait caps the whole wait, edge sync included.
 	MaxWait time.Duration
@@ -141,7 +147,7 @@ func (c *Client) WaitForResult(ctx context.Context, sessionID string, opts Strea
 				var r Result
 				if err := json.Unmarshal([]byte(payload), &r); err == nil {
 					latest = &r
-					if r.CompleteFetches() >= opts.WantFetches {
+					if r.done(opts.WantFetches) {
 						return latest, nil
 					}
 				}
@@ -156,13 +162,13 @@ func (c *Client) WaitForResult(ctx context.Context, sessionID string, opts Strea
 	if err := scanner.Err(); err != nil {
 		return latest, err
 	}
-	// The server closed the stream, so what we have is the answer.
-	// A nil result means this session produced nothing, and the caller can retry.
+	// The server closed the stream, so this is all we'll get from this session.
+	// If it's nil or incomplete, the caller can retry.
 	return latest, nil
 }
 
 // Run executes the fiddle and waits for the result.
-// Right after a publish, the server often closes the stream before anything is done, so Run retries with new sessions.
+// Right after a publish, the server often closes the stream before everything is done, so Run retries with new sessions.
 func (c *Client) Run(ctx context.Context, id string, cacheID int, opts StreamOptions) (*Result, error) {
 	if opts.MaxWait <= 0 {
 		opts.MaxWait = defaultMaxWait
@@ -196,7 +202,7 @@ func (c *Client) Run(ctx context.Context, id string, cacheID int, opts StreamOpt
 			if ctx.Err() != nil {
 				return nil, err
 			}
-		} else if result != nil && result.CompleteFetches() >= opts.WantFetches {
+		} else if result != nil && result.done(opts.WantFetches) {
 			return result, nil
 		}
 		// Only the first attempt may report that the edge is syncing.
