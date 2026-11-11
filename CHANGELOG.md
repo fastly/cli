@@ -6,6 +6,7 @@
 
 ### Bug Fixes:
 
+- fix(kvstoreentry): close directory upload files and rewind before retrying ([#1942](https://github.com/fastly/cli/issues/1942))
 - fix(compute/serve): provide default `override_host` to Viceroy via temporary manifest and handle IPv6 hostnames ([#1940](https://github.com/fastly/cli/pull/1940))
 
 ### Enhancements:
