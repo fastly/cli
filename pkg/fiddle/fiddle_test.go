@@ -136,3 +136,31 @@ func TestErrorBodiesAreTruncatedAndLegible(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestWaitForResultReportsBrokenStream(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "event: updateResult\ndata: {\"clientFetches\":{\"a\":{}}}\n\n")
+		_ = http.NewResponseController(w).Flush()
+		panic(http.ErrAbortHandler)
+	}))
+	t.Cleanup(server.Close)
+
+	result, err := testClient(server).WaitForResult(context.Background(), "feedbeef00", fiddle.StreamOptions{WantFetches: 1})
+	if err == nil || result == nil {
+		t.Fatalf("expected the stream error along with the partial snapshot, got %+v, %v", result, err)
+	}
+}
+
+func TestRunHonorsMaxWaitWhileExecuting(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		<-r.Context().Done()
+	}))
+	t.Cleanup(server.Close)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := testClient(server).Run(ctx, "cafe0123", 1, fiddle.StreamOptions{MaxWait: 200 * time.Millisecond})
+	if err == nil || !strings.Contains(err.Error(), "timed out after 200ms") {
+		t.Fatalf("expected a timeout error, got %v", err)
+	}
+}
