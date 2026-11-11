@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -162,5 +163,35 @@ func TestRunHonorsMaxWaitWhileExecuting(t *testing.T) {
 	_, err := testClient(server).Run(ctx, "cafe0123", 1, fiddle.StreamOptions{MaxWait: 200 * time.Millisecond})
 	if err == nil || !strings.Contains(err.Error(), "timed out after 200ms") {
 		t.Fatalf("expected a timeout error, got %v", err)
+	}
+}
+
+func TestRunWaitsForRedirectedRequest(t *testing.T) {
+	var sessions atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/execute") {
+			fmt.Fprint(w, `{"sessionID":"feedbeef00"}`)
+			return
+		}
+		fmt.Fprint(w, `event: updateResult
+data: {"requestCount":2,"clientFetches":{"a":{"status":301,"complete":true}}}
+
+`)
+		// The first session ends before the redirect is followed, like when an edge sync eats most of it.
+		if sessions.Add(1) == 1 {
+			return
+		}
+		fmt.Fprint(w, `event: updateResult
+data: {"requestCount":2,"clientFetches":{"a":{"status":301,"complete":true},"b":{"status":200,"complete":true,"isRedirected":true}}}
+
+`)
+		_ = http.NewResponseController(w).Flush()
+		<-r.Context().Done()
+	}))
+	t.Cleanup(server.Close)
+
+	result, err := testClient(server).Run(context.Background(), "cafe0123", 1, fiddle.StreamOptions{WantFetches: 1, MaxWait: 5 * time.Second})
+	if err != nil || !result.ClientFetch["b"].IsRedirected {
+		t.Fatalf("expected the response the redirect led to, got %+v, %v", result, err)
 	}
 }
