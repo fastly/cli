@@ -173,7 +173,14 @@ func (c *RunCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 	if !saved.Valid {
-		printDiagnostics(out, flattenDiagnostics(saved.LintStatus, sources))
+		diags := flattenDiagnostics(saved.LintStatus, sources)
+		if c.JSONOutput.Enabled {
+			if _, err := c.WriteJSON(out, compileResult{Diagnostics: diags}); err != nil {
+				return err
+			}
+		} else {
+			printDiagnostics(out, diags)
+		}
 		return errCompileFailed
 	}
 
