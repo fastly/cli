@@ -21,6 +21,8 @@ type ClientFetch struct {
 	BodyBytesReceived int    `json:"bodyBytesReceived"`
 	IsText            bool   `json:"isText"`
 	Complete          bool   `json:"complete"`
+	// IsRedirected is set on the request made by following a redirect, not on the redirect itself.
+	IsRedirected bool `json:"isRedirected"`
 }
 
 // OriginFetch is one request the edge made to an origin.

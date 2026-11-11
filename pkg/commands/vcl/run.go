@@ -217,7 +217,8 @@ func (c *RunCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // pickFetch picks the fetch to show.
-// When redirects produced several, the final non-3xx response wins, and sorting keeps the choice stable.
+// After a followed redirect, that's the response the redirect led to, even if it's another redirect.
+// Otherwise, a non-3xx response wins, and sorting keeps the choice stable.
 func pickFetch(r *fiddle.Result) *fiddle.ClientFetch {
 	keys := make([]string, 0, len(r.ClientFetch))
 	for k, f := range r.ClientFetch {
@@ -232,7 +233,7 @@ func pickFetch(r *fiddle.Result) *fiddle.ClientFetch {
 	var fallback *fiddle.ClientFetch
 	for _, k := range keys {
 		f := r.ClientFetch[k]
-		if f.Status < 300 || f.Status >= 400 {
+		if f.IsRedirected || f.Status < 300 || f.Status >= 400 {
 			return &f
 		}
 		if fallback == nil {
