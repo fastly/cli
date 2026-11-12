@@ -23,15 +23,15 @@ func TestProcessDirClosesUploadedFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var capturedBody io.ReadCloser
+	var capturedBody fastly.LengthReader
 	cmd := &CreateCommand{
 		Base: argparser.Base{
 			Globals: &global.Data{
 				APIClient: &mock.API{
 					InsertKVStoreKeyFn: func(_ context.Context, in *fastly.InsertKVStoreKeyInput) error {
 						if in.Key == "foo.txt" && capturedBody == nil {
-							if closer, ok := in.Body.(io.ReadCloser); ok {
-								capturedBody = closer
+							if lr, ok := in.Body.(fastly.LengthReader); ok {
+								capturedBody = lr
 							}
 						}
 						return nil
@@ -48,10 +48,10 @@ func TestProcessDirClosesUploadedFiles(t *testing.T) {
 		t.Fatalf("ProcessDir: %v", err)
 	}
 	if capturedBody == nil {
-		t.Fatal("expected InsertKVStoreKey body to be captured")
+		t.Fatal("expected InsertKVStoreKey LengthReader body to be captured")
 	}
 	if _, err := capturedBody.Read(make([]byte, 1)); !errors.Is(err, os.ErrClosed) {
-		t.Fatalf("expected body to be closed after upload, got read err: %v", err)
+		t.Fatalf("expected upload file to be closed after ProcessDir, got read err: %v", err)
 	}
 }
 
