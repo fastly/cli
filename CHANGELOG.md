@@ -6,6 +6,14 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v17.1.0](https://github.com/fastly/cli/releases/tag/v17.1.0) (2026-11-12)
+
+### Bug Fixes:
+
 - fix(compute/serve): provide default `override_host` to Viceroy via temporary manifest and handle IPv6 hostnames ([#1940](https://github.com/fastly/cli/pull/1940))
 
 ### Enhancements:
@@ -13,6 +21,7 @@
 - feat(service/backend): Add support for IAM authentication ([#1963](https://github.com/fastly/cli/pull/1963))
 
 ### Dependencies:
+
 - build(deps): `github.com/fastly/go-fastly` from v18.1.0 to v19.0.0
 - build(deps): `github.com/fastly/go-fastly` from v19.0.0 to v19.1.0 ([#1963](https://github.com/fastly/cli/pull/1963))
 - build(deps): `github.com/hashicorp/cap` from 0.14.0 to 0.15.0 ([#1968](https://github.com/fastly/cli/pull/1968))
