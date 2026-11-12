@@ -13,8 +13,12 @@
 - feat(service/backend): Add support for IAM authentication ([#1963](https://github.com/fastly/cli/pull/1963))
 
 ### Dependencies:
-
 - build(deps): `github.com/fastly/go-fastly` from v18.1.0 to v19.0.0
+- build(deps): `github.com/fastly/go-fastly` from v19.0.0 to v19.1.0 ([#1963](https://github.com/fastly/cli/pull/1963))
+- build(deps): `github.com/hashicorp/cap` from 0.14.0 to 0.15.0 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `github.com/go-jose/go-jose/v4` from 4.1.4 to 4.1.6 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `golang.org/x/sync` from 0.24.0 to 0.25.0 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `github.com/fastly/go-fastly/v19` from 19.1.0 to 19.2.0 ([#1968](https://github.com/fastly/cli/pull/1968))
 - build(deps): `github.com/fastly/go-fastly` from v19.0.0 to v19.1.0 ([#1963](https://github.com/fastly/cli/pull/1963))
 
 ## [v17.0.0](https://github.com/fastly/cli/releases/tag/v17.0.0) (2026-10-26)
