@@ -40,7 +40,8 @@ func TestProcessDirClosesUploadedFiles(t *testing.T) {
 				Flags: global.Flags{AutoYes: true, NonInteractive: true},
 			},
 		},
-		dirPath: dir,
+		dirPath:        dir,
+		dirConcurrency: 50,
 	}
 
 	if err := cmd.ProcessDir(nil, io.Discard); err != nil {
@@ -85,7 +86,8 @@ func TestProcessDirRetriesAfterConnectionLossWithRewoundBody(t *testing.T) {
 				Flags: global.Flags{AutoYes: true, NonInteractive: true},
 			},
 		},
-		dirPath: dir,
+		dirPath:        dir,
+		dirConcurrency: 50,
 	}
 
 	if err := cmd.ProcessDir(nil, io.Discard); err != nil {
@@ -115,7 +117,8 @@ func TestProcessDirRetryStillFailsReportsConnectionLoss(t *testing.T) {
 				Flags: global.Flags{AutoYes: true, NonInteractive: true},
 			},
 		},
-		dirPath: dir,
+		dirPath:        dir,
+		dirConcurrency: 50,
 	}
 
 	err := cmd.ProcessDir(nil, io.Discard)
