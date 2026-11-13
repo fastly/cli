@@ -223,9 +223,8 @@ func (c *RunCommand) Exec(_ io.Reader, out io.Writer) error {
 	return nil
 }
 
-// pickFetch picks the fetch to show.
-// After a followed redirect, that's the response the redirect led to, even if it's another redirect.
-// Otherwise, a non-3xx response wins, and sorting keeps the choice stable.
+// pickFetch returns the response the client ended up with, at the end of any redirects.
+// If Fiddle stopped following redirects early, we show a response it got by following one, not the original response.
 func pickFetch(r *fiddle.Result) *fiddle.ClientFetch {
 	keys := make([]string, 0, len(r.ClientFetch))
 	for k, f := range r.ClientFetch {
@@ -240,10 +239,10 @@ func pickFetch(r *fiddle.Result) *fiddle.ClientFetch {
 	var fallback *fiddle.ClientFetch
 	for _, k := range keys {
 		f := r.ClientFetch[k]
-		if f.IsRedirected || f.Status < 300 || f.Status >= 400 {
+		if f.Status < 300 || f.Status >= 400 {
 			return &f
 		}
-		if fallback == nil {
+		if fallback == nil || f.IsRedirected && !fallback.IsRedirected {
 			fallback = &f
 		}
 	}
