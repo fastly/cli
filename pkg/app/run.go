@@ -336,7 +336,9 @@ func Exec(data *global.Data) error {
 	f := checkForUpdates(data.Versioners.CLI, commandName)
 	defer func() {
 		if !data.Flags.Quiet && !data.Flags.JSON {
-			f(data.Output)
+			// always write update notification to stderr so it doesn't corrupt
+			// `fastly auth token` which might be piped or used in a command
+			f(data.ErrOutput)
 		}
 	}()
 
