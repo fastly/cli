@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(auth): ensure `fastly auth token` output is not corrupted by a version update notice written to stdout ([#1971](https://github.com/fastly/cli/pull/1971))
+
 ### Enhancements:
 
 ### Dependencies:
