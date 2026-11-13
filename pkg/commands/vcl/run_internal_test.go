@@ -6,12 +6,17 @@ import (
 	"github.com/fastly/cli/pkg/fiddle"
 )
 
-func TestPickFetchPrefersRedirectedRequest(t *testing.T) {
-	result := &fiddle.Result{ClientFetch: map[string]fiddle.ClientFetch{
+func TestPickFetchRedirectChain(t *testing.T) {
+	fetches := map[string]fiddle.ClientFetch{
 		"a": {Status: 301, Complete: true},
 		"b": {Status: 302, Complete: true, IsRedirected: true},
-	}}
-	if f := pickFetch(result); f == nil || f.Status != 302 {
-		t.Fatalf("expected the response the redirect led to, got %+v", f)
+	}
+	if f := pickFetch(&fiddle.Result{ClientFetch: fetches}); f == nil || f.Status != 302 {
+		t.Fatalf("expected the redirect Fiddle stopped on, got %+v", f)
+	}
+
+	fetches["c"] = fiddle.ClientFetch{Status: 200, Complete: true, IsRedirected: true}
+	if f := pickFetch(&fiddle.Result{ClientFetch: fetches}); f == nil || f.Status != 200 {
+		t.Fatalf("expected the end of the redirect chain, got %+v", f)
 	}
 }
