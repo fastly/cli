@@ -19,6 +19,7 @@
 ### Enhancements:
 
 - feat(service/backend): Add support for IAM authentication ([#1963](https://github.com/fastly/cli/pull/1963))
+- feat(vcl): add `vcl check`, `vcl run`, and `vcl serve` to compile and test VCL code ([#1964](https://github.com/fastly/cli/pull/1964))
 
 ### Dependencies:
 
