@@ -43,7 +43,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionDescWithAutoClone,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})

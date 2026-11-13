@@ -29,9 +29,9 @@ var (
 	FlagVersionName = "version"
 	// FlagVersionDesc is the flag description.
 	FlagVersionDesc = "'latest', 'active', 'staged', or the number of a specific Fastly service version"
-	// FlagVersionDraftDesc is the --version description for commands that only
-	// accept a draft service version. Active and locked versions are rejected.
-	FlagVersionDraftDesc = "Number of a draft Fastly service version (active and locked versions are rejected)"
+	// FlagVersionDescWithAutoClone is FlagVersionDesc for commands that support
+	// --autoclone when the chosen version is active or locked.
+	FlagVersionDescWithAutoClone = FlagVersionDesc + " (must be a draft unless --autoclone is used)"
 	// FlagVersionOptionalDesc is the flag description for commands where the
 	// version flag is optional. It describes what OptionalServiceVersion.Parse
 	// does when the flag is omitted.

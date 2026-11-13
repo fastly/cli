@@ -397,11 +397,11 @@ func TestVersionStageHelp(t *testing.T) {
 		}
 		output += err.Error()
 	}
-	if !strings.Contains(output, "draft Fastly service version") {
-		t.Fatalf("stage --version help missing draft description:\n%s", output)
+	if !strings.Contains(output, "'latest', 'active', 'staged'") {
+		t.Fatalf("stage --version help missing version aliases:\n%s", output)
 	}
-	if strings.Contains(output, "'latest', 'active', 'staged'") {
-		t.Fatalf("stage --version help still advertises aliases this command rejects:\n%s", output)
+	if !strings.Contains(output, "must be a draft unless --autoclone") {
+		t.Fatalf("stage --version help missing autoclone draft note:\n%s", output)
 	}
 }
 

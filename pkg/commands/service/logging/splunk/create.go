@@ -55,7 +55,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("name", "The name of the Splunk logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionDescWithAutoClone,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})

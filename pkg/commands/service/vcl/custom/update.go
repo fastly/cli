@@ -28,7 +28,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("name", "The name of the VCL to update").Required().StringVar(&c.name)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionDescWithAutoClone,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})

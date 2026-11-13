@@ -42,7 +42,7 @@ func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCo
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionDescWithAutoClone,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})

@@ -42,7 +42,7 @@ func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand 
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDraftDesc,
+		Description: argparser.FlagVersionDescWithAutoClone,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
