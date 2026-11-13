@@ -329,17 +329,6 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 						mu.Unlock()
 						return
 					}
-					lr, rewindErr := fastly.FileLengthReader(f)
-					if rewindErr != nil {
-						mu.Lock()
-						processingErrors = append(processingErrors, ProcessErr{
-							File: filePath,
-							Err:  rewindErr,
-						})
-						mu.Unlock()
-						return
-					}
-					opts.file = lr
 					err = insertKey(opts)
 					if err == nil {
 						return
