@@ -221,6 +221,52 @@ func TestExecJSONLeavesStdoutCleanAndWritesWarningToStderr(t *testing.T) {
 	}
 }
 
+func TestAuthTokenUpdateNoticeWritesToStderr(t *testing.T) {
+	origVersion := revision.AppVersion
+	origInit := app.Init
+	revision.AppVersion = "1.0.0"
+	t.Cleanup(func() {
+		revision.AppVersion = origVersion
+		app.Init = origInit
+	})
+
+	for _, testcase := range []struct {
+		name       string
+		args       string
+		latest     string
+		wantNotice bool
+	}{
+		{name: "update available", args: "auth token", latest: "1.0.1", wantNotice: true},
+		{name: "quiet", args: "auth token --quiet", latest: "1.0.1"},
+		{name: "up to date", args: "auth token", latest: "1.0.0"},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			args := testutil.SplitArgs(testcase.args)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				data := testutil.MockGlobalData(args, &stdout)
+				data.ErrOutput = &stderr
+				data.Versioners.CLI = mock.AssetVersioner{AssetVersion: testcase.latest}
+				return data, nil
+			}
+
+			if err := app.Run(args, nil); err != nil {
+				t.Fatalf("app.Run returned unexpected error: %v", err)
+			}
+			if got := stdout.String(); got != "mock-token" {
+				t.Errorf("expected only the token on stdout, got: %q", got)
+			}
+			if testcase.wantNotice {
+				if !strings.Contains(stderr.String(), "A new version of the Fastly CLI is available.") {
+					t.Errorf("expected update notice on stderr, got: %q", stderr.String())
+				}
+			} else if stderr.Len() != 0 {
+				t.Errorf("expected no stderr output, got: %q", stderr.String())
+			}
+		})
+	}
+}
+
 // TestStatsJSONSuppressesUpdateNotice verifies that --json and --format=json on
 // stats commands suppress the deferred update-check notice, keeping stdout as
 // clean JSON. This is the regression test for the timing bug where
@@ -238,10 +284,11 @@ func TestStatsJSONSuppressesUpdateNotice(t *testing.T) {
 
 	for _, flag := range []string{"--json", "--format=json"} {
 		t.Run(flag, func(t *testing.T) {
-			var stdout bytes.Buffer
+			var stdout, stderr bytes.Buffer
 			args := testutil.SplitArgs("stats aggregate " + flag)
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				data := testutil.MockGlobalData(args, &stdout)
+				data.ErrOutput = &stderr
 				data.APIClientFactory = mock.APIClient(mock.API{
 					GetAggregateJSONFn: aggregateOK,
 				})
@@ -254,6 +301,9 @@ func TestStatsJSONSuppressesUpdateNotice(t *testing.T) {
 			}
 			if strings.Contains(stdout.String(), "new version") {
 				t.Errorf("update notice should be suppressed in JSON mode, got: %s", stdout.String())
+			}
+			if strings.Contains(stderr.String(), "new version") {
+				t.Errorf("update notice should be suppressed in JSON mode, got stderr: %s", stderr.String())
 			}
 		})
 	}
