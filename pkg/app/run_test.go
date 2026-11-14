@@ -310,6 +310,57 @@ func TestShortHelpFlag(t *testing.T) {
 	}
 }
 
+// TestHelpSubcommandFlags verifies that `fastly help <subcommand>` displays the command's
+// specific flags (Required / Optional flags) consistently with `<subcommand> --help`.
+func TestHelpSubcommandFlags(t *testing.T) {
+	cases := []struct {
+		name      string
+		args      string
+		wantFlags []string
+	}{
+		{
+			name:      "help service create includes optional flags",
+			args:      "help service create",
+			wantFlags: []string{"OPTIONAL FLAGS", "--comment", "--name", "--type", "GLOBAL FLAGS"},
+		},
+		{
+			name:      "help service alert create includes required and optional flags",
+			args:      "help service alert create",
+			wantFlags: []string{"REQUIRED FLAGS", "--description", "--metric", "--name", "OPTIONAL FLAGS", "GLOBAL FLAGS"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.SplitArgs(tc.args)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(args, &stdout), nil
+			}
+			err := app.Run(args, nil)
+			var output string
+			if err != nil {
+				var re errors.RemediationError
+				var se errors.SkipExitError
+				if ok := stderrors.As(err, &re); ok {
+					output = re.Prefix
+				} else if ok := stderrors.As(err, &se); ok {
+					if re, ok := se.Err.(errors.RemediationError); ok {
+						output = re.Prefix
+					}
+				}
+			}
+			output += stdout.String()
+
+			for _, want := range tc.wantFlags {
+				if !strings.Contains(output, want) {
+					t.Errorf("expected %q in output for %q, got:\n%s", want, tc.args, output)
+				}
+			}
+		})
+	}
+}
+
 // stripTrailingSpace removes any trailing spaces from the multiline str.
 func stripTrailingSpace(str string) string {
 	buf := bytes.NewBuffer(nil)
