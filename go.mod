@@ -19,8 +19,8 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/term v0.47.0
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/term v0.48.0
 )
 
 require (
@@ -31,7 +31,7 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.58.0
-	golang.org/x/mod v0.42.0
+	golang.org/x/mod v0.43.0
 )
 
 require (
@@ -41,12 +41,12 @@ require (
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.9 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
-	github.com/minio/minlz v1.2.3 // indirect
-	github.com/nwaples/rardecode/v2 v2.4.5 // indirect
+	github.com/minio/minlz v1.2.4 // indirect
+	github.com/nwaples/rardecode/v2 v2.4.6 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
@@ -59,7 +59,7 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.2.7 // indirect
+	github.com/andybalholm/brotli v1.2.8 // indirect
 	github.com/coreos/go-oidc/v3 v3.21.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
@@ -67,7 +67,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.4 // indirect
-	github.com/klauspost/compress v1.20.3 // indirect
+	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/klauspost/pgzip v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.16 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
@@ -75,16 +75,16 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/ulikunitz/xz v0.5.17 // indirect
 	golang.org/x/net v0.62.0 // indirect
-	golang.org/x/oauth2 v0.37.0 // indirect
+	golang.org/x/oauth2 v0.38.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 require (
 	4d63.com/optional v0.2.0
 	github.com/creack/pty v1.1.24
-	github.com/fastly/go-fastly/v19 v19.2.0
+	github.com/fastly/go-fastly/v19 v19.3.0
 	github.com/mholt/archives v0.1.5
 	github.com/mitchellh/go-ps v1.0.0
 )
