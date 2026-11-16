@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
+	"github.com/fastly/go-fastly/v19/fastly/botmanagement/v1/workspaces/policy"
 
 	root "github.com/fastly/cli/pkg/commands/botmanagement"
 	sub "github.com/fastly/cli/pkg/commands/botmanagement/bot"

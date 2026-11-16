@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	bmworkspaces "github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces"
-	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
+	bmworkspaces "github.com/fastly/go-fastly/v19/fastly/botmanagement/v1/workspaces"
+	"github.com/fastly/go-fastly/v19/fastly/botmanagement/v1/workspaces/policy"
 )
 
 // PrintBotManagementWorkspace displays a Bot Management workspace.

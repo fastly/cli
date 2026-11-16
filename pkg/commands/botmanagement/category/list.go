@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/botmanagement/v1/workspaces/policy"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/argparser/validate"
