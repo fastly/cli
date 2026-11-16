@@ -98,11 +98,16 @@ func TestCategoryDescribe(t *testing.T) {
 			Name: "describes the category",
 			Args: "--workspace-id ws123 --category-id search-engines",
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(category))),
+				Transport: &testutil.MultiResponseRoundTripper{
+					Responses: []*http.Response{
+						{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(category))),
+						},
+						{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(strings.NewReader(`{"data":[],"meta":{}}`)),
+						},
 					},
 				},
 			},

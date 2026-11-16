@@ -74,6 +74,24 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.PrintBotManagementCategory(out, data)
+	// we must list the child bots to determine if any of them have an
+	// overriding action (i.e., not inherit). We don't do this for JSON output.
+	bots, err := policy.ListBots(context.TODO(), fc, &policy.ListBotsInput{
+		CategoryID:  &c.categoryID,
+		WorkspaceID: &c.workspaceID,
+	})
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	overrides := 0
+	for _, bot := range bots {
+		if bot.Action.Type != "inherit" {
+			overrides++
+		}
+	}
+
+	text.PrintBotManagementCategory(out, data, overrides)
 	return nil
 }

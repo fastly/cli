@@ -4335,12 +4335,14 @@
       },
       "describe": {
         "apis": [
-          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-get-category"
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-get-category",
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-list-category-bots"
         ]
       },
       "update": {
         "apis": [
-          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-category"
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-category",
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-category-bots"
         ]
       }
     },

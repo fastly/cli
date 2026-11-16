@@ -30,6 +30,9 @@ type UpdateCommand struct {
 
 	// Required payload.
 	action string
+
+	// Optional.
+	clearOverrides bool
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -58,6 +61,8 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		EnumVar(&c.action, Actions...)
 
 	// Optional.
+	c.CmdClause.Flag("clear-overrides", "Reset all bot actions in the category to 'inherit', removing individual overrides").
+		BoolVar(&c.clearOverrides)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -82,6 +87,21 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
+	}
+
+	if c.clearOverrides {
+		_, err := policy.UpdateCategoryBots(context.TODO(), fc, &policy.UpdateCategoryBotsInput{
+			Action:      &policy.Action{Type: "inherit"},
+			CategoryID:  &c.categoryID,
+			WorkspaceID: &c.workspaceID,
+		})
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fsterr.RemediationError{
+				Inner:       err,
+				Remediation: "The category action was updated, but bot overrides could not be cleared. Retry with --clear-overrides to clear them.",
+			}
+		}
 	}
 
 	if ok, err := c.WriteJSON(out, data); ok {
