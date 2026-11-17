@@ -363,6 +363,26 @@ func TestHelpSubcommandFlags(t *testing.T) {
 	}
 }
 
+// TestTokenExemptCommandWithArgs checks that a token-exempt command still runs without a token when it takes positional arguments.
+func TestTokenExemptCommandWithArgs(t *testing.T) {
+	var stdout bytes.Buffer
+
+	args := testutil.SplitArgs("vcl check -i recv.vcl")
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		data := testutil.MockGlobalData(args, &stdout)
+		data.Config.Auth.Default = ""
+		data.Config.Auth.Tokens = nil
+		return data, nil
+	}
+	err := app.Run(args, nil)
+	if err == nil {
+		t.Fatal("expected an error for the missing recv.vcl file")
+	}
+	if strings.Contains(err.Error(), "no token provided") {
+		t.Fatalf("vcl check should not require a token, got: %v", err)
+	}
+}
+
 // stripTrailingSpace removes any trailing spaces from the multiline str.
 func stripTrailingSpace(str string) string {
 	buf := bytes.NewBuffer(nil)
