@@ -136,7 +136,7 @@ func TestCategoryClearOverridesErrors(t *testing.T) {
 					response: `{"title":"not found","status":404}`,
 				},
 			},
-			remediation: "The category action was updated, but the API call for clearing bot overrides failed. Rerun the command with --clear-overrides to try again.",
+			remediation: "The category action was updated. Re-run the command with --clear-overrides to try again.",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
