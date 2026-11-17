@@ -59,7 +59,7 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.2.8 // indirect
+	github.com/andybalholm/brotli v1.3.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.21.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
