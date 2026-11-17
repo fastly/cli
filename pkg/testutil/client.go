@@ -1,6 +1,8 @@
 package testutil
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // MockRoundTripper implements [http.RoundTripper] for mocking HTTP responses.
 type MockRoundTripper struct {

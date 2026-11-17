@@ -70,6 +70,7 @@ auth
 ai-runtime-control
 apisecurity
 audit-log
+bot-management
 compute
 config
 config-store
