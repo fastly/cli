@@ -29,10 +29,10 @@ updates:
         patterns:
           - "*"
     ignore:
-      # go-msix v1.0.0 has a breaking API change incompatible with the
-      # nfpm v2.47.0 in use by goreleaser; held at v0.3.1 until that's resolved.
-      # pending commit for nfpm: https://github.com/goreleaser/nfpm/commit/ce81cb6
-      - dependency-name: "go.digitalxero.dev/go-msix"
+      # goreleaser/fileglob still imports github.com/gobwas/glob/syntax/{ast,lexer},
+      # which were removed in glob v1.x, so the module can't be resolved at >= 1.0.0.
+      # Drop this once fileglob supports glob v1.
+      - dependency-name: "github.com/gobwas/glob"
         versions: [">= 1.0.0"]
   - package-ecosystem: "github-actions"
     directory: "/"
