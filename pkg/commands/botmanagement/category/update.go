@@ -99,7 +99,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			c.Globals.ErrLog.Add(err)
 			return fsterr.RemediationError{
 				Inner:       err,
-				Remediation: "The category action was updated, but bot overrides could not be cleared. Retry with --clear-overrides to clear them.",
+				Remediation: "The category action was updated, but the API call for clearing bot overrides failed. Rerun the command with --clear-overrides to try again.",
 			}
 		}
 	}

@@ -136,7 +136,7 @@ func TestCategoryClearOverridesErrors(t *testing.T) {
 					response: `{"title":"not found","status":404}`,
 				},
 			},
-			remediation: "The category action was updated, but bot overrides could not be cleared",
+			remediation: "The category action was updated, but the API call for clearing bot overrides failed. Rerun the command with --clear-overrides to try again.",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -155,17 +155,16 @@ func TestCategoryOverrideCount(t *testing.T) {
 		command string
 		pages   []string
 		want    string
-		noCount bool
 	}{
 		{
 			name: "no overrides", command: "describe",
 			pages: []string{`{"data":[{"action":{"type":"inherit"}}]}`},
-			want:  "Action: allow\n", noCount: true,
+			want:  "Action: allow\nOverrides: 0",
 		},
 		{
 			name: "one override even when matching category action", command: "get",
 			pages: []string{`{"data":[{"action":{"type":"allow"}},{"action":{"type":"inherit"}}]}`},
-			want:  "Action: allow (1 override)\n",
+			want:  "Action: allow\nOverrides: 1",
 		},
 		{
 			name: "counts overrides across all pages", command: "describe",
@@ -173,7 +172,7 @@ func TestCategoryOverrideCount(t *testing.T) {
 				`{"data":[{"action":{"type":"allow"}},{"action":{"type":"inherit"}}],"meta":{"next_cursor":"next"}}`,
 				`{"data":[{"action":{"type":"block"}},{"action":{"type":"challenge"}}]}`,
 			},
-			want: "Action: allow (3 overrides)\n",
+			want: "Action: allow\nOverrides: 3",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -188,9 +187,6 @@ func TestCategoryOverrideCount(t *testing.T) {
 			scenario := testutil.CLIScenario{
 				Name: tc.name, Args: "--workspace-id ws123 --category-id search-engines",
 				Client: categoryClient(t, steps), WantOutput: tc.want,
-			}
-			if tc.noCount {
-				scenario.DontWantOutput = "override"
 			}
 			testutil.RunCLIScenario(t, []string{root.CommandName, sub.CommandName, tc.command}, scenario)
 		})

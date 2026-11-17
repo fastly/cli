@@ -35,14 +35,8 @@ func PrintBotManagementCategory(out io.Writer, c *policy.Category, overrides int
 	fmt.Fprintf(out, "ID: %s\n", c.CategoryID)
 	fmt.Fprintf(out, "Name: %s\n", c.Name)
 	fmt.Fprintf(out, "Description: %s\n", c.Description)
-	fmt.Fprintf(out, "Action: %s", c.Action.Type)
-	if overrides > 0 {
-		label := "overrides"
-		if overrides == 1 {
-			label = "override"
-		}
-		fmt.Fprintf(out, " (%d %s)", overrides, label)
-	}
+	fmt.Fprintf(out, "Action: %s\n", c.Action.Type)
+	fmt.Fprintf(out, "Overrides: %d", overrides)
 	fmt.Fprintln(out)
 }
 
