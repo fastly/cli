@@ -25,6 +25,7 @@
 - build(deps): `golang.org/x/oauth2` from 0.37.0 to 0.38.0 ([#1973](https://github.com/fastly/cli/pull/1973))
 - build(deps): `golang.org/x/text` from 0.43.0 to 0.44.0 ([#1973](https://github.com/fastly/cli/pull/1973))
 - build(deps): `github.com/fastly/go-fastly/v19` from 19.2.0 to 19.3.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/fastly/go-fastly/v19` from 19.3.0 to 19.3.1 ([#1981](https://github.com/fastly/cli/pull/1981))
 
 ## [v17.1.0](https://github.com/fastly/cli/releases/tag/v17.1.0) (2026-11-12)
 
