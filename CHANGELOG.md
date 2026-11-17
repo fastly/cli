@@ -12,6 +12,7 @@
 
 - feat(vcl): add `vcl check`, `vcl run`, and `vcl serve` to compile and test VCL code ([#1964](https://github.com/fastly/cli/pull/1964))
 - feat(bot-management): add `bot-management` commands for managing workspaces, bot categories, and bots. ([#1922](https://github.com/fastly/cli/pull/1922))
+- feat(logging/fos): add `service logging fos` commands for Fastly Object Storage logging endpoints ([#1980](https://github.com/fastly/cli/pull/1980))
 
 ### Dependencies:
 - build(deps): `golang.org/x/sys` from 0.49.0 to 0.50.0 ([#1973](https://github.com/fastly/cli/pull/1973))

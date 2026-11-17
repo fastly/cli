@@ -95,6 +95,12 @@ type Interface interface {
 	UpdateS3(context.Context, *fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3(context.Context, *fastly.DeleteS3Input) error
 
+	CreateFOS(context.Context, *fastly.CreateFOSInput) (*fastly.FOS, error)
+	ListFOSes(context.Context, *fastly.ListFOSesInput) ([]*fastly.FOS, error)
+	GetFOS(context.Context, *fastly.GetFOSInput) (*fastly.FOS, error)
+	UpdateFOS(context.Context, *fastly.UpdateFOSInput) (*fastly.FOS, error)
+	DeleteFOS(context.Context, *fastly.DeleteFOSInput) error
+
 	CreateKinesis(context.Context, *fastly.CreateKinesisInput) (*fastly.Kinesis, error)
 	ListKinesis(context.Context, *fastly.ListKinesisInput) ([]*fastly.Kinesis, error)
 	GetKinesis(context.Context, *fastly.GetKinesisInput) (*fastly.Kinesis, error)

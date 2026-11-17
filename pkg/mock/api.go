@@ -84,6 +84,12 @@ type API struct {
 	UpdateS3Fn func(context.Context, *fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3Fn func(context.Context, *fastly.DeleteS3Input) error
 
+	CreateFOSFn func(context.Context, *fastly.CreateFOSInput) (*fastly.FOS, error)
+	ListFOSesFn func(context.Context, *fastly.ListFOSesInput) ([]*fastly.FOS, error)
+	GetFOSFn    func(context.Context, *fastly.GetFOSInput) (*fastly.FOS, error)
+	UpdateFOSFn func(context.Context, *fastly.UpdateFOSInput) (*fastly.FOS, error)
+	DeleteFOSFn func(context.Context, *fastly.DeleteFOSInput) error
+
 	CreateKinesisFn func(context.Context, *fastly.CreateKinesisInput) (*fastly.Kinesis, error)
 	ListKinesisFn   func(context.Context, *fastly.ListKinesisInput) ([]*fastly.Kinesis, error)
 	GetKinesisFn    func(context.Context, *fastly.GetKinesisInput) (*fastly.Kinesis, error)
@@ -734,6 +740,31 @@ func (m API) UpdateS3(ctx context.Context, i *fastly.UpdateS3Input) (*fastly.S3,
 // DeleteS3 implements Interface.
 func (m API) DeleteS3(ctx context.Context, i *fastly.DeleteS3Input) error {
 	return m.DeleteS3Fn(ctx, i)
+}
+
+// CreateFOS implements Interface.
+func (m API) CreateFOS(ctx context.Context, i *fastly.CreateFOSInput) (*fastly.FOS, error) {
+	return m.CreateFOSFn(ctx, i)
+}
+
+// ListFOSes implements Interface.
+func (m API) ListFOSes(ctx context.Context, i *fastly.ListFOSesInput) ([]*fastly.FOS, error) {
+	return m.ListFOSesFn(ctx, i)
+}
+
+// GetFOS implements Interface.
+func (m API) GetFOS(ctx context.Context, i *fastly.GetFOSInput) (*fastly.FOS, error) {
+	return m.GetFOSFn(ctx, i)
+}
+
+// UpdateFOS implements Interface.
+func (m API) UpdateFOS(ctx context.Context, i *fastly.UpdateFOSInput) (*fastly.FOS, error) {
+	return m.UpdateFOSFn(ctx, i)
+}
+
+// DeleteFOS implements Interface.
+func (m API) DeleteFOS(ctx context.Context, i *fastly.DeleteFOSInput) error {
+	return m.DeleteFOSFn(ctx, i)
 }
 
 // CreateKinesis implements Interface.
