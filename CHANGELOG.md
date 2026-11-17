@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(kvstoreentry): write `--dir` verbose filenames and per-file upload errors to the command's output writer instead of bypassing it via process stdout.
+
 ### Enhancements:
 
 ### Dependencies:

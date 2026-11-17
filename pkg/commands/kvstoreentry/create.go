@@ -345,7 +345,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 		close(filesVerboseOutput)
 		text.Break(out)
 		for filename := range filesVerboseOutput {
-			fmt.Println(filename)
+			fmt.Fprintln(out, filename)
 		}
 	}
 
@@ -356,7 +356,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 	text.Break(out)
 	for _, err := range processingErrors {
-		fmt.Printf("File: %s\nError: %s\n\n", err.File, err.Err.Error())
+		fmt.Fprintf(out, "File: %s\nError: %s\n\n", err.File, err.Err.Error())
 	}
 
 	return errors.New("failed to process all the provided files (see error log above ⬆️)")

@@ -185,6 +185,32 @@ func TestCreateCommand(t *testing.T) {
 			},
 			WantOutput: "SUCCESS: Inserted 2 keys into KV Store",
 		},
+		{
+			Name:  "verbose --dir reports filenames to the configured output writer",
+			Args:  fmt.Sprintf("--store-id %s --dir %s --verbose", storeID, filepath.Join("testdata", "example")),
+			Stdin: []string{"y"},
+			API: &mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if i.Key == "foo.txt" {
+						return nil
+					}
+					return errors.New("invalid request")
+				},
+			},
+			WantOutput: "foo.txt",
+		},
+		{
+			Name:  "--dir reports per-file errors to the configured output writer",
+			Args:  fmt.Sprintf("--store-id %s --dir %s", storeID, filepath.Join("testdata", "example")),
+			Stdin: []string{"y"},
+			API: &mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
+					return errors.New("upload failed")
+				},
+			},
+			WantError:  "failed to process all the provided files",
+			WantOutput: "Error: upload failed",
+		},
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
