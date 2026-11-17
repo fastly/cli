@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(help): show command flags in `fastly help <subcommand>` matching `--help` ([#1972](https://github.com/fastly/cli/pull/1972))
+- fix(app): no token needed for exempt commands that take arguments ([#1979](https://github.com/fastly/cli/pull/1979))
 
 ### Enhancements:
 
