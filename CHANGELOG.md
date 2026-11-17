@@ -6,6 +6,14 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v17.2.0](https://github.com/fastly/cli/releases/tag/v17.2.0) (2026-11-17)
+
+### Bug Fixes:
+
 - fix(help): show command flags in `fastly help <subcommand>` matching `--help` ([#1972](https://github.com/fastly/cli/pull/1972))
 - fix(app): no token needed for exempt commands that take arguments ([#1979](https://github.com/fastly/cli/pull/1979))
 
@@ -16,6 +24,7 @@
 - feat(logging/fos): add `service logging fos` commands for Fastly Object Storage logging endpoints ([#1980](https://github.com/fastly/cli/pull/1980))
 
 ### Dependencies:
+
 - build(deps): `golang.org/x/sys` from 0.49.0 to 0.50.0 ([#1973](https://github.com/fastly/cli/pull/1973))
 - build(deps): `golang.org/x/term` from 0.47.0 to 0.48.0 ([#1973](https://github.com/fastly/cli/pull/1973))
 - build(deps): `golang.org/x/mod` from 0.42.0 to 0.43.0 ([#1973](https://github.com/fastly/cli/pull/1973))
