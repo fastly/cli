@@ -6,7 +6,11 @@
 
 ### Bug Fixes:
 
+- fix(help): show command flags in `fastly help <subcommand>` matching `--help` ([#1972](https://github.com/fastly/cli/pull/1972))
+
 ### Enhancements:
+
+- feat(vcl): add `vcl check`, `vcl run`, and `vcl serve` to compile and test VCL code ([#1964](https://github.com/fastly/cli/pull/1964))
 
 ### Dependencies:
 - build(deps): `golang.org/x/sys` from 0.49.0 to 0.50.0 ([#1973](https://github.com/fastly/cli/pull/1973))
@@ -30,7 +34,6 @@
 ### Enhancements:
 
 - feat(service/backend): Add support for IAM authentication ([#1963](https://github.com/fastly/cli/pull/1963))
-- feat(vcl): add `vcl check`, `vcl run`, and `vcl serve` to compile and test VCL code ([#1964](https://github.com/fastly/cli/pull/1964))
 
 ### Dependencies:
 
