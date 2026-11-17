@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(help): show command flags in `fastly help <subcommand>` matching `--help` ([#1972](https://github.com/fastly/cli/pull/1972))
+
 ### Enhancements:
 
 ### Dependencies:
