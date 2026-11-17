@@ -722,6 +722,33 @@
         ]
       }
     },
+    "fos": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#create-log-fos"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#delete-log-fos"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#get-log-fos"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#list-log-fos"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#update-log-fos"
+        ]
+      }
+    },
     "ftp": {
       "create": {
         "apis": [

@@ -158,6 +158,7 @@ import (
 	serviceloggingdebug "github.com/fastly/cli/pkg/commands/service/logging/debug"
 	serviceloggingdigitalocean "github.com/fastly/cli/pkg/commands/service/logging/digitalocean"
 	serviceloggingelasticsearch "github.com/fastly/cli/pkg/commands/service/logging/elasticsearch"
+	serviceloggingfos "github.com/fastly/cli/pkg/commands/service/logging/fos"
 	serviceloggingftp "github.com/fastly/cli/pkg/commands/service/logging/ftp"
 	servicelogginggcs "github.com/fastly/cli/pkg/commands/service/logging/gcs"
 	servicelogginggooglepubsub "github.com/fastly/cli/pkg/commands/service/logging/googlepubsub"
@@ -855,6 +856,12 @@ func Define( // nolint:revive // function-length
 	serviceloggingS3Describe := serviceloggings3.NewDescribeCommand(serviceloggingS3CmdRoot.CmdClause, data)
 	serviceloggingS3List := serviceloggings3.NewListCommand(serviceloggingS3CmdRoot.CmdClause, data)
 	serviceloggingS3Update := serviceloggings3.NewUpdateCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingFOSCmdRoot := serviceloggingfos.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingFOSCreate := serviceloggingfos.NewCreateCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSDelete := serviceloggingfos.NewDeleteCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSDescribe := serviceloggingfos.NewDescribeCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSList := serviceloggingfos.NewListCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSUpdate := serviceloggingfos.NewUpdateCommand(serviceloggingFOSCmdRoot.CmdClause, data)
 	serviceloggingScalyrCmdRoot := serviceloggingscalyr.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingScalyrCreate := serviceloggingscalyr.NewCreateCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
 	serviceloggingScalyrDelete := serviceloggingscalyr.NewDeleteCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
@@ -1583,6 +1590,12 @@ func Define( // nolint:revive // function-length
 		serviceloggingS3Describe,
 		serviceloggingS3List,
 		serviceloggingS3Update,
+		serviceloggingFOSCmdRoot,
+		serviceloggingFOSCreate,
+		serviceloggingFOSDelete,
+		serviceloggingFOSDescribe,
+		serviceloggingFOSList,
+		serviceloggingFOSUpdate,
 		serviceloggingScalyrCmdRoot,
 		serviceloggingScalyrCreate,
 		serviceloggingScalyrDelete,
