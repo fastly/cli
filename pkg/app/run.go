@@ -263,7 +263,7 @@ func Exec(data *global.Data) error {
 	// NOTE: Some commands need just the auth server to be running
 	// but not necessarily need to process an existing token.
 	needsAuthServer := commandRequiresAuthServer(commandName, data.Args)
-	if !commandRequiresToken(command) && needsAuthServer {
+	if !commandRequiresToken(command, commandName) && needsAuthServer {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
 		if data.AuthServer == nil {
@@ -278,7 +278,7 @@ func Exec(data *global.Data) error {
 		}
 	}
 
-	if commandRequiresToken(command) {
+	if commandRequiresToken(command, commandName) {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
 		if data.AuthServer == nil {
@@ -757,8 +757,7 @@ func commandRequiresAuthServer(command string, args []string) bool {
 
 // commandRequiresToken determines if the command to be executed is one that
 // requires an API token.
-func commandRequiresToken(command argparser.Command) bool {
-	commandName := command.Name()
+func commandRequiresToken(command argparser.Command, commandName string) bool {
 	switch commandName {
 	case "compute init":
 		if initCmd, ok := command.(*compute.InitCommand); ok {
