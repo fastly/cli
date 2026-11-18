@@ -10,6 +10,8 @@
 
 ### Enhancements:
 
+- feat(dictionary-entry): add `update --per-item` to report failed keys when updating from a file ([#1583](https://github.com/fastly/cli/issues/1583))
+
 ### Dependencies:
 
 ## [v17.2.0](https://github.com/fastly/cli/releases/tag/v17.2.0) (2026-11-17)
