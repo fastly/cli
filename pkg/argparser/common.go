@@ -29,6 +29,8 @@ var (
 	FlagVersionName = "version"
 	// FlagVersionDesc is the flag description.
 	FlagVersionDesc = "'latest', 'active', 'staged', or the number of a specific Fastly service version"
+	// FlagVersionDraftDesc is the flag description for commands that only accept draft versions.
+	FlagVersionDraftDesc = "the number of a specific draft Fastly service version"
 	// FlagVersionOptionalDesc is the flag description for commands where the
 	// version flag is optional. It describes what OptionalServiceVersion.Parse
 	// does when the flag is omitted.
