@@ -129,6 +129,10 @@ func TestDictionaryItemCreate(t *testing.T) {
 func TestDictionaryItemUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Args:      "--service-id 123 --dictionary-id 456 --per-item",
+			WantError: "--per-item requires --file",
+		},
+		{
 			Args:      "--service-id 123",
 			API:       &mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			WantError: "error parsing arguments: required flag --dictionary-id not provided",
@@ -202,6 +206,38 @@ func TestDictionaryItemUpdate(t *testing.T) {
 			},
 		}
 		testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	})
+
+	t.Run("per-item errors", func(t *testing.T) {
+		filePath := testutil.MakeTempFile(t, `{"items":[
+			{"op":"delete","item_key":"missing-first"},
+			{"op":"upsert","item_key":"present","item_value":"new"},
+			{"op":"delete","item_key":"missing-last"}
+		]}`)
+		defer os.RemoveAll(filePath)
+
+		var keys []string
+		api := &mock.API{BatchModifyDictionaryItemsFn: func(_ context.Context, input *fastly.BatchModifyDictionaryItemsInput) error {
+			if len(input.Items) != 1 || input.ServiceID != "123" || input.DictionaryID != "456" {
+				t.Fatalf("unexpected per-item request: %+v", input)
+			}
+			key := fastly.ToValue(input.Items[0].ItemKey)
+			keys = append(keys, key)
+			if key == "present" {
+				return nil
+			}
+			return errTest
+		}}
+		testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, []testutil.CLIScenario{{
+			Args: "--service-id 123 --dictionary-id 456 --per-item --file " + filePath,
+			API:  api,
+			WantError: "2 of 3 dictionary item requests failed:\n" +
+				"item 1/3 (key \"missing-first\"): " + errTest.Error() + "\n" +
+				"item 3/3 (key \"missing-last\"): " + errTest.Error(),
+		}})
+		if len(keys) != 3 || keys[0] != "missing-first" || keys[1] != "present" || keys[2] != "missing-last" {
+			t.Fatalf("unexpected request order: %v", keys)
+		}
 	})
 }
 

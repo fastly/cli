@@ -3,6 +3,7 @@ package dictionaryentry
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -21,6 +22,7 @@ type UpdateCommand struct {
 	Input       fastly.UpdateDictionaryItemInput
 	InputBatch  fastly.BatchModifyDictionaryItemsInput
 	file        argparser.OptionalString
+	perItem     bool
 	serviceName argparser.OptionalServiceNameID
 }
 
@@ -38,6 +40,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Optional.
 	c.CmdClause.Flag("file", "Batch update json file").Action(c.file.Set).StringVar(&c.file.Value)
+	c.CmdClause.Flag("per-item", "With --file, send one request per item and report each failure. Successful changes still apply").BoolVar(&c.perItem)
 	c.CmdClause.Flag("key", "Dictionary item key").StringVar(&c.Input.ItemKey)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -57,6 +60,10 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.perItem && !c.file.WasSet {
+		return fmt.Errorf("--per-item requires --file")
+	}
+
 	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -94,21 +101,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func (c *UpdateCommand) batchModify(out io.Writer) error {
-	jsonFile, err := os.Open(c.file.Value)
+	jsonBytes, err := os.ReadFile(c.file.Value)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-
-	jsonBytes, err := io.ReadAll(jsonFile)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	err = json.Unmarshal(jsonBytes, &c.InputBatch)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
@@ -116,12 +115,35 @@ func (c *UpdateCommand) batchModify(out io.Writer) error {
 		return fmt.Errorf("item key not found in file %s", c.file.Value)
 	}
 
-	err = c.Globals.APIClient.BatchModifyDictionaryItems(context.TODO(), &c.InputBatch)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
+	if c.perItem {
+		if err := c.modifyPerItem(); err != nil {
+			return err
+		}
+	} else if err := c.Globals.APIClient.BatchModifyDictionaryItems(context.TODO(), &c.InputBatch); err != nil {
 		return err
 	}
 
 	text.Success(out, "Made %d modifications of Dictionary %s on service %s", len(c.InputBatch.Items), c.Input.DictionaryID, c.InputBatch.ServiceID)
+	return nil
+}
+
+func (c *UpdateCommand) modifyPerItem() error {
+	for index, item := range c.InputBatch.Items {
+		if item == nil || fastly.ToValue(item.ItemKey) == "" {
+			return fmt.Errorf("item %d in %s is missing an item key", index+1, c.file.Value)
+		}
+	}
+
+	input := c.InputBatch
+	var failures []error
+	for index, item := range c.InputBatch.Items {
+		input.Items = c.InputBatch.Items[index : index+1]
+		if err := c.Globals.APIClient.BatchModifyDictionaryItems(context.TODO(), &input); err != nil {
+			failures = append(failures, fmt.Errorf("item %d/%d (key %q): %w", index+1, len(c.InputBatch.Items), fastly.ToValue(item.ItemKey), err))
+		}
+	}
+	if len(failures) > 0 {
+		return fmt.Errorf("%d of %d dictionary item requests failed:\n%w", len(failures), len(c.InputBatch.Items), errors.Join(failures...))
+	}
 	return nil
 }
