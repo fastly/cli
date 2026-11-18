@@ -3,16 +3,39 @@ package version_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/kingpin"
 
+	"github.com/fastly/cli/pkg/argparser"
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/version"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
+
+func TestVersionStageHelpVersionFlagDescription(t *testing.T) {
+	app := kingpin.New("test", "")
+	sub.NewStageCommand(app, testutil.MockGlobalData(nil, io.Discard))
+
+	const want = "the number of a specific draft Fastly service version"
+	var help string
+	for _, cmd := range app.Model().Commands {
+		if cmd.Name != "stage" {
+			continue
+		}
+		if f := cmd.FlagByName(argparser.FlagVersionName); f != nil {
+			help = f.Help
+		}
+	}
+
+	if help != want {
+		t.Fatalf("--version help = %q, want %q", help, want)
+	}
+}
 
 func TestVersionClone(t *testing.T) {
 	scenarios := []testutil.CLIScenario{

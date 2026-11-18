@@ -41,7 +41,7 @@ func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageComm
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionDraftDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
