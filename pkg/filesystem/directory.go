@@ -41,9 +41,9 @@ func CopyFile(src, dst string) (err error) {
 			return fmt.Errorf("cannot read destination file: %s", dst)
 		}
 	} else {
-		// Assert that source file is regular file.
+		// Assert that destination file is regular file.
 		if !ds.Mode().IsRegular() {
-			return fmt.Errorf("non-regular destination file: %s", src)
+			return fmt.Errorf("non-regular destination file: %s", dst)
 		}
 
 		// If same file, return successfully.
