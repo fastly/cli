@@ -65,6 +65,10 @@ import (
 	"github.com/fastly/cli/pkg/commands/auditlog/eventmapping"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
+	"github.com/fastly/cli/pkg/commands/botmanagement"
+	botmanagementbot "github.com/fastly/cli/pkg/commands/botmanagement/bot"
+	botmanagementcategory "github.com/fastly/cli/pkg/commands/botmanagement/category"
+	botmanagementworkspace "github.com/fastly/cli/pkg/commands/botmanagement/workspace"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
 	"github.com/fastly/cli/pkg/commands/config"
@@ -154,6 +158,7 @@ import (
 	serviceloggingdebug "github.com/fastly/cli/pkg/commands/service/logging/debug"
 	serviceloggingdigitalocean "github.com/fastly/cli/pkg/commands/service/logging/digitalocean"
 	serviceloggingelasticsearch "github.com/fastly/cli/pkg/commands/service/logging/elasticsearch"
+	serviceloggingfos "github.com/fastly/cli/pkg/commands/service/logging/fos"
 	serviceloggingftp "github.com/fastly/cli/pkg/commands/service/logging/ftp"
 	servicelogginggcs "github.com/fastly/cli/pkg/commands/service/logging/gcs"
 	servicelogginggooglepubsub "github.com/fastly/cli/pkg/commands/service/logging/googlepubsub"
@@ -200,6 +205,7 @@ import (
 	domainTools "github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
+	vcltesting "github.com/fastly/cli/pkg/commands/vcl"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/env"
@@ -307,6 +313,19 @@ func Define( // nolint:revive // function-length
 	auditlogEventMappingDelete := eventmapping.NewDeleteCommand(auditlogEventMappingRoot.CmdClause, data)
 	auditlogEventMappingListEventTypes := eventmapping.NewListEventTypesCommand(auditlogEventMappingRoot.CmdClause, data)
 	auditlogEventMappingListScopeTypes := eventmapping.NewListScopeTypesCommand(auditlogEventMappingRoot.CmdClause, data)
+	botmanagementRoot := botmanagement.NewRootCommand(app, data)
+	botmanagementWorkspaceRoot := botmanagementworkspace.NewRootCommand(botmanagementRoot.CmdClause, data)
+	botmanagementWorkspaceDescribe := botmanagementworkspace.NewDescribeCommand(botmanagementWorkspaceRoot.CmdClause, data)
+	botmanagementWorkspaceList := botmanagementworkspace.NewListCommand(botmanagementWorkspaceRoot.CmdClause, data)
+	botmanagementWorkspaceUpdate := botmanagementworkspace.NewUpdateCommand(botmanagementWorkspaceRoot.CmdClause, data)
+	botmanagementCategoryRoot := botmanagementcategory.NewRootCommand(botmanagementRoot.CmdClause, data)
+	botmanagementCategoryDescribe := botmanagementcategory.NewDescribeCommand(botmanagementCategoryRoot.CmdClause, data)
+	botmanagementCategoryList := botmanagementcategory.NewListCommand(botmanagementCategoryRoot.CmdClause, data)
+	botmanagementCategoryUpdate := botmanagementcategory.NewUpdateCommand(botmanagementCategoryRoot.CmdClause, data)
+	botmanagementBotRoot := botmanagementbot.NewRootCommand(botmanagementRoot.CmdClause, data)
+	botmanagementBotDescribe := botmanagementbot.NewDescribeCommand(botmanagementBotRoot.CmdClause, data)
+	botmanagementBotList := botmanagementbot.NewListCommand(botmanagementBotRoot.CmdClause, data)
+	botmanagementBotUpdate := botmanagementbot.NewUpdateCommand(botmanagementBotRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -841,6 +860,12 @@ func Define( // nolint:revive // function-length
 	serviceloggingS3Describe := serviceloggings3.NewDescribeCommand(serviceloggingS3CmdRoot.CmdClause, data)
 	serviceloggingS3List := serviceloggings3.NewListCommand(serviceloggingS3CmdRoot.CmdClause, data)
 	serviceloggingS3Update := serviceloggings3.NewUpdateCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingFOSCmdRoot := serviceloggingfos.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingFOSCreate := serviceloggingfos.NewCreateCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSDelete := serviceloggingfos.NewDeleteCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSDescribe := serviceloggingfos.NewDescribeCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSList := serviceloggingfos.NewListCommand(serviceloggingFOSCmdRoot.CmdClause, data)
+	serviceloggingFOSUpdate := serviceloggingfos.NewUpdateCommand(serviceloggingFOSCmdRoot.CmdClause, data)
 	serviceloggingScalyrCmdRoot := serviceloggingscalyr.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingScalyrCreate := serviceloggingscalyr.NewCreateCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
 	serviceloggingScalyrDelete := serviceloggingscalyr.NewDeleteCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
@@ -1047,21 +1072,24 @@ func Define( // nolint:revive // function-length
 	aliasServiceAuthDescribe := aliasserviceauth.NewDescribeCommand(aliasServiceAuthRoot.CmdClause, data)
 	aliasServiceAuthList := aliasserviceauth.NewListCommand(aliasServiceAuthRoot.CmdClause, data)
 	aliasServiceAuthUpdate := aliasserviceauth.NewUpdateCommand(aliasServiceAuthRoot.CmdClause, data)
-	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
-	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
-	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
+	vclRoot := vcltesting.NewRootCommand(app, data)
+	vclCheck := vcltesting.NewCheckCommand(vclRoot.CmdClause, data)
+	vclRun := vcltesting.NewRunCommand(vclRoot.CmdClause, data)
+	vclServe := vcltesting.NewServeCommand(vclRoot.CmdClause, data)
+	aliasVclDescribe := aliasvcl.NewDescribeCommand(vclRoot.CmdClause, data)
+	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclConditionCreate := aliasvclcondition.NewCreateCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionDelete := aliasvclcondition.NewDeleteCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionDescribe := aliasvclcondition.NewDescribeCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionList := aliasvclcondition.NewListCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionUpdate := aliasvclcondition.NewUpdateCommand(aliasVclConditionRoot.CmdClause, data)
-	aliasVclCustomRoot := aliasvclcustom.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclCustomRoot := aliasvclcustom.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclCustomCreate := aliasvclcustom.NewCreateCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomDelete := aliasvclcustom.NewDeleteCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomDescribe := aliasvclcustom.NewDescribeCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomList := aliasvclcustom.NewListCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomUpdate := aliasvclcustom.NewUpdateCommand(aliasVclCustomRoot.CmdClause, data)
-	aliasVclSnippetRoot := aliasvclsnippet.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclSnippetRoot := aliasvclsnippet.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclSnippetCreate := aliasvclsnippet.NewCreateCommand(aliasVclSnippetRoot.CmdClause, data)
 	aliasVclSnippetDelete := aliasvclsnippet.NewDeleteCommand(aliasVclSnippetRoot.CmdClause, data)
 	aliasVclSnippetDescribe := aliasvclsnippet.NewDescribeCommand(aliasVclSnippetRoot.CmdClause, data)
@@ -1304,6 +1332,19 @@ func Define( // nolint:revive // function-length
 		auditlogEventMappingDelete,
 		auditlogEventMappingListEventTypes,
 		auditlogEventMappingListScopeTypes,
+		botmanagementRoot,
+		botmanagementWorkspaceRoot,
+		botmanagementWorkspaceDescribe,
+		botmanagementWorkspaceList,
+		botmanagementWorkspaceUpdate,
+		botmanagementCategoryRoot,
+		botmanagementCategoryDescribe,
+		botmanagementCategoryList,
+		botmanagementCategoryUpdate,
+		botmanagementBotRoot,
+		botmanagementBotDescribe,
+		botmanagementBotList,
+		botmanagementBotUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
@@ -1557,6 +1598,12 @@ func Define( // nolint:revive // function-length
 		serviceloggingS3Describe,
 		serviceloggingS3List,
 		serviceloggingS3Update,
+		serviceloggingFOSCmdRoot,
+		serviceloggingFOSCreate,
+		serviceloggingFOSDelete,
+		serviceloggingFOSDescribe,
+		serviceloggingFOSList,
+		serviceloggingFOSUpdate,
 		serviceloggingScalyrCmdRoot,
 		serviceloggingScalyrCreate,
 		serviceloggingScalyrDelete,
@@ -2020,6 +2067,9 @@ func Define( // nolint:revive // function-length
 		aliasServiceAuthDescribe,
 		aliasServiceAuthList,
 		aliasServiceAuthUpdate,
+		vclCheck,
+		vclRun,
+		vclServe,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
 		aliasVclConditionDelete,

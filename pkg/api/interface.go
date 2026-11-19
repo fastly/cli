@@ -5,7 +5,7 @@ import (
 	"crypto/ed25519"
 	"net/http"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -94,6 +94,12 @@ type Interface interface {
 	GetS3(context.Context, *fastly.GetS3Input) (*fastly.S3, error)
 	UpdateS3(context.Context, *fastly.UpdateS3Input) (*fastly.S3, error)
 	DeleteS3(context.Context, *fastly.DeleteS3Input) error
+
+	CreateFOS(context.Context, *fastly.CreateFOSInput) (*fastly.FOS, error)
+	ListFOSes(context.Context, *fastly.ListFOSesInput) ([]*fastly.FOS, error)
+	GetFOS(context.Context, *fastly.GetFOSInput) (*fastly.FOS, error)
+	UpdateFOS(context.Context, *fastly.UpdateFOSInput) (*fastly.FOS, error)
+	DeleteFOS(context.Context, *fastly.DeleteFOSInput) error
 
 	CreateKinesis(context.Context, *fastly.CreateKinesisInput) (*fastly.Kinesis, error)
 	ListKinesis(context.Context, *fastly.ListKinesisInput) ([]*fastly.Kinesis, error)

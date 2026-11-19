@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
@@ -70,6 +70,7 @@ auth
 ai-runtime-control
 apisecurity
 audit-log
+bot-management
 compute
 config
 config-store
@@ -101,6 +102,7 @@ update
 user
 version
 whoami
+vcl
 `,
 		},
 	}
@@ -221,6 +223,52 @@ func TestExecJSONLeavesStdoutCleanAndWritesWarningToStderr(t *testing.T) {
 	}
 }
 
+func TestAuthTokenUpdateNoticeWritesToStderr(t *testing.T) {
+	origVersion := revision.AppVersion
+	origInit := app.Init
+	revision.AppVersion = "1.0.0"
+	t.Cleanup(func() {
+		revision.AppVersion = origVersion
+		app.Init = origInit
+	})
+
+	for _, testcase := range []struct {
+		name       string
+		args       string
+		latest     string
+		wantNotice bool
+	}{
+		{name: "update available", args: "auth token", latest: "1.0.1", wantNotice: true},
+		{name: "quiet", args: "auth token --quiet", latest: "1.0.1"},
+		{name: "up to date", args: "auth token", latest: "1.0.0"},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			args := testutil.SplitArgs(testcase.args)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				data := testutil.MockGlobalData(args, &stdout)
+				data.ErrOutput = &stderr
+				data.Versioners.CLI = mock.AssetVersioner{AssetVersion: testcase.latest}
+				return data, nil
+			}
+
+			if err := app.Run(args, nil); err != nil {
+				t.Fatalf("app.Run returned unexpected error: %v", err)
+			}
+			if got := stdout.String(); got != "mock-token" {
+				t.Errorf("expected only the token on stdout, got: %q", got)
+			}
+			if testcase.wantNotice {
+				if !strings.Contains(stderr.String(), "A new version of the Fastly CLI is available.") {
+					t.Errorf("expected update notice on stderr, got: %q", stderr.String())
+				}
+			} else if stderr.Len() != 0 {
+				t.Errorf("expected no stderr output, got: %q", stderr.String())
+			}
+		})
+	}
+}
+
 // TestStatsJSONSuppressesUpdateNotice verifies that --json and --format=json on
 // stats commands suppress the deferred update-check notice, keeping stdout as
 // clean JSON. This is the regression test for the timing bug where
@@ -238,10 +286,11 @@ func TestStatsJSONSuppressesUpdateNotice(t *testing.T) {
 
 	for _, flag := range []string{"--json", "--format=json"} {
 		t.Run(flag, func(t *testing.T) {
-			var stdout bytes.Buffer
+			var stdout, stderr bytes.Buffer
 			args := testutil.SplitArgs("stats aggregate " + flag)
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				data := testutil.MockGlobalData(args, &stdout)
+				data.ErrOutput = &stderr
 				data.APIClientFactory = mock.APIClient(mock.API{
 					GetAggregateJSONFn: aggregateOK,
 				})
@@ -254,6 +303,9 @@ func TestStatsJSONSuppressesUpdateNotice(t *testing.T) {
 			}
 			if strings.Contains(stdout.String(), "new version") {
 				t.Errorf("update notice should be suppressed in JSON mode, got: %s", stdout.String())
+			}
+			if strings.Contains(stderr.String(), "new version") {
+				t.Errorf("update notice should be suppressed in JSON mode, got stderr: %s", stderr.String())
 			}
 		})
 	}
@@ -307,6 +359,77 @@ func TestShortHelpFlag(t *testing.T) {
 				t.Errorf("expected usage output containing \"USAGE\", got: %s", output)
 			}
 		})
+	}
+}
+
+// TestHelpSubcommandFlags verifies that `fastly help <subcommand>` displays the command's
+// specific flags (Required / Optional flags) consistently with `<subcommand> --help`.
+func TestHelpSubcommandFlags(t *testing.T) {
+	cases := []struct {
+		name      string
+		args      string
+		wantFlags []string
+	}{
+		{
+			name:      "help service create includes optional flags",
+			args:      "help service create",
+			wantFlags: []string{"OPTIONAL FLAGS", "--comment", "--name", "--type", "GLOBAL FLAGS"},
+		},
+		{
+			name:      "help service alert create includes required and optional flags",
+			args:      "help service alert create",
+			wantFlags: []string{"REQUIRED FLAGS", "--description", "--metric", "--name", "OPTIONAL FLAGS", "GLOBAL FLAGS"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.SplitArgs(tc.args)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(args, &stdout), nil
+			}
+			err := app.Run(args, nil)
+			var output string
+			if err != nil {
+				var re errors.RemediationError
+				var se errors.SkipExitError
+				if ok := stderrors.As(err, &re); ok {
+					output = re.Prefix
+				} else if ok := stderrors.As(err, &se); ok {
+					if re, ok := se.Err.(errors.RemediationError); ok {
+						output = re.Prefix
+					}
+				}
+			}
+			output += stdout.String()
+
+			for _, want := range tc.wantFlags {
+				if !strings.Contains(output, want) {
+					t.Errorf("expected %q in output for %q, got:\n%s", want, tc.args, output)
+				}
+			}
+		})
+	}
+}
+
+// TestTokenExemptCommandWithArgs checks that a token-exempt command still runs without a token when it takes positional arguments.
+func TestTokenExemptCommandWithArgs(t *testing.T) {
+	var stdout bytes.Buffer
+
+	args := testutil.SplitArgs("vcl check -i recv.vcl")
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		data := testutil.MockGlobalData(args, &stdout)
+		data.Config.Auth.Default = ""
+		data.Config.Auth.Tokens = nil
+		return data, nil
+	}
+	err := app.Run(args, nil)
+	if err == nil {
+		t.Fatal("expected an error for the missing recv.vcl file")
+	}
+	if strings.Contains(err.Error(), "no token provided") {
+		t.Fatalf("vcl check should not require a token, got: %v", err)
 	}
 }
 

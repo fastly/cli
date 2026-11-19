@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: "Generate a GitHub token"
         id: github-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
@@ -26,7 +26,7 @@ jobs:
             homebrew-tap
           permission-contents: write
       - name: "Download Homebrew formula artifact"
-        uses: dawidd6/action-download-artifact@eab87c9830c39eff17e5a6eadb20bfb4bc880477 # v27
+        uses: dawidd6/action-download-artifact@a92c7ae74cf1df8810783758581e485ac3aaa309 # v28
         with:
           workflow: tag_to_draft_release.yml
           name: homebrew-formula-${{ github.event.release.tag_name }}

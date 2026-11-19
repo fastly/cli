@@ -11,8 +11,8 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/airuntimecontrol/provider"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/provider"
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/providerconnection"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/provider"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/providerconnection"
 )
 
 func TestProviderList(t *testing.T) {

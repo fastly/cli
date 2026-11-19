@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	"github.com/fastly/kingpin"
 
@@ -263,7 +263,7 @@ func Exec(data *global.Data) error {
 	// NOTE: Some commands need just the auth server to be running
 	// but not necessarily need to process an existing token.
 	needsAuthServer := commandRequiresAuthServer(commandName, data.Args)
-	if !commandRequiresToken(command) && needsAuthServer {
+	if !commandRequiresToken(command, commandName) && needsAuthServer {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
 		if data.AuthServer == nil {
@@ -278,7 +278,7 @@ func Exec(data *global.Data) error {
 		}
 	}
 
-	if commandRequiresToken(command) {
+	if commandRequiresToken(command, commandName) {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
 		if data.AuthServer == nil {
@@ -336,7 +336,9 @@ func Exec(data *global.Data) error {
 	f := checkForUpdates(data.Versioners.CLI, commandName)
 	defer func() {
 		if !data.Flags.Quiet && !data.Flags.JSON {
-			f(data.Output)
+			// always write update notification to stderr so it doesn't corrupt
+			// `fastly auth token` which might be piped or used in a command
+			f(data.ErrOutput)
 		}
 	}()
 
@@ -757,8 +759,7 @@ func commandRequiresAuthServer(command string, args []string) bool {
 
 // commandRequiresToken determines if the command to be executed is one that
 // requires an API token.
-func commandRequiresToken(command argparser.Command) bool {
-	commandName := command.Name()
+func commandRequiresToken(command argparser.Command, commandName string) bool {
 	switch commandName {
 	case "compute init":
 		if initCmd, ok := command.(*compute.InitCommand); ok {
@@ -766,6 +767,8 @@ func commandRequiresToken(command argparser.Command) bool {
 		}
 		return false
 	case "compute build", "compute hash-files", "compute install-tools", "compute metadata", "compute pack", "compute serve", "compute validate":
+		return false
+	case "vcl check", "vcl run", "vcl serve":
 		return false
 	}
 	commandName = strings.Split(commandName, " ")[0]

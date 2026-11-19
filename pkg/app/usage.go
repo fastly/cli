@@ -210,11 +210,22 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{if .Context.SelectedCommand -}}
 {{T "USAGE"|Bold}}
   {{.App.Name}} {{.App.FlagSummary}} {{.Context.SelectedCommand.CmdSummary}}
+{{if .Context.SelectedCommand.Help}}
+{{.Context.SelectedCommand.Help|Wrap 0}}
+{{end -}}
 {{else}}
 {{- T "USAGE"|Bold}}
   {{template "FormatUsage" .App -}}
 {{end -}}
-{{if .Context.Flags|GlobalFlags }}
+{{if .Context.Flags|RequiredFlags -}}
+{{T "REQUIRED FLAGS"|Bold}}
+{{.Context.Flags|RequiredFlags|FlagsToTwoColumns|FormatTwoColumns}}
+{{end -}}
+{{if .Context.Flags|OptionalFlags -}}
+{{T "OPTIONAL FLAGS"|Bold}}
+{{.Context.Flags|OptionalFlags|FlagsToTwoColumns|FormatTwoColumns}}
+{{end -}}
+{{if .Context.Flags|GlobalFlags -}}
 {{T "GLOBAL FLAGS"|Bold}}
 {{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}
 {{end -}}
@@ -637,6 +648,12 @@ func displayHelp(
 		if err != nil {
 			errLog.Add(err)
 			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
+
+			// Surface any remediation from a flag or argument Action, which
+			// would otherwise be lost as only Inner.Error() gets printed.
+			if re, ok := errors.AsType[fsterr.RemediationError](err); ok {
+				remediation.Remediation = re.Remediation
+			}
 		}
 		return remediation
 	}

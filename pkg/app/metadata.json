@@ -722,6 +722,33 @@
         ]
       }
     },
+    "fos": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#create-log-fos"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#delete-log-fos"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#get-log-fos"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#list-log-fos"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/logging/fos#update-log-fos"
+        ]
+      }
+    },
     "ftp": {
       "create": {
         "apis": [
@@ -4305,6 +4332,62 @@
       "list-scope-types": {
         "apis": [
           "https://www.fastly.com/documentation/reference/api/observability/notifications/event-mappings/#get-event-mapping-scope-types"
+        ]
+      }
+    }
+  },
+  "bot-management": {
+    "workspace": {
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-list-workspaces"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-get-workspace"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-workspace"
+        ]
+      }
+    },
+    "category": {
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-list-categories"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-get-category",
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-list-category-bots"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-category",
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-category-bots"
+        ]
+      }
+    },
+    "bot": {
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-list-bots",
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-list-category-bots"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-get-bot"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/bot-management/#bot-management-update-bot"
         ]
       }
     }

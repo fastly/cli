@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v17/fastly/airuntimecontrol/v1/key"
+	"github.com/fastly/go-fastly/v19/fastly/airuntimecontrol/v1/key"
 )
 
 // PrintVirtualKeyWithToken displays a virtual key including its access token.

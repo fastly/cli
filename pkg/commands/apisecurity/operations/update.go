@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v17/fastly"
-	"github.com/fastly/go-fastly/v17/fastly/apisecurity/operations"
+	"github.com/fastly/go-fastly/v19/fastly"
+	"github.com/fastly/go-fastly/v19/fastly/apisecurity/operations"
 
 	"github.com/fastly/kingpin"
 
@@ -133,7 +133,7 @@ func (c *UpdateCommand) constructInput(serviceID string) *operations.UpdateInput
 	}
 
 	if c.tagIDs.WasSet {
-		input.TagIDs = c.tagIDs.Value
+		input.TagIDs = &c.tagIDs.Value
 	}
 
 	return input

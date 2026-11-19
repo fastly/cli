@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v17/fastly"
+	"github.com/fastly/go-fastly/v19/fastly"
 
 	"4d63.com/optional"
 
@@ -41,7 +41,7 @@ func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageComm
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
+		Description: argparser.FlagVersionDraftDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})

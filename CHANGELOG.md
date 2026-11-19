@@ -6,11 +6,91 @@
 
 ### Bug Fixes:
 
-- fix(ai-runtime-control): update AI Runtime Control command descriptions to reflect the latest API references ([#1939](https://github.com/fastly/cli/pull/1939))
+- fix(service-version): describe `--version` as draft-only in `stage` and `unstage` help ([#1320](https://github.com/fastly/cli/issues/1320))
+- fix(auth): ensure `fastly auth token` output is not corrupted by a version update notice written to stdout ([#1971](https://github.com/fastly/cli/pull/1971))
 
 ### Enhancements:
 
 ### Dependencies:
+
+## [v17.2.0](https://github.com/fastly/cli/releases/tag/v17.2.0) (2026-11-17)
+
+### Bug Fixes:
+
+- fix(help): show command flags in `fastly help <subcommand>` matching `--help` ([#1972](https://github.com/fastly/cli/pull/1972))
+- fix(app): no token needed for exempt commands that take arguments ([#1979](https://github.com/fastly/cli/pull/1979))
+
+### Enhancements:
+
+- feat(vcl): add `vcl check`, `vcl run`, and `vcl serve` to compile and test VCL code ([#1964](https://github.com/fastly/cli/pull/1964))
+- feat(bot-management): add `bot-management` commands for managing workspaces, bot categories, and bots. ([#1922](https://github.com/fastly/cli/pull/1922))
+- feat(logging/fos): add `service logging fos` commands for Fastly Object Storage logging endpoints ([#1980](https://github.com/fastly/cli/pull/1980))
+
+### Dependencies:
+
+- build(deps): `golang.org/x/sys` from 0.49.0 to 0.50.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `golang.org/x/term` from 0.47.0 to 0.48.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `golang.org/x/mod` from 0.42.0 to 0.43.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/go-jose/go-jose/v4` from 4.1.6 to 4.1.9 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/minio/minlz` from 1.2.3 to 1.2.4 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.4.5 to 2.4.6 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/andybalholm/brotli` from 1.2.7 to 1.2.8 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/klauspost/compress` from 1.20.3 to 1.20.4 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `golang.org/x/oauth2` from 0.37.0 to 0.38.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `golang.org/x/text` from 0.43.0 to 0.44.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/fastly/go-fastly/v19` from 19.2.0 to 19.3.0 ([#1973](https://github.com/fastly/cli/pull/1973))
+- build(deps): `github.com/fastly/go-fastly/v19` from 19.3.0 to 19.3.1 ([#1981](https://github.com/fastly/cli/pull/1981))
+
+## [v17.1.0](https://github.com/fastly/cli/releases/tag/v17.1.0) (2026-11-12)
+
+### Bug Fixes:
+
+- fix(compute/serve): provide default `override_host` to Viceroy via temporary manifest and handle IPv6 hostnames ([#1940](https://github.com/fastly/cli/pull/1940))
+
+### Enhancements:
+
+- feat(service/backend): Add support for IAM authentication ([#1963](https://github.com/fastly/cli/pull/1963))
+
+### Dependencies:
+
+- build(deps): `github.com/fastly/go-fastly` from v18.1.0 to v19.0.0
+- build(deps): `github.com/fastly/go-fastly` from v19.0.0 to v19.1.0 ([#1963](https://github.com/fastly/cli/pull/1963))
+- build(deps): `github.com/hashicorp/cap` from 0.14.0 to 0.15.0 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `github.com/go-jose/go-jose/v4` from 4.1.4 to 4.1.6 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `golang.org/x/sync` from 0.24.0 to 0.25.0 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `github.com/fastly/go-fastly/v19` from 19.1.0 to 19.2.0 ([#1968](https://github.com/fastly/cli/pull/1968))
+- build(deps): `github.com/fastly/go-fastly` from v19.0.0 to v19.1.0 ([#1963](https://github.com/fastly/cli/pull/1963))
+
+## [v17.0.0](https://github.com/fastly/cli/releases/tag/v17.0.0) (2026-10-26)
+
+### Breaking:
+
+- breaking(ai-runtime-control): `key create` no longer accepts the `--user-id` flag, as it was removed from the API ([#1949](https://github.com/fastly/cli/pull/1949))
+- breaking(json): `--json` output for `ai-runtime-control usage-metrics list`, `ngwaf workspace list`, `ngwaf rule list` and `ngwaf workspace rule list` is now a bare array instead of an object with `data` and `meta` ([#1949](https://github.com/fastly/cli/pull/1949))
+
+### Bug Fixes:
+
+- fix(ai-runtime-control): update AI Runtime Control command descriptions to reflect the latest API references ([#1939](https://github.com/fastly/cli/pull/1939))
+
+### Enhancements:
+
+- feat(ngwaf): add `--autoEnableNewVirtualPatches` flag to `ngwaf workspace create` and `ngwaf workspace update` for Automated Virtual Patching, and show it in `ngwaf workspace get` ([#1953](https://github.com/fastly/cli/pull/1953))
+
+### Dependencies:
+
+- build(deps): `github.com/fastly/go-fastly` from v17.8.0 to v18.0.0 ([#1949](https://github.com/fastly/cli/pull/1949))
+- build(deps): `golang.org/x/term` from 0.46.0 to 0.47.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/crypto` from 0.57.0 to 0.58.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/mod` from 0.41.0 to 0.42.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.4.2 to 2.4.5 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/klauspost/compress` from 1.20.1 to 1.20.3 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/klauspost/pgzip` from 1.2.7 to 1.3.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.30 to 0.0.31 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/net` from 0.59.0 to 0.60.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `golang.org/x/text` from 0.42.0 to 0.43.0 ([#1944](https://github.com/fastly/cli/pull/1944))
+- build(deps): `github.com/minio/minlz` from 1.2.2 to 1.2.3 ([#1951](https://github.com/fastly/cli/pull/1951))
+- build(deps): `golang.org/x/net` from 0.60.0 to 0.61.0 ([#1951](https://github.com/fastly/cli/pull/1951))
+- build(deps): `github.com/fastly/go-fastly/v18` from 18.0.0 to 18.1.0 ([#1951](https://github.com/fastly/cli/pull/1951))
 
 ## [v16.2.0](https://github.com/fastly/cli/releases/tag/v16.2.0) (2026-10-15)
 

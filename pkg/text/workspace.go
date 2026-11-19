@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/workspaces"
+	"github.com/fastly/go-fastly/v19/fastly/ngwaf/v1/workspaces"
 )
 
 // PrintWorkspace displays a workspace.
@@ -31,6 +31,9 @@ func PrintWorkspace(out io.Writer, workspaceToPrint *workspaces.Workspace) {
 	}
 	if workspaceToPrint.IPAnonymization != "" {
 		fmt.Fprintf(out, "IP Anonymization: %s\n", workspaceToPrint.IPAnonymization)
+	}
+	if workspaceToPrint.AutoEnableNewVirtualPatches != nil {
+		fmt.Fprintf(out, "Auto Enable New Virtual Patches: %t\n", *workspaceToPrint.AutoEnableNewVirtualPatches)
 	}
 	fmt.Fprintf(out, "Updated (UTC): %s\n", workspaceToPrint.UpdatedAt.UTC().Format(time.Format))
 }
