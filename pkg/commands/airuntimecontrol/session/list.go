@@ -26,7 +26,6 @@ type ListCommand struct {
 	model    argparser.OptionalString
 	from     time.Time
 	to       time.Time
-	limit    int
 	sort     argparser.OptionalString
 }
 
@@ -45,8 +44,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause.Flag("model", "Filter by AI model identifier").Action(c.model.Set).StringVar(&c.model.Value)
 	c.CmdClause.Flag("from", "Start of the time range (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.from)
 	c.CmdClause.Flag("to", "End of the time range (RFC 3339 format). Defaults to now").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.to)
-	c.RegisterFlagBool(c.JSONFlag())                 // --json
-	c.RegisterFlagInt(argparser.LimitFlag(&c.limit)) // --limit
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("sort", "Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")").Default("created_at").Action(c.sort.Set).StringVar(&c.sort.Value)
 
 	return &c
@@ -63,9 +61,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	input := &session.ListInput{
-		Limit: &c.limit,
-	}
+	input := &session.ListInput{}
 	if c.key.WasSet {
 		input.Key = &c.key.Value
 	}

@@ -267,9 +267,13 @@ func Define( // nolint:revive // function-length
 	arcKeyList := arckey.NewListCommand(arcKeyRoot.CmdClause, data)
 	arcKeyRotate := arckey.NewRotateCommand(arcKeyRoot.CmdClause, data)
 	arcKeyUpdate := arckey.NewUpdateCommand(arcKeyRoot.CmdClause, data)
+	arcKeyGetFailoverPolicy := arckey.NewGetFailoverPolicyCommand(arcKeyRoot.CmdClause, data)
+	arcKeyUpdateFailoverPolicy := arckey.NewUpdateFailoverPolicyCommand(arcKeyRoot.CmdClause, data)
 	arcProviderRoot := arcprovider.NewRootCommand(arcRoot.CmdClause, data)
 	arcProviderList := arcprovider.NewListCommand(arcProviderRoot.CmdClause, data)
 	arcProviderListModels := arcprovider.NewListModelsCommand(arcProviderRoot.CmdClause, data)
+	arcProviderGetBedrockSetup := arcprovider.NewGetBedrockSetupCommand(arcProviderRoot.CmdClause, data)
+	arcProviderGetVertexSetup := arcprovider.NewGetVertexSetupCommand(arcProviderRoot.CmdClause, data)
 	arcProviderConnectionRoot := arcproviderconnection.NewRootCommand(arcRoot.CmdClause, data)
 	arcProviderConnectionCreate := arcproviderconnection.NewCreateCommand(arcProviderConnectionRoot.CmdClause, data)
 	arcProviderConnectionDelete := arcproviderconnection.NewDeleteCommand(arcProviderConnectionRoot.CmdClause, data)
@@ -1284,9 +1288,13 @@ func Define( // nolint:revive // function-length
 		arcKeyList,
 		arcKeyRotate,
 		arcKeyUpdate,
+		arcKeyGetFailoverPolicy,
+		arcKeyUpdateFailoverPolicy,
 		arcProviderRoot,
 		arcProviderList,
 		arcProviderListModels,
+		arcProviderGetBedrockSetup,
+		arcProviderGetVertexSetup,
 		arcProviderConnectionRoot,
 		arcProviderConnectionCreate,
 		arcProviderConnectionDelete,
