@@ -4,6 +4,8 @@
 
 ### Breaking:
 
+- breaking(ai-runtime-control): add AI firewall support and remove `--limit` from `list` and `export` commands ([#1943](https://github.com/fastly/cli/pull/1943))
+
 ### Bug Fixes:
 
 - fix(service-version): describe `--version` as draft-only in `stage` and `unstage` help ([#1320](https://github.com/fastly/cli/issues/1320))
