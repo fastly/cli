@@ -56,7 +56,7 @@ func fakeFiddle(t *testing.T) *httptest.Server {
 		fmt.Fprint(w, `{"fiddle":{"id":"cafe0123","srcVersion":0},"valid":true,"lintStatus":{"recv":[]}}`)
 	})
 	mux.HandleFunc("PUT /fiddle/{id}", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprint(w, `{"fiddle":{"id":"cafe0123","srcVersion":1},"valid":false,"lintStatus":{"recv":[{"level":"error","line":0,"message":"boom"}]}}`)
+		fmt.Fprint(w, `{"fiddle":{"id":"cafe0123","srcVersion":1},"valid":false,"lintStatus":{"init":true,"recv":[{"level":"error","line":1,"message":"boom"}]}}`)
 	})
 	mux.HandleFunc("POST /fiddle/{id}/execute", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprint(w, `{"sessionID":"feedbeef00"}`)
