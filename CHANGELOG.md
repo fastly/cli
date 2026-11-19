@@ -6,6 +6,7 @@
 
 ### Bug Fixes:
 
+- fix(filesystem): report the destination path in the non-regular destination file copy error
 - fix(service-version): describe `--version` as draft-only in `stage` and `unstage` help ([#1320](https://github.com/fastly/cli/issues/1320))
 - fix(auth): ensure `fastly auth token` output is not corrupted by a version update notice written to stdout ([#1971](https://github.com/fastly/cli/pull/1971))
 
