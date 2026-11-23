@@ -30,8 +30,20 @@ jobs:
           ref: main
           persist-credentials: false
 
+      # We use a sparse-checkout here in order to run the ingestion PR action,
+      # as zizmor cannot audit an action on a private repo from a public repo.
+      - name: Check out the data-ingestion action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: fastly/customer-documentation
+          ref: data-ingestion/secondary-repo-action
+          token: ${{ steps.github-token.outputs.token }}
+          path: .data-ingestion-action
+          sparse-checkout: .github/actions/data-ingestion
+          persist-credentials: false
+
       - name: Contribute the changelog and usage data to customer-documentation
-        uses: fastly/customer-documentation/.github/actions/data-ingestion@data-ingestion/secondary-repo-action
+        uses: ./.data-ingestion-action/.github/actions/data-ingestion
         with:
           name: cli
           prepare: |
