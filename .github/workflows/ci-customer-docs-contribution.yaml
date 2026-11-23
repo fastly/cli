@@ -43,7 +43,7 @@ jobs:
           persist-credentials: false
 
       - name: Contribute the changelog and usage data to customer-documentation
-        uses: ./.data-ingestion-action/.github/actions/data-ingestion
+        uses: ./.data-ingestion-action/.github/actions/data-ingestion # zizmor: ignore[self-repository] this is the checkout above, not a path in this repository
         with:
           name: cli
           prepare: |
