@@ -1,0 +1,55 @@
+name: Contribute the changelog and usage data to customer-documentation
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contribute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub token
+        id: github-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: customer-documentation
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Check out this repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      # We use a sparse-checkout here in order to run the ingestion PR action,
+      # as zizmor cannot audit an action on a private repo from a public repo.
+      - name: Check out the data-ingestion action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: fastly/customer-documentation
+          ref: data-ingestion/secondary-repo-action
+          token: ${{ steps.github-token.outputs.token }}
+          path: .data-ingestion-action
+          sparse-checkout: .github/actions/data-ingestion
+          persist-credentials: false
+
+      - name: Contribute the changelog and usage data to customer-documentation
+        uses: ./.data-ingestion-action/.github/actions/data-ingestion # zizmor: ignore[self-repository] this is the checkout above, not a path in this repository
+        with:
+          name: cli
+          prepare: |
+            curl --fail --silent --show-error --location --output usage.json https://github.com/fastly/cli/releases/latest/download/usage.json
+          paths: |
+            CHANGELOG.md
+            usage.json
+          base: data-ingestion/secondary-repo-action
+          token: ${{ steps.github-token.outputs.token }}
