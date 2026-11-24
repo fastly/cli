@@ -12,6 +12,7 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `golang.org/x/crypto` from 0.58.0 to 0.59.0 ([#1987](https://github.com/fastly/cli/pull/1987))
 
 ## [v17.2.0](https://github.com/fastly/cli/releases/tag/v17.2.0) (2026-11-17)
 
