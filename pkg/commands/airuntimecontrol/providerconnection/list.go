@@ -20,7 +20,8 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	// Optional.
-	sort argparser.OptionalString
+	includeDeleted argparser.OptionalBool
+	sort           argparser.OptionalString
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -33,6 +34,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List provider connections")
 
 	// Optional.
+	c.CmdClause.Flag("include-deleted", "Include deleted provider connections").Action(c.includeDeleted.Set).BoolVar(&c.includeDeleted.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("sort", "Sort field. Prefix with '-' for descending order (e.g. \"-created_at\")").Default("created_at").Action(c.sort.Set).StringVar(&c.sort.Value)
 
@@ -51,6 +53,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &providerconnection.ListInput{}
+	if c.includeDeleted.WasSet {
+		input.IncludeDeleted = &c.includeDeleted.Value
+	}
 	if c.sort.WasSet {
 		input.Sort = &c.sort.Value
 	}

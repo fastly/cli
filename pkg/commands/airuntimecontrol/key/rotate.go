@@ -21,7 +21,9 @@ type RotateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	keyID     string
+	keyID string
+
+	// Optional.
 	expiresAt time.Time
 }
 
@@ -36,9 +38,9 @@ func NewRotateCommand(parent argparser.Registerer, g *global.Data) *RotateComman
 
 	// Required.
 	c.CmdClause.Flag("key-id", "Alphanumeric string identifying the virtual key").Required().StringVar(&c.keyID)
-	c.CmdClause.Flag("expires-at", "Expiration timestamp for the rotated key (RFC 3339 format)").HintOptions("2026-07-28T19:24:50+00:00").Required().TimeVar(time.RFC3339, &c.expiresAt)
 
 	// Optional.
+	c.CmdClause.Flag("expires-at", "Expiration timestamp for the rotated key (RFC 3339 format). If not set, the key's existing expiration is cleared").HintOptions("2026-07-28T19:24:50+00:00").TimeVar(time.RFC3339, &c.expiresAt)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -55,10 +57,14 @@ func (c *RotateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := key.Rotate(context.TODO(), fc, &key.RotateInput{
-		KeyID:     &c.keyID,
-		ExpiresAt: &c.expiresAt,
-	})
+	input := &key.RotateInput{
+		KeyID: &c.keyID,
+	}
+	if !c.expiresAt.IsZero() {
+		input.ExpiresAt = &c.expiresAt
+	}
+
+	data, err := key.Rotate(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
