@@ -13,6 +13,9 @@
 
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.58.0 to 0.59.0 ([#1987](https://github.com/fastly/cli/pull/1987))
+- build(deps): `github.com/hashicorp/cap` from 0.15.0 to 0.16.0 ([#1991](https://github.com/fastly/cli/pull/1991))
+- build(deps): `github.com/minio/minlz` from 1.2.4 to 1.3.0 ([#1991](https://github.com/fastly/cli/pull/1991))
+- build(deps): `golang.org/x/net` from 0.62.0 to 0.63.0 ([#1991](https://github.com/fastly/cli/pull/1991))
 
 ## [v17.2.0](https://github.com/fastly/cli/releases/tag/v17.2.0) (2026-11-17)
 
