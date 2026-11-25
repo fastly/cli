@@ -4,6 +4,7 @@
 //
 //   - VCL is sent as "vcl" but comes back as "src".
 //   - "valid" means "it compiles" after a create or update, but "it ran at least once" on a GET.
+//   - When the VCL doesn't compile, subroutines with no errors get true instead of an empty list.
 //   - Results come over a server-sent events stream whose sessions expire quickly, and a new fiddle can take up to two minutes to reach the edge.
 package fiddle
 
@@ -81,6 +82,17 @@ type Diagnostic struct {
 	Message string `json:"message"`
 }
 
+// Diagnostics is the list of compiler messages about one subroutine.
+type Diagnostics []Diagnostic
+
+func (d *Diagnostics) UnmarshalJSON(data []byte) error {
+	if string(data) == "true" {
+		*d = nil
+		return nil
+	}
+	return json.Unmarshal(data, (*[]Diagnostic)(d))
+}
+
 // SavedFiddle is what Create and Update return.
 type SavedFiddle struct {
 	ID         string
@@ -88,7 +100,7 @@ type SavedFiddle struct {
 	// Valid reports whether the VCL compiled.
 	Valid bool
 	// LintStatus is keyed by subroutine name.
-	LintStatus map[string][]Diagnostic
+	LintStatus map[string]Diagnostics
 }
 
 type envelope struct {
@@ -96,8 +108,8 @@ type envelope struct {
 		ID         string `json:"id"`
 		SrcVersion int    `json:"srcVersion"`
 	} `json:"fiddle"`
-	Valid      bool                    `json:"valid"`
-	LintStatus map[string][]Diagnostic `json:"lintStatus"`
+	Valid      bool                   `json:"valid"`
+	LintStatus map[string]Diagnostics `json:"lintStatus"`
 }
 
 // Client talks to a Fiddle service.

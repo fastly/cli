@@ -190,7 +190,7 @@ type compileResult struct {
 }
 
 // flattenDiagnostics turns a lint report into a sorted list, with the file each message is about.
-func flattenDiagnostics(lint map[string][]fiddle.Diagnostic, sources vclSources) []diagnostic {
+func flattenDiagnostics(lint map[string]fiddle.Diagnostics, sources vclSources) []diagnostic {
 	var out []diagnostic
 	slots := make([]string, 0, len(lint))
 	for slot := range lint {
@@ -202,7 +202,7 @@ func flattenDiagnostics(lint map[string][]fiddle.Diagnostic, sources vclSources)
 			out = append(out, diagnostic{
 				Subroutine: slot,
 				File:       sources[slot],
-				Line:       d.Line + 1,
+				Line:       d.Line,
 				Level:      d.Level,
 				Message:    d.Message,
 				Excerpt:    d.Str,

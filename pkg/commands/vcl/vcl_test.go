@@ -17,7 +17,7 @@ func fakeSandbox(t *testing.T, valid bool) *httptest.Server {
 	t.Helper()
 	saved := `{"fiddle":{"id":"cafe0123"},"valid":true}`
 	if !valid {
-		saved = `{"fiddle":{"id":"cafe0123"},"valid":false,"lintStatus":{"recv":[{"level":"error","line":0,"str":"req.bogus","message":"Unknown variable"}]}}`
+		saved = `{"fiddle":{"id":"cafe0123"},"valid":false,"lintStatus":{"recv":[{"level":"error","line":1,"str":"req.bogus","message":"Unknown variable"}]}}`
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /fiddle", func(w http.ResponseWriter, _ *http.Request) {
@@ -102,10 +102,10 @@ func TestVCLCheck(t *testing.T) {
 			WantOutput: recv + ":1: error: Unknown variable",
 		},
 		{
-			Name:       "compile failure in json",
-			Args:       recv + " --json --sandbox-endpoint " + invalid.URL,
-			WantError:  "the VCL failed to compile",
-			WantOutput: `"valid": false`,
+			Name:        "compile failure in json",
+			Args:        recv + " --json --sandbox-endpoint " + invalid.URL,
+			WantError:   "the VCL failed to compile",
+			WantOutputs: []string{`"valid": false`, `"message": "Unknown variable"`},
 		},
 	})
 }
