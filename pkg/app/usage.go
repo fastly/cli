@@ -97,10 +97,6 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{T "OPTIONAL FLAGS"|Bold}}
 {{.Context.Flags|OptionalFlags|FlagsToTwoColumns|FormatTwoColumns}}
 {{end -}}
-{{if .Context.Flags|GlobalFlags -}}
-{{T "GLOBAL FLAGS"|Bold}}
-{{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}
-{{end -}}
 {{if .Context.Args -}}
 {{T "ARGS"|Bold}}
 {{.Context.Args|ArgsToTwoColumns|FormatTwoColumns}}
@@ -114,6 +110,10 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{else if .App.Commands -}}
 {{T "COMMANDS"|Bold}}
 {{.App.Commands|CommandsToTwoColumns|FormatTwoColumns}}
+{{end -}}
+{{if .Context.Flags|GlobalFlags -}}
+{{T "GLOBAL FLAGS"|Bold}}
+{{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}
 {{end -}}
 ` + authGuideTemplate + `
 {{T "SEE ALSO"|Bold}}
@@ -225,10 +225,6 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{T "OPTIONAL FLAGS"|Bold}}
 {{.Context.Flags|OptionalFlags|FlagsToTwoColumns|FormatTwoColumns}}
 {{end -}}
-{{if .Context.Flags|GlobalFlags -}}
-{{T "GLOBAL FLAGS"|Bold}}
-{{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}
-{{end -}}
 {{if .Context.Args -}}
 {{T "ARGS"|Bold}}
 {{.Context.Args|ArgsToTwoColumns|FormatTwoColumns}}
@@ -241,6 +237,10 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{else if .App.Commands -}}
 {{T "COMMANDS"|Bold -}}
   {{template "FormatCommands" .App}}
+{{end -}}
+{{if .Context.Flags|GlobalFlags -}}
+{{T "GLOBAL FLAGS"|Bold}}
+{{.Context.Flags|GlobalFlags|FlagsToTwoColumns|FormatTwoColumns}}
 {{end -}}
 ` + authGuideTemplate + `
 {{T "SEE ALSO"|Bold}}

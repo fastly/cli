@@ -413,6 +413,73 @@ func TestHelpSubcommandFlags(t *testing.T) {
 	}
 }
 
+// TestHelpSectionOrder verifies that GLOBAL FLAGS is always the last section
+// before SEE ALSO, whether the command has subcommands or only flags.
+func TestHelpSectionOrder(t *testing.T) {
+	cases := []struct {
+		name   string
+		args   string
+		before []string
+	}{
+		{
+			name:   "parent command --help lists commands before global flags",
+			args:   "service --help",
+			before: []string{"COMMANDS"},
+		},
+		{
+			name:   "leaf command --help lists optional flags before global flags",
+			args:   "service create --help",
+			before: []string{"OPTIONAL FLAGS"},
+		},
+		{
+			name:   "verbose help for parent command lists subcommands before global flags",
+			args:   "help service",
+			before: []string{"SUBCOMMANDS"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.SplitArgs(tc.args)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(args, &stdout), nil
+			}
+			err := app.Run(args, nil)
+			var output string
+			if err != nil {
+				var re errors.RemediationError
+				var se errors.SkipExitError
+				if ok := stderrors.As(err, &re); ok {
+					output = re.Prefix
+				} else if ok := stderrors.As(err, &se); ok {
+					if re, ok := se.Err.(errors.RemediationError); ok {
+						output = re.Prefix
+					}
+				}
+			}
+			output += stdout.String()
+
+			globalIdx := strings.Index(output, "GLOBAL FLAGS")
+			if globalIdx == -1 {
+				t.Fatalf("expected \"GLOBAL FLAGS\" in output for %q, got:\n%s", tc.args, output)
+			}
+			for _, section := range tc.before {
+				idx := strings.Index(output, section)
+				if idx == -1 {
+					t.Fatalf("expected %q in output for %q, got:\n%s", section, tc.args, output)
+				}
+				if idx > globalIdx {
+					t.Errorf("expected %q before \"GLOBAL FLAGS\" for %q, got:\n%s", section, tc.args, output)
+				}
+			}
+			if seeAlso := strings.Index(output, "SEE ALSO"); seeAlso != -1 && seeAlso < globalIdx {
+				t.Errorf("expected \"GLOBAL FLAGS\" before \"SEE ALSO\" for %q, got:\n%s", tc.args, output)
+			}
+		})
+	}
+}
+
 // TestTokenExemptCommandWithArgs checks that a token-exempt command still runs without a token when it takes positional arguments.
 func TestTokenExemptCommandWithArgs(t *testing.T) {
 	var stdout bytes.Buffer
